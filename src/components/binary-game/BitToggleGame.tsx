@@ -10,8 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import * as BitUtils from '@/lib/BitUtils';
+import { useToast } from "@/hooks/use-toast";
 
-const INITIAL_TIMER_SECONDS = 60;
+const MAX_TURNS = 10;
+const INITIAL_CONVERTER_TIMER_SECONDS = 60; // For non-game mode, if ever used.
 
 export default function BitToggleGame() {
   const [bitCount, setBitCount] = useState<8 | 16>(8);
@@ -21,14 +23,21 @@ export default function BitToggleGame() {
   const [decimalValue, setDecimalValue] = useState(0);
   const [hexValue, setHexValue] = useState("0x00");
 
+  // Game State
   const [gameMode, setGameMode] = useState(false);
+  const [turn, setTurn] = useState(1);
+  const [score, setScore] = useState(0); // Total score
   const [targetDecimal, setTargetDecimal] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(INITIAL_TIMER_SECONDS);
+  const [timeLeft, setTimeLeft] = useState(INITIAL_CONVERTER_TIMER_SECONDS);
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [currentChallengeMaxTime, setCurrentChallengeMaxTime] = useState(INITIAL_CONVERTER_TIMER_SECONDS);
+
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [isChallengeActive, setIsChallengeActive] = useState(false);
+
+  const { toast } = useToast();
 
   const resetBits = useCallback((count: 8 | 16) => {
     setBits(Array(count).fill(0));
@@ -42,29 +51,38 @@ export default function BitToggleGame() {
     setHexValue(BitUtils.decimalToHex(currentDecimalValue, bitCount));
   }, [bits, bitCount]);
 
-  const handleToggleBit = (index: number) => {
-    if (!isChallengeActive && gameMode) return;
-
-    setFeedbackMessage(null);
-    setIsCorrect(null);
-    const updatedBits = [...bits];
-    updatedBits[index] = updatedBits[index] === 0 ? 1 : 0;
-    setBits(updatedBits);
+  const getTimeForTurn = (currentTurn: number): number => {
+    return Math.max(60 - (currentTurn - 1) * 5, 15);
   };
 
-  const handleBitCountChange = (newBitCount: 8 | 16) => {
-    setBitCount(newBitCount);
-    resetBits(newBitCount);
-    if (gameMode) {
-      startNewChallenge(newBitCount);
+  const getTargetForTurn = (currentTurn: number): number => {
+    let maxTarget: number;
+    if (currentTurn <= 3) maxTarget = 50;
+    else if (currentTurn <= 6) maxTarget = 150;
+    else maxTarget = 255;
+    return Math.floor(Math.random() * (maxTarget + 1));
+  };
+
+  const startNewTurnLogic = useCallback((currentTurn: number, currentFixedBitCount: 8) => {
+    if (currentTurn > MAX_TURNS) {
+      setIsGameOver(true);
+      setIsChallengeActive(false);
+      if (timerId) clearInterval(timerId);
+      setTimerId(null);
+      setFeedbackMessage(`Game Over! Final Score: ${score} / ${MAX_TURNS * 100}`);
+      return;
     }
-  };
 
-  const startNewChallenge = useCallback((currentBitCount: 8 | 16) => {
-    resetBits(currentBitCount);
-    const newTarget = BitUtils.generateRandomDecimal(currentBitCount);
+    setBitCount(currentFixedBitCount); // Ensure game is 8-bit
+    resetBits(currentFixedBitCount);
+    
+    const newTarget = getTargetForTurn(currentTurn);
     setTargetDecimal(newTarget);
-    setTimeLeft(INITIAL_TIMER_SECONDS);
+    
+    const timeForThisTurn = getTimeForTurn(currentTurn);
+    setTimeLeft(timeForThisTurn);
+    setCurrentChallengeMaxTime(timeForThisTurn);
+    
     setFeedbackMessage(null);
     setIsCorrect(null);
     setIsChallengeActive(true);
@@ -75,52 +93,108 @@ export default function BitToggleGame() {
         if (prevTime <= 1) {
           clearInterval(newTimerId);
           setIsChallengeActive(false);
-          setFeedbackMessage("Time's up! Try the next challenge.");
+          setFeedbackMessage(`Time's up! Target was ${newTarget} (${BitUtils.decimalToBinary(newTarget, currentFixedBitCount)}). +0 points. Your score: ${score}`);
           setIsCorrect(false);
+          setTurn(turn => turn + 1); // Auto-advance on timeout
           return 0;
         }
         return prevTime - 1;
       });
     }, 1000);
     setTimerId(newTimerId);
-  }, [resetBits, timerId]);
-  
+  }, [resetBits, timerId, score]); // Added score to deps for feedback message
 
   const handleGameModeToggle = (checked: boolean) => {
     setGameMode(checked);
     if (checked) {
+      setTurn(1);
       setScore(0);
-      startNewChallenge(bitCount);
+      setIsGameOver(false);
+      setFeedbackMessage(null);
+      setIsCorrect(null);
+      // Game is always 8-bit
+      setBitCount(8); 
+      resetBits(8); 
+      startNewTurnLogic(1, 8);
     } else {
       if (timerId) clearInterval(timerId);
       setTimerId(null);
       setTargetDecimal(null);
-      setTimeLeft(INITIAL_TIMER_SECONDS);
+      setTimeLeft(INITIAL_CONVERTER_TIMER_SECONDS); // Reset to a default or keep as is
       setFeedbackMessage(null);
       setIsCorrect(null);
       setIsChallengeActive(false);
-      resetBits(bitCount);
+      setIsGameOver(false);
+      setTurn(1); // Reset turn
+      // Do not reset score here as it's total score, game is just off
+      // bitCount remains what it was, or user can toggle it.
+      // resetBits(bitCount); // Reset to current potentially non-8-bit value
     }
+  };
+  
+  const handleToggleBit = (index: number) => {
+    if (!gameMode || (gameMode && !isChallengeActive) || isGameOver) return;
+
+    setFeedbackMessage(null); // Clear previous turn's specific feedback if any
+    // setIsCorrect(null); // Don't clear isCorrect as it's tied to previous result
+    const updatedBits = [...bits];
+    updatedBits[index] = updatedBits[index] === 0 ? 1 : 0;
+    setBits(updatedBits);
+  };
+
+  const handleBitCountChange = (newBitCount: 8 | 16) => {
+    if (gameMode) {
+      toast({ title: "Game Mode Active", description: "Bit count is locked to 8-bit during the game." });
+      return;
+    }
+    setBitCount(newBitCount);
+    resetBits(newBitCount);
+    // If gameMode was on and then turned off, and then bitCount changes, targetDecimal etc. should be null.
+    // This is handled by handleGameModeToggle(false).
   };
 
   const handleCheckAnswer = () => {
-    if (targetDecimal === null) return;
-    if (timerId) clearInterval(timerId); 
+    if (!isChallengeActive || isGameOver || targetDecimal === null) return;
 
-    if (decimalValue === targetDecimal) {
-      const newScore = score + 10 + timeLeft;
-      setScore(newScore);
-      setFeedbackMessage(`Awesome! ${decimalValue} is correct. Your score: ${newScore}`);
+    if (timerId) clearInterval(timerId);
+    setIsChallengeActive(false);
+
+    const accuracy = decimalValue === targetDecimal ? 1 : 0;
+    // Ensure timeFactor is between 0 and 1, and handle currentChallengeMaxTime potentially being 0 (though unlikely with getTimeForTurn logic)
+    const timeFactor = currentChallengeMaxTime > 0 ? Math.max(0, Math.min(1, timeLeft / currentChallengeMaxTime)) : 0;
+    const turnScore = Math.floor(100 * accuracy * timeFactor);
+    const newTotalScore = score + turnScore;
+    setScore(newTotalScore);
+
+    if (accuracy === 1) {
+      setFeedbackMessage(`Correct! +${turnScore} points. Target: ${targetDecimal}. Your score: ${newTotalScore}`);
       setIsCorrect(true);
     } else {
-      setFeedbackMessage(`Not quite. You entered ${decimalValue} (${BitUtils.decimalToBinary(decimalValue, bitCount)}). The correct binary for ${targetDecimal} is ${BitUtils.decimalToBinary(targetDecimal, bitCount)}.`);
+      setFeedbackMessage(`Incorrect. Target: ${targetDecimal} (${BitUtils.decimalToBinary(targetDecimal, 8)}). You entered: ${decimalValue} (${BitUtils.decimalToBinary(decimalValue, 8)}). +0 points. Your score: ${newTotalScore}`);
       setIsCorrect(false);
     }
-    setIsChallengeActive(false);
+    setTurn(prev => prev + 1); // Auto-advance after checking
   };
+  
+  // Effect for auto-advancing turns after the first one
+  useEffect(() => {
+    if (gameMode && !isGameOver && turn > 1 && !isChallengeActive) {
+        // This means turn has advanced from a previous completed turn (submit or timeout).
+        // isChallengeActive is false, feedbackMessage is set.
+        // Apply delay for feedback readability.
+        const timeoutId = setTimeout(() => {
+            if (gameMode && !isGameOver) { // Re-check state before executing
+                startNewTurnLogic(turn, 8);
+            }
+        }, feedbackMessage ? 2000 : 50); // Delay more if there's feedback, less otherwise
+        return () => clearTimeout(timeoutId);
+    }
+  }, [turn, gameMode, isGameOver, isChallengeActive, startNewTurnLogic, feedbackMessage]);
 
-  const handleNextChallenge = () => {
-    startNewChallenge(bitCount);
+
+  const handleRestartGame = () => {
+    handleGameModeToggle(false); // Turn off to clean up
+    setTimeout(() => handleGameModeToggle(true), 50); // Turn back on to restart
   };
   
   useEffect(() => {
@@ -137,7 +211,7 @@ export default function BitToggleGame() {
             Binary Converter
           </CardTitle>
           <CardDescription className="text-center text-muted-foreground">
-            Light the Bits. Learn the System.
+            {gameMode ? "Match the target! 8-Bit Binary Challenge." : "Light the Bits. Learn the System."}
           </CardDescription>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mt-4">
             <div className="flex items-center space-x-2">
@@ -147,6 +221,7 @@ export default function BitToggleGame() {
                 checked={bitCount === 16}
                 onCheckedChange={(checked) => handleBitCountChange(checked ? 16 : 8)}
                 aria-label="Toggle bit count between 8 and 16"
+                disabled={gameMode}
               />
               <Label htmlFor="bit-count-toggle" className="text-sm sm:text-base">16-Bit</Label>
             </div>
@@ -164,7 +239,12 @@ export default function BitToggleGame() {
         <CardContent className="pt-2 sm:pt-4">
           <div className="flex flex-col items-center space-y-3 mb-6">
             <BitDisplayRow bits={bits} bitCount={bitCount} />
-            <BitSwitchRow bits={bits} onToggleBit={handleToggleBit} bitCount={bitCount} disabled={gameMode && !isChallengeActive} />
+            <BitSwitchRow 
+              bits={bits} 
+              onToggleBit={handleToggleBit} 
+              bitCount={bitCount} 
+              disabled={(gameMode && !isChallengeActive) || isGameOver} 
+            />
           </div>
           
           <BitOutputPanel 
@@ -173,8 +253,11 @@ export default function BitToggleGame() {
             binary={binaryString}
             gameMode={gameMode}
             targetDecimal={targetDecimal}
-            score={score}
+            score={score} // Total score
             timeLeft={timeLeft}
+            turn={turn}
+            maxTurns={MAX_TURNS}
+            isGameOver={isGameOver}
           />
 
           {gameMode && (
@@ -182,9 +265,10 @@ export default function BitToggleGame() {
               feedbackMessage={feedbackMessage}
               isCorrect={isCorrect}
               onCheckAnswer={handleCheckAnswer}
-              onNextChallenge={handleNextChallenge}
               isChallengeActive={isChallengeActive}
               timeLeft={timeLeft}
+              isGameOver={isGameOver}
+              onRestartGame={handleRestartGame}
             />
           )}
         </CardContent>
@@ -192,4 +276,3 @@ export default function BitToggleGame() {
     </div>
   );
 }
-

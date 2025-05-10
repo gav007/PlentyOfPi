@@ -1,3 +1,4 @@
+
 import { cn } from '@/lib/utils';
 
 interface BitOutputPanelProps {
@@ -6,8 +7,11 @@ interface BitOutputPanelProps {
   binary: string;
   gameMode: boolean;
   targetDecimal: number | null;
-  score: number;
+  score: number; // Total score
   timeLeft: number;
+  turn: number | null;
+  maxTurns: number;
+  isGameOver: boolean;
 }
 
 export default function BitOutputPanel({
@@ -18,6 +22,9 @@ export default function BitOutputPanel({
   targetDecimal,
   score,
   timeLeft,
+  turn,
+  maxTurns,
+  isGameOver,
 }: BitOutputPanelProps) {
   return (
     <div
@@ -63,10 +70,17 @@ export default function BitOutputPanel({
             <span
               className={cn(
                 'font-mono text-lg sm:text-xl',
-                timeLeft <= 10 && timeLeft > 0 ? 'text-destructive animate-pulse' : 'text-primary'
+                timeLeft <= 10 && timeLeft > 0 && !isGameOver ? 'text-destructive animate-pulse' : 'text-primary'
               )}
             >
-              {timeLeft > 0 ? `${timeLeft}s` : "N/A"}
+              {timeLeft > 0 || isGameOver ? `${timeLeft}s` : "N/A"} 
+              {/* Show N/A or final time if game over? For now, just timeLeft */}
+            </span>
+          </div>
+           <div className="p-3 bg-accent/20 rounded-lg shadow md:col-start-2">
+            <span className="font-semibold text-muted-foreground block text-xs sm:text-sm">🔄 TURN</span>
+            <span className="font-mono text-lg sm:text-xl text-primary">
+              {isGameOver ? `Over` : turn ? `${turn}/${maxTurns}` : '-'}
             </span>
           </div>
         </>
