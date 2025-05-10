@@ -8,7 +8,7 @@ interface GameControlsProps {
   isCorrect: boolean | null;
   onCheckAnswer: () => void;
   isChallengeActive: boolean;
-  timeLeft: number; 
+  timeLeft: number;
   isGameOver: boolean;
   onRestartGame: () => void;
 }
@@ -25,29 +25,38 @@ export default function GameControls({
 
   const hasFeedback = feedbackMessage !== null;
 
+  const alertVariant = (isCorrect === false && !isGameOver) ? 'destructive' : 'default';
+
+  const alertCustomClasses = cn(
+    isGameOver ? 'border-primary bg-primary/10 text-primary-foreground' :
+    isCorrect === true ? 'border-green-500 bg-green-500/10 text-green-700 dark:text-green-400' :
+    isCorrect === false ? 'border-destructive bg-destructive/10 text-destructive' : // This enhances the 'destructive' variant
+    ''
+  );
+
+  const feedbackTitleClassName = cn(
+    'font-semibold',
+    isCorrect ? 'text-green-700 dark:text-green-400' : 'text-destructive'
+  );
+
+  const feedbackDescriptionClassName = cn(isGameOver ? "text-foreground" : "");
+
   return (
     <div className="w-full max-w-md mx-auto mt-2 space-y-4">
       {hasFeedback && (
         <Alert
-          variant={isGameOver ? 'default' : (isCorrect === null ? 'default' : isCorrect ? 'default' : 'destructive')}
-          className={cn(
-            isGameOver ? 'border-primary bg-primary/10 text-primary-foreground' : // Neutral prominent style for game over
-            isCorrect === true ? 'border-green-500 bg-green-500/10 text-green-700 dark:text-green-400' : 
-            isCorrect === false ? 'border-destructive bg-destructive/10 text-destructive' : 
-            '' 
-          )}
+          variant={alertVariant}
+          className={alertCustomClasses}
         >
           {isGameOver && feedbackMessage && (
              <AlertTitle className="text-primary font-semibold">Game Over!</AlertTitle>
            )}
-          {!isGameOver && isCorrect !== null && ( 
-            <AlertTitle className={cn(
-                isCorrect ? 'text-green-700 dark:text-green-400 font-semibold' : 'text-destructive font-semibold'
-                )}>
+          {!isGameOver && isCorrect !== null && (
+            <AlertTitle className={feedbackTitleClassName}>
               {isCorrect ? 'Correct!' : "Incorrect / Time's Up!"}
             </AlertTitle>
           )}
-          <AlertDescription className={cn(isGameOver ? "text-foreground" : "")}>
+          <AlertDescription className={feedbackDescriptionClassName}>
             {feedbackMessage}
           </AlertDescription>
         </Alert>
@@ -67,3 +76,4 @@ export default function GameControls({
     </div>
   );
 }
+
