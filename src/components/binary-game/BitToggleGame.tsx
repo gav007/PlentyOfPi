@@ -70,7 +70,7 @@ export default function BitToggleGame() {
   };
 
   const startNewTurnLogic = useCallback((currentTurnNum: number, currentFixedBitCount: 8) => {
-    if (currentTurnNum > MAX_TURNS) {
+    if (currentTurnNum >= MAX_TURNS) {
       setIsGameOver(true);
       setIsChallengeActive(false);
       if (timerId) clearInterval(timerId);

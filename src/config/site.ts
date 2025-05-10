@@ -1,5 +1,5 @@
 import type { NavItem, FeatureCardItem } from '@/types';
-import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon } from 'lucide-react'; // Added HomeIcon
+import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon, Orbit } from 'lucide-react'; // Added Orbit
 
 export const siteConfig = {
   name: "Plenty of π",
@@ -14,9 +14,10 @@ export const siteConfig = {
 export const navItems: NavItem[] = [
   { title: "Home", href: "/", icon: HomeIcon },
   { title: "Binary Game", href: "/binary-game", icon: Brain },
+  { title: "Unit Circle", href: "/unit-circle", icon: Orbit },
   { title: "Lessons", href: "/lessons", icon: BookOpen },
-  { title: "Calculators", href: "/calculators", icon: Calculator, disabled: true }, // Mark as disabled if coming soon
-  { title: "Flashcards", href: "/flashcards", icon: Archive, disabled: true }, // Mark as disabled if coming soon
+  { title: "Calculators", href: "/calculators", icon: Calculator, disabled: true },
+  { title: "Flashcards", href: "/flashcards", icon: Archive, disabled: true },
 ];
 
 export const featureCards: FeatureCardItem[] = [
@@ -29,6 +30,16 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: "Abstract representation of binary code",
     dataAiHint: "binary code",
     ctaLabel: "Play Now",
+  },
+  {
+    title: "Interactive Unit Circle",
+    description: "Explore the relationship between angles, trigonometric functions (sin, cos, tan), and the sine wave in real-time.",
+    href: "/unit-circle",
+    icon: Orbit,
+    imageSrc: "https://picsum.photos/seed/unitcircle/600/400",
+    imageAlt: "Unit circle diagram with sine wave",
+    dataAiHint: "math trigonometry",
+    ctaLabel: "Explore Now",
   },
   {
     title: "Interactive Lessons",
@@ -66,7 +77,7 @@ export const featureCards: FeatureCardItem[] = [
   {
     title: "Logic Puzzles",
     description: "Challenge your mind with a variety of logic puzzles designed to improve critical thinking and problem-solving skills. (Coming Soon)",
-    href: "/puzzles", // Changed href to be unique if it's a separate page
+    href: "/puzzles", 
     icon: Puzzle,
     imageSrc: "https://picsum.photos/seed/puzzles/600/400",
     imageAlt: "Abstract puzzle pieces",
@@ -77,7 +88,7 @@ export const featureCards: FeatureCardItem[] = [
   {
     title: "Quick Algorithms",
     description: "Explore and understand common algorithms with interactive visualizations and explanations. (Coming Soon)",
-    href: "/algorithms", // Changed href to be unique
+    href: "/algorithms", 
     icon: Zap,
     imageSrc: "https://picsum.photos/seed/algorithms/600/400",
     imageAlt: "Flowchart of an algorithm",
