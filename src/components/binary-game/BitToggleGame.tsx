@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -5,7 +6,6 @@ import BitDisplayRow from './BitDisplayRow';
 import BitSwitchRow from './BitSwitchRow';
 import BitOutputPanel from './BitOutputPanel';
 import GameControls from './GameControls';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -141,14 +141,14 @@ export default function BitToggleGame() {
           </CardDescription>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mt-4">
             <div className="flex items-center space-x-2">
-              <Label htmlFor="bit-count-8" className="text-sm sm:text-base">8-Bit</Label>
+              <Label htmlFor="bit-count-toggle" className="text-sm sm:text-base">8-Bit</Label>
               <Switch
                 id="bit-count-toggle"
                 checked={bitCount === 16}
                 onCheckedChange={(checked) => handleBitCountChange(checked ? 16 : 8)}
                 aria-label="Toggle bit count between 8 and 16"
               />
-              <Label htmlFor="bit-count-16" className="text-sm sm:text-base">16-Bit</Label>
+              <Label htmlFor="bit-count-toggle" className="text-sm sm:text-base">16-Bit</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Label htmlFor="game-mode-toggle" className="text-sm sm:text-base">Game Mode</Label>
@@ -162,8 +162,10 @@ export default function BitToggleGame() {
           </div>
         </CardHeader>
         <CardContent className="pt-2 sm:pt-4">
-          <BitDisplayRow bits={bits} bitCount={bitCount} />
-          <BitSwitchRow bits={bits} onToggleBit={handleToggleBit} bitCount={bitCount} disabled={gameMode && !isChallengeActive} />
+          <div className="flex flex-col items-center space-y-3 mb-6">
+            <BitDisplayRow bits={bits} bitCount={bitCount} />
+            <BitSwitchRow bits={bits} onToggleBit={handleToggleBit} bitCount={bitCount} disabled={gameMode && !isChallengeActive} />
+          </div>
           
           <BitOutputPanel 
             decimal={decimalValue} 
@@ -190,3 +192,4 @@ export default function BitToggleGame() {
     </div>
   );
 }
+

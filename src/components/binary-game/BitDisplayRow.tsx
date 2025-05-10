@@ -17,22 +17,28 @@ export default function BitDisplayRow({ bits, bitCount }: BitDisplayRowProps) {
   
   return (
     <div
-      className="flex justify-center items-center gap-1 sm:gap-2 mb-4"
+      className="flex justify-center items-start" // items-start to align labels at top
       role="group"
       aria-label={`Current ${bitCount}-bit binary value`}
     >
-      {displayBits.map((bit, index) => (
-        <div
-          key={index}
-          role="img"
-          aria-label={bit === 1 ? `Bit ${bitCount - 1 - index} on` : `Bit ${bitCount - 1 - index} off`}
-          className={cn(
-            'h-6 w-6 sm:h-8 sm:w-8 rounded-full transition-all duration-200 ease-in-out border-2',
-            bit === 1 ? 'bg-green-500 border-green-700' : 'bg-gray-300 border-gray-500',
-            'shadow-md'
-          )}
-        />
-      ))}
+      {displayBits.map((bit, index) => {
+        const bitPosition = bitCount - 1 - index; // Calculate bit position number (e.g., 7, 6, ..., 0)
+        return (
+          <div key={index} className="w-8 flex flex-col items-center mx-1">
+            <div className="text-xs text-muted-foreground mb-1 h-4 flex items-center justify-center" aria-hidden="true">
+              {bitPosition}
+            </div>
+            <div
+              role="img"
+              aria-label={bit === 1 ? `Bit ${bitPosition} on` : `Bit ${bitPosition} off`}
+              className={cn(
+                'h-6 w-6 rounded-full transition-all duration-200 ease-in-out shadow-md',
+                bit === 1 ? 'bg-yellow-400 shadow-[0_0_5px_rgba(253,224,71,0.7)]' : 'bg-gray-300 dark:bg-gray-600', // Using Tailwind yellow-400, adjusted glow color
+              )}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

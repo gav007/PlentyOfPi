@@ -1,17 +1,13 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google'; // Import Inter
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import Header from '@/components/layout/header'; // Added Header import
+import Header from '@/components/layout/header';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+// Initialize Inter font
+const inter = Inter({
   subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  variable: '--font-inter', // Define CSS variable for Inter
 });
 
 export const metadata: Metadata = {
@@ -26,7 +22,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
+      {/* Apply Inter font variable to body */}
+      <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <Header />
         <main className="flex-grow">
           {children}

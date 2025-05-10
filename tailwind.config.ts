@@ -8,7 +8,10 @@ export default {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-  	extend: {
+    extend: {
+      fontFamily: { // Add fontFamily
+        sans: ['var(--font-inter)', 'Arial', 'Helvetica', 'sans-serif'],
+      },
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',

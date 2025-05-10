@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', Arial, Helvetica, sans-serif; /* Changed to Inter first */
 }
 
 @layer base {
@@ -36,24 +36,24 @@ body {
   }
 
   .dark {
-    --background: 224 71.4% 4.1%; /* Dark Blue */
-    --foreground: 0 0% 98%; /* Light Gray/White */
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 0 0% 98%;
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 0 0% 98%;
+    --background: 220 13% 10%; /* Darker background for better contrast with yellow */
+    --foreground: 210 20% 98%; /* Slightly off-white */
+    --card: 220 13% 12%; /* Slightly lighter card background */
+    --card-foreground: 210 20% 98%;
+    --popover: 220 13% 10%;
+    --popover-foreground: 210 20% 98%;
     --primary: 217 91% 60%; /* #3B82F6 */
     --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 210 40% 12%; /* Darker Gray-Blue */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 210 40% 12%;
-    --muted-foreground: 210 40% 60%; /* Lighter Muted Text */
+    --secondary: 210 15% 20%; /* Darker Gray-Blue */
+    --secondary-foreground: 210 20% 98%;
+    --muted: 210 15% 20%;
+    --muted-foreground: 210 20% 65%; /* Lighter Muted Text */
     --accent: 200 69% 83%; /* #A0D2EB - Can be kept same or adjusted for dark mode */
     --accent-foreground: 200 50% 30%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 210 40% 20%; /* Darker Border */
-    --input: 210 40% 20%;
+    --border: 210 15% 25%; /* Darker Border */
+    --input: 210 15% 25%;
     --ring: 217 91% 60%; /* Primary color for rings */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
