@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -47,51 +46,52 @@ export default function UnitCircleExplorer() {
   const startNewGameTurn = useCallback(() => {
     if (turn > MAX_TURNS_UNIT_CIRCLE) {
       setIsGameOver(true);
-      setIsGameInteractionLocked(true);
+      setIsGameInteractionLocked(true); // Lock interaction on game over
       const finalMessage = `Game Over! You scored ${correctCount} / ${MAX_TURNS_UNIT_CIRCLE}. ${getPerformanceFeedback(correctCount, MAX_TURNS_UNIT_CIRCLE)}`;
       setGameFeedback(finalMessage);
       setIsGuessCorrect(null);
       return;
     }
 
-    setIsGameOver(false); // Ensure not game over if starting a new turn
+    // If not game over, proceed to set up new turn
+    setIsGameOver(false); 
     const newTarget = getRandomAngleByDifficulty(turn, previousTargetAngleRef.current);
     setTargetAngleRad(newTarget);
     previousTargetAngleRef.current = newTarget;
     
-    setGameFeedback(null);
+    setGameFeedback(null); // Clear feedback for the new turn
     setIsGuessCorrect(null);
-    setIsGameInteractionLocked(false);
-    // Optionally reset user's angle: setAngleRad(Math.PI / 4);
+    setIsGameInteractionLocked(false); // Unlock for the new turn
   }, [turn, correctCount]);
 
 
   useEffect(() => {
     if (gameMode) {
-      setTurn(1);
+      setTurn(1); 
       setCorrectCount(0);
-      setIsGameOver(false);
-      setIsGameInteractionLocked(false);
+      setIsGameOver(false); 
+      setIsGameInteractionLocked(false); 
       previousTargetAngleRef.current = null;
-      // The effect watching 'turn' and 'gameMode' will call startNewGameTurn
+      // The change in 'turn' will trigger the next useEffect to call startNewGameTurn
     } else {
+      // Reset states when exiting game mode
       setTargetAngleRad(null);
       setGameFeedback(null);
       setIsGuessCorrect(null);
       setIsGameInteractionLocked(false);
-      setTurn(1);
+      setTurn(1); 
       setCorrectCount(0);
       setIsGameOver(false);
     }
   }, [gameMode]);
 
+  // This useEffect handles starting a new turn whenever 'turn' changes while in gameMode and not gameOver.
   useEffect(() => {
-    if (gameMode && (turn === 1 || !isGameInteractionLocked)) {
-        // This ensures that when gameMode is first enabled and turn becomes 1, startNewGameTurn is called.
-        // Also, for subsequent turns, it's called when interaction is unlocked (after feedback timeout).
-        startNewGameTurn();
+    if (gameMode && !isGameOver) {
+      startNewGameTurn();
     }
-  }, [gameMode, turn, isGameInteractionLocked, startNewGameTurn]);
+    // If game is over, this effect won't call startNewGameTurn, preserving the game over state.
+  }, [gameMode, turn, isGameOver, startNewGameTurn]);
 
 
   const handleAngleChange = (newAngle: number) => {
@@ -103,7 +103,7 @@ export default function UnitCircleExplorer() {
   const handleLockIn = () => {
     if (targetAngleRad === null || angleRad === null || isGameInteractionLocked || isGameOver) return;
 
-    setIsGameInteractionLocked(true);
+    setIsGameInteractionLocked(true); // Lock interaction during feedback
     const { match, errorDegrees } = checkAngleMatch(angleRad, targetAngleRad, true);
 
     let turnFeedbackMsg = "";
@@ -117,8 +117,10 @@ export default function UnitCircleExplorer() {
     }
     setGameFeedback(turnFeedbackMsg);
 
+    // After feedback duration, increment turn. The useEffect watching 'turn' will handle next steps.
     setTimeout(() => {
       setTurn(prevTurn => prevTurn + 1);
+      // isGameInteractionLocked will be managed by startNewGameTurn or game over logic.
     }, 2500); 
   };
 
@@ -178,7 +180,7 @@ export default function UnitCircleExplorer() {
               size={SVG_SIZE}
               gameMode={gameMode}
               targetAngleRad={targetAngleRad}
-              isGameInteractionLocked={isGameInteractionLocked || isGameOver}
+              isGameInteractionLocked={isGameInteractionLocked} // Simplified: pass the single lock state
             />
           </CardContent>
         </Card>
@@ -200,9 +202,9 @@ export default function UnitCircleExplorer() {
             </CardContent>
           </Card>
 
-          {gameMode && targetAngleRad !== null && (
+          {gameMode && ( // Render game panel if game mode is on, irrespective of targetAngleRad for score display etc.
             <UnitCircleGamePanel
-              targetAngleRad={targetAngleRad}
+              targetAngleRad={targetAngleRad ?? 0} // Provide a default if null, though should be set
               onLockIn={handleLockIn}
               correctCount={correctCount}
               maxTurns={MAX_TURNS_UNIT_CIRCLE}
