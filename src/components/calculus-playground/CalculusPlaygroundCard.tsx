@@ -4,7 +4,7 @@
 import * as React from 'react';
 import * as math from 'mathjs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import FunctionInput from './FunctionInput';
+import FunctionInput, { type DomainOptions } from './FunctionInput';
 import PlotDisplay from './PlotDisplay';
 import SliderControl from './SliderControl';
 import ResultPanel from './ResultPanel';
@@ -12,8 +12,6 @@ import TogglePanel from './TogglePanel';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
-const PLOT_DOMAIN_MIN = -10;
-const PLOT_DOMAIN_MAX = 10;
 const PLOT_POINTS = 200; // Number of points to plot for f(x) and f'(x)
 
 // Numerical methods
@@ -44,7 +42,7 @@ function trapezoidalRule(fn: (x: number) => number, a: number, b: number, n: num
     for (let i = 1; i < n; i++) {
       const x_i = a + i * h;
       const f_x_i = fn(x_i);
-      if (isNaN(f_x_i) || !isFinite(f_x_i)) return NaN; // Stop if function is undefined or infinite at any point
+      if (isNaN(f_x_i) || !isFinite(f_x_i)) return NaN;
       sum += f_x_i;
     }
     return sum * h;
@@ -58,7 +56,35 @@ export default function CalculusPlaygroundCard() {
   const [xValue, setXValue] = React.useState<number>(1);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
-  const [showDerivative, setShowDerivative] = React.useState<boolean>(false);
+  const [domainOptions, setDomainOptions] = React.useState<DomainOptions>({
+    xMin: '-10', xMax: '10', yMin: 'auto', yMax: 'auto',
+  });
+
+  // Parsed domain values, with fallbacks
+  const currentDomain = React.useMemo(() => {
+    const xMin = parseFloat(domainOptions.xMin);
+    const xMax = parseFloat(domainOptions.xMax);
+    const yMin = domainOptions.yMin.toLowerCase() === 'auto' ? 'auto' : parseFloat(domainOptions.yMin);
+    const yMax = domainOptions.yMax.toLowerCase() === 'auto' ? 'auto' : parseFloat(domainOptions.yMax);
+    return {
+      xMin: isNaN(xMin) ? -10 : xMin,
+      xMax: isNaN(xMax) ? 10 : xMax,
+      yMin: isNaN(Number(yMin)) ? 'auto' : yMin as number, // Type assertion after isNaN check
+      yMax: isNaN(Number(yMax)) ? 'auto' : yMax as number, // Type assertion after isNaN check
+    };
+  }, [domainOptions]);
+  
+  // Ensure xValue is within currentDomain.xMin and currentDomain.xMax
+  React.useEffect(() => {
+    if (xValue < currentDomain.xMin) {
+      setXValue(currentDomain.xMin);
+    } else if (xValue > currentDomain.xMax) {
+      setXValue(currentDomain.xMax);
+    }
+  }, [currentDomain.xMin, currentDomain.xMax, xValue]);
+
+
+  const [showFullDerivativeCurve, setShowFullDerivativeCurve] = React.useState<boolean>(false); // Default to hidden
   const [showTangent, setShowTangent] = React.useState<boolean>(true);
   const [showArea, setShowArea] = React.useState<boolean>(true);
 
@@ -84,7 +110,6 @@ export default function CalculusPlaygroundCard() {
       if (typeof result === 'number' && isFinite(result)) {
         return result;
       }
-      // Handle mathjs Complex numbers or other types if necessary, for now, expect number
       return NaN;
     } catch {
       return NaN;
@@ -98,35 +123,44 @@ export default function CalculusPlaygroundCard() {
   const plotData = React.useMemo(() => {
     if (!compiledFunc) return [];
     const points: { x: number; y: number | null }[] = [];
-    const step = (PLOT_DOMAIN_MAX - PLOT_DOMAIN_MIN) / PLOT_POINTS;
+    const step = (currentDomain.xMax - currentDomain.xMin) / PLOT_POINTS;
     for (let i = 0; i <= PLOT_POINTS; i++) {
-      const x = PLOT_DOMAIN_MIN + i * step;
+      const x = currentDomain.xMin + i * step;
       const y = evaluateAt(x);
       points.push({ x, y: isNaN(y) || !isFinite(y) ? null : y });
     }
     return points;
-  }, [evaluateAt, compiledFunc]); // evaluateAt depends on compiledFunc
+  }, [evaluateAt, compiledFunc, currentDomain.xMin, currentDomain.xMax]);
 
   const derivativePlotData = React.useMemo(() => {
-    if (!compiledFunc || !showDerivative) return [];
+    if (!compiledFunc || !showFullDerivativeCurve) return [];
     const points: { x: number; y: number | null }[] = [];
-    const step = (PLOT_DOMAIN_MAX - PLOT_DOMAIN_MIN) / PLOT_POINTS;
+    const step = (currentDomain.xMax - currentDomain.xMin) / PLOT_POINTS;
     for (let i = 0; i <= PLOT_POINTS; i++) {
-      const x = PLOT_DOMAIN_MIN + i * step;
+      const x = currentDomain.xMin + i * step;
       const yPrime = numericalDerivative(evaluateAt, x);
       points.push({ x, y: isNaN(yPrime) || !isFinite(yPrime) ? null : yPrime });
     }
     return points;
-  }, [evaluateAt, compiledFunc, showDerivative]);
+  }, [evaluateAt, compiledFunc, showFullDerivativeCurve, currentDomain.xMin, currentDomain.xMax]);
+
+  const handleXValueChangeByClick = (newX: number) => {
+    setXValue(newX);
+  };
 
   return (
     <Card className="shadow-2xl">
       <CardHeader>
         <CardTitle>Interactive Calculus Tool</CardTitle>
-        <CardDescription>Enter a function of 'x' and explore its properties.</CardDescription>
+        <CardDescription>Enter a function of 'x', set graph scale, and explore its properties.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <FunctionInput functionStr={functionStr} onFunctionStrChange={setFunctionStr} />
+        <FunctionInput
+          functionStr={functionStr}
+          onFunctionStrChange={setFunctionStr}
+          domainOptions={domainOptions}
+          onDomainOptionsChange={setDomainOptions}
+        />
 
         {errorMessage && (
           <Alert variant="destructive">
@@ -138,29 +172,30 @@ export default function CalculusPlaygroundCard() {
 
         <PlotDisplay
           plotData={plotData}
-          derivativePlotData={showDerivative ? derivativePlotData : []}
+          derivativePlotData={derivativePlotData} // Pass full derivative data
           xValue={xValue}
           fxValue={fx}
           fpxValue={fpx}
           showTangent={showTangent}
           showArea={showArea}
-          domainMin={PLOT_DOMAIN_MIN}
-          domainMax={PLOT_DOMAIN_MAX}
+          showFullDerivativeCurve={showFullDerivativeCurve} // Control visibility of f'(x) curve
+          domain={currentDomain}
+          onXValueChangeByClick={handleXValueChangeByClick}
         />
         
         <SliderControl
           value={xValue}
           onValueChange={setXValue}
-          min={PLOT_DOMAIN_MIN}
-          max={PLOT_DOMAIN_MAX}
-          step={0.05}
+          min={currentDomain.xMin}
+          max={currentDomain.xMax}
+          step={(currentDomain.xMax - currentDomain.xMin) / 200} // Dynamic step
         />
         
         <ResultPanel xValue={xValue} fxValue={fx} fpxValue={fpx} integralValue={integralVal} />
         
         <TogglePanel
-          showDerivative={showDerivative}
-          onShowDerivativeChange={setShowDerivative}
+          showFullDerivativeCurve={showFullDerivativeCurve}
+          onShowFullDerivativeCurveChange={setShowFullDerivativeCurve}
           showTangent={showTangent}
           onShowTangentChange={setShowTangent}
           showArea={showArea}

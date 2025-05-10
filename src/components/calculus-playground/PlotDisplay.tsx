@@ -13,19 +13,22 @@ import {
   ReferenceDot,
   Area,
   ReferenceLine,
+  TooltipProps, // Import TooltipProps for type safety
 } from 'recharts';
+import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import { cn } from '@/lib/utils';
 
 interface PlotDisplayProps {
   plotData: { x: number; y: number | null }[];
-  derivativePlotData: { x: number; y: number | null }[];
+  derivativePlotData: { x: number; y: number | null }[]; // For the full f'(x) curve
   xValue: number;
   fxValue: number;
   fpxValue: number; // derivative value at xValue (slope of tangent)
   showTangent: boolean;
   showArea: boolean;
-  domainMin: number;
-  domainMax: number;
+  showFullDerivativeCurve: boolean; // New prop to control f'(x) curve visibility
+  domain: { xMin: number; xMax: number; yMin: string | number; yMax: string | number }; // Updated domain prop
+  onXValueChangeByClick: (newX: number) => void; // Callback for click interaction
 }
 
 export default function PlotDisplay({
@@ -36,41 +39,50 @@ export default function PlotDisplay({
   fpxValue,
   showTangent,
   showArea,
-  domainMin,
-  domainMax,
+  showFullDerivativeCurve,
+  domain,
+  onXValueChangeByClick,
 }: PlotDisplayProps) {
   
   const tangentLineData = React.useMemo(() => {
     if (!showTangent || isNaN(fxValue) || isNaN(fpxValue) || !isFinite(fxValue) || !isFinite(fpxValue)) return [];
-    // y = m(x - x0) + y0
     const y0 = fxValue;
     const x0 = xValue;
     const m = fpxValue;
 
-    // Calculate y values at domainMin and domainMax for the tangent line
-    const yAtMin = m * (domainMin - x0) + y0;
-    const yAtMax = m * (domainMax - x0) + y0;
+    const yAtMin = m * (domain.xMin - x0) + y0;
+    const yAtMax = m * (domain.xMax - x0) + y0;
     
     return [
-      { x: domainMin, y: yAtMin },
-      { x: domainMax, y: yAtMax },
+      { x: domain.xMin, y: yAtMin },
+      { x: domain.xMax, y: yAtMax },
     ];
-  }, [showTangent, xValue, fxValue, fpxValue, domainMin, domainMax]);
+  }, [showTangent, xValue, fxValue, fpxValue, domain.xMin, domain.xMax]);
 
   const areaData = React.useMemo(() => {
     if (!showArea) return [];
-    // Creates data for shading area from x=0 to xValue under f(x)
-    // Points outside this range will have y=0 for this series, effectively shading only the desired region.
     return plotData.map(p => ({
       x: p.x,
       y: (xValue >= 0 ? (p.x >= 0 && p.x <= xValue) : (p.x >= xValue && p.x <= 0)) && p.y !== null && isFinite(p.y)
            ? p.y 
-           : 0, // Use 0 to draw area along x-axis outside integration range
+           : 0,
     }));
   }, [showArea, plotData, xValue]);
 
+  const handleChartClick = (chartData: any) => {
+    if (chartData && chartData.activeCoordinate && typeof chartData.activeCoordinate.x === 'number') {
+       // Recharts' activeCoordinate.x is usually the direct data x-value or interpolated.
+       // Ensure it's within the current plot domain before updating.
+      const clickedX = Math.max(domain.xMin, Math.min(domain.xMax, chartData.activeCoordinate.x));
+      onXValueChangeByClick(clickedX);
+    } else if (chartData && typeof chartData.activeLabel === 'number') {
+       // Fallback if activeCoordinate.x is not available, use activeLabel if it's numeric
+      const clickedX = Math.max(domain.xMin, Math.min(domain.xMax, chartData.activeLabel));
+      onXValueChangeByClick(clickedX);
+    }
+  };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-background/80 backdrop-blur-sm p-2 border border-border rounded-md shadow-lg text-sm">
@@ -85,51 +97,58 @@ export default function PlotDisplay({
     }
     return null;
   };
+  
+  const yAxisDomain: [string | number, string | number] = [
+    domain.yMin === 'auto' || isNaN(Number(domain.yMin)) ? 'auto' : Number(domain.yMin),
+    domain.yMax === 'auto' || isNaN(Number(domain.yMax)) ? 'auto' : Number(domain.yMax),
+  ];
+
 
   return (
     <div className="h-[400px] w-full rounded-md border border-input bg-background/30 p-4 shadow-inner">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart margin={{ top: 5, right: 20, left: -25, bottom: 5 }}>
+        <LineChart 
+            margin={{ top: 5, right: 20, left: -25, bottom: 5 }}
+            onClick={handleChartClick}
+        >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.5)" />
           <XAxis 
             type="number" 
             dataKey="x" 
-            domain={[domainMin, domainMax]} 
+            domain={[domain.xMin, domain.xMax]} 
             allowDataOverflow 
             stroke="hsl(var(--muted-foreground))"
-            tickFormatter={(tick) => Number(tick).toFixed(0)}
+            tickFormatter={(tick) => Number(tick).toFixed(Math.abs(domain.xMax - domain.xMin) > 20 ? 0 : 1)}
           />
           <YAxis 
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(tick) => Number(tick).toFixed(1)}
-            domain={['auto', 'auto']} // Auto-adjust y-axis based on data
+            domain={yAxisDomain}
+            allowDataOverflow
           />
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--primary))', strokeDasharray: '3 3' }}/>
 
-          {/* Main function f(x) */}
           <Line type="monotone" dataKey="y" data={plotData} stroke="hsl(var(--primary))" strokeWidth={2} dot={false} connectNulls={false} name="f(x)" />
 
-          {/* Derivative f'(x) */}
-          {derivativePlotData.length > 0 && (
-            <Line type="monotone" dataKey="y" data={derivativePlotData} stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} connectNulls={false} name="f'(x)" strokeDasharray="5 5" />
+          {showFullDerivativeCurve && derivativePlotData.length > 0 && (
+            <Line type="monotone" dataKey="y" data={derivativePlotData} stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} connectNulls={false} name="f'(x) full" strokeDasharray="5 5" />
           )}
           
-          {/* Area under f(x) from 0 to xValue */}
           {showArea && areaData.length > 0 && (
              <Area type="monotone" dataKey="y" data={areaData} fill="hsl(var(--chart-3))" stroke="hsl(var(--chart-3))" fillOpacity={0.3} strokeWidth={0} name="∫f(x)dx" connectNulls={false} />
           )}
 
-          {/* Tangent line */}
-          {showTangent && tangentLineData.length > 0 && !isNaN(fxValue) && (
+          {showTangent && tangentLineData.length > 0 && !isNaN(fxValue) && isFinite(fxValue) && (
             <Line type="linear" dataKey="y" data={tangentLineData} stroke="hsl(var(--destructive))" strokeWidth={1.5} dot={false} name="Tangent" />
           )}
           
-          {/* Point on the curve at xValue */}
           {!isNaN(fxValue) && isFinite(fxValue) && (
             <ReferenceDot x={xValue} y={fxValue} r={5} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} isFront={true} />
           )}
-           {/* Vertical line at x=0 if area is shown */}
+           
            {showArea && <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" />}
+           <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" />
+
 
         </LineChart>
       </ResponsiveContainer>
