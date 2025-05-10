@@ -52,7 +52,6 @@ export default function PlotDisplay({
     const x0 = xValue;
     const m = fpxValue;
 
-    // Calculate tangent line points based on the current X-domain of the graph
     const yAtDomainMin = m * (domain.xMin - x0) + y0;
     const yAtDomainMax = m * (domain.xMax - x0) + y0;
     
@@ -65,11 +64,11 @@ export default function PlotDisplay({
 
   const handleChartClick = (chartData: any) => {
     if (chartData && chartData.activeCoordinate && typeof chartData.activeCoordinate.x === 'number') {
-      const clickedX = chartData.activeCoordinate.x; // Use the direct value
-      onXValueChangeByClick(clickedX); // Parent will clamp
-    } else if (chartData && typeof chartData.activeLabel === 'number') { // Fallback for some click events
+      const clickedX = chartData.activeCoordinate.x; 
+      onXValueChangeByClick(clickedX); 
+    } else if (chartData && typeof chartData.activeLabel === 'number') { 
       const clickedX = chartData.activeLabel;
-      onXValueChangeByClick(clickedX); // Parent will clamp
+      onXValueChangeByClick(clickedX); 
     }
   };
 
@@ -79,7 +78,7 @@ export default function PlotDisplay({
         <div className="bg-background/80 backdrop-blur-sm p-2 border border-border rounded-md shadow-lg text-sm">
           <p className="font-semibold">{`x: ${label !== undefined ? Number(label).toFixed(2) : 'N/A'}`}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={`item-${index}`} style={{ color: entry.stroke || entry.fill || entry.color /* Ensure color source */ }}>
+            <p key={`item-${index}`} style={{ color: entry.stroke || entry.fill || entry.color }}>
               {`${entry.name}: ${entry.value !== undefined && entry.value !== null && isFinite(Number(entry.value)) ? Number(entry.value).toFixed(3) : 'N/A'}`}
             </p>
           ))}
@@ -90,20 +89,18 @@ export default function PlotDisplay({
   };
   
   const yAxisDomainConfig: [number | 'auto', number | 'auto'] = [domain.yMin, domain.yMax];
-  // Calculate tick count based on domain range for better readability
-  const xTickCount = Math.min(10, Math.max(5, Math.floor(Math.abs(domain.xMax - domain.xMin) / 2)));
 
 
   return (
     <div 
-      className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner aspect-[2/1] min-h-[400px] cursor-pointer" 
+      className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner aspect-[2.2/1] min-h-[400px] cursor-pointer" // Adjusted aspect ratio, min-h
       title="Click on graph to set x-value"
-      role="application" // More appropriate role
+      role="application" 
       aria-label="Interactive calculus graph. Click to set x-value."
     >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
-            margin={{ top: 5, right: 30, left: 5, bottom: 5 }} // Adjusted margins for better label visibility
+            margin={{ top: 5, right: 30, left: 5, bottom: 5 }} 
             onClick={handleChartClick}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.5)" />
@@ -111,36 +108,34 @@ export default function PlotDisplay({
             type="number" 
             dataKey="x" 
             domain={[domain.xMin, domain.xMax]} 
-            allowDataOverflow // Important for tangents that extend beyond plotData range
+            allowDataOverflow 
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(tick) => Number(tick).toFixed(Math.abs(domain.xMax - domain.xMin) > 20 ? 0 : 1)}
-            // tickCount={xTickCount} // Dynamic tick count
           />
           <YAxis 
             stroke="hsl(var(--muted-foreground))"
-            tickFormatter={(tick) => Number(tick).toFixed(Math.abs(Number(domain.yMax) - Number(domain.yMin)) > 20 ? 0 : 1)} // Adjust precision
+            tickFormatter={(tick) => Number(tick).toFixed(Math.abs(Number(domain.yMax) - Number(domain.yMin)) > 20 ? 0 : 1)} 
             domain={yAxisDomainConfig} 
             allowDataOverflow 
-            padding={{ top: 20, bottom: 20 }} // Increased padding
-            // tickCount={7} // Example fixed tick count for Y
+            padding={{ top: 20, bottom: 20 }} 
           />
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--primary))', strokeDasharray: '3 3' }}/>
           
           <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" ifOverflow="visible" />
           <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" ifOverflow="visible" />
 
-          {showArea && areaData.length > 0 && (
+          {showArea && areaData.length > 1 && ( // Need at least 2 points for an area
              <Area 
                 type="monotone" 
                 dataKey="y" 
-                data={areaData} 
-                fill="hsl(var(--accent))" 
-                stroke="hsl(var(--accent-foreground))" 
+                data={areaData} // This is the dedicated segment for the area
+                fill="hsl(var(--accent))" // Light blue
+                stroke="hsl(var(--accent-foreground))" // Darker blue for border
                 fillOpacity={0.5} 
                 strokeWidth={0.5}
                 name="∫f(x)dx Area" 
-                connectNulls={false} 
-                baseValue={0} 
+                connectNulls={true} // True because areaData is a clean segment of actual values
+                baseValue={0} // Fill from y=0 (x-axis)
             />
           )}
 
@@ -154,7 +149,7 @@ export default function PlotDisplay({
             <Line type="linear" dataKey="y" data={tangentLineData} stroke="hsl(var(--destructive))" strokeWidth={1.5} dot={false} name="Tangent" />
           )}
           
-          {!isNaN(fxValue) && isFinite(fxValue) && xValue >= domain.xMin && xValue <= domain.xMax && ( // Ensure dot is within current domain
+          {!isNaN(fxValue) && isFinite(fxValue) && xValue >= domain.xMin && xValue <= domain.xMax && ( 
             <ReferenceDot x={xValue} y={fxValue} r={5} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} isFront={true} ifOverflow="visible" />
           )}
            

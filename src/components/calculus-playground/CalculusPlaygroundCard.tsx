@@ -12,7 +12,7 @@ import TogglePanel from './TogglePanel';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
-const PLOT_POINTS = 200; // Number of points to plot for f(x) and f'(x)
+const PLOT_POINTS = 200; // Number of points to plot for f(x)
 
 // Numerical methods
 function numericalDerivative(fn: (x: number) => number, x: number, h: number = 0.0001): number {
@@ -106,12 +106,14 @@ export default function CalculusPlaygroundCard() {
   }, [domainOptions]);
   
   React.useEffect(() => {
+    // Clamp xValue to be within the new xDomain from parsedDomain
+    // This ensures the slider and calculations respect the updated graph boundaries
     if (xValue < parsedDomain.xMin) {
       setXValue(parsedDomain.xMin);
     } else if (xValue > parsedDomain.xMax) {
       setXValue(parsedDomain.xMax);
     }
-  }, [parsedDomain.xMin, parsedDomain.xMax, xValue]);
+  }, [parsedDomain.xMin, parsedDomain.xMax, xValue]); // Only re-run if domain or xValue changes
 
 
   const [showFullDerivativeCurve, setShowFullDerivativeCurve] = React.useState<boolean>(false);
@@ -177,18 +179,16 @@ export default function CalculusPlaygroundCard() {
             const padding = range === 0 ? 1 : range * 0.1; 
 
             if (parsedDomain.yMin === 'auto') {
-                yMinResolved = Math.min(0, dataMinY - padding); // Ensure 0 is included or below for area base
+                yMinResolved = Math.min(0, dataMinY - padding); 
             }
             if (parsedDomain.yMax === 'auto') {
-                yMaxResolved = Math.max(0, dataMaxY + padding); // Ensure 0 is included or above for area base
+                yMaxResolved = Math.max(0, dataMaxY + padding); 
             }
             
-            if (yMinResolved === 0 && yMaxResolved === 0 && dataMinY === 0 && dataMaxY === 0) { // If function is y=0
+            if (yMinResolved === 0 && yMaxResolved === 0 && dataMinY === 0 && dataMaxY === 0) {
                  yMinResolved = -1;
                  yMaxResolved = 1;
             } else if (typeof yMinResolved === 'number' && typeof yMaxResolved === 'number' && yMinResolved >= yMaxResolved) {
-                 // This case should be less likely with the Math.min/max(0, ...)
-                 // but as a fallback ensure some range
                  yMinResolved = Math.min(yMinResolved, yMaxResolved - 0.5); 
                  yMaxResolved = Math.max(yMaxResolved, yMinResolved + 0.5);
                  if (yMinResolved === yMaxResolved) { 
@@ -197,21 +197,19 @@ export default function CalculusPlaygroundCard() {
                  }
             }
         } else { 
-            // No valid yValues from plotData, default to -10, 10 including 0
             if (parsedDomain.yMin === 'auto') yMinResolved = -10;
             if (parsedDomain.yMax === 'auto') yMaxResolved = 10;
         }
-      } else { // plotData is empty (e.g. bad function or xMin=xMax)
+      } else { 
           if (parsedDomain.yMin === 'auto') yMinResolved = -10;
           if (parsedDomain.yMax === 'auto') yMaxResolved = 10;
       }
     }
-    // If user provided numeric Y bounds but they are invalid (min >= max), adjust them.
     if (typeof yMinResolved === 'number' && typeof yMaxResolved === 'number' && yMinResolved >= yMaxResolved) {
-        const mid = (yMinResolved + yMaxResolved) / 2;
+        const mid = (yMinResolved + yMaxResolved) / 2 || 0; // ensure mid is a number
         yMinResolved = mid - 5; 
         yMaxResolved = mid + 5;
-        if (yMinResolved === yMaxResolved) { // if mid was 0, results in -5, 5
+        if (yMinResolved === yMaxResolved) { 
              yMinResolved -= 0.5; yMaxResolved += 0.5; 
         }
     }
@@ -238,19 +236,51 @@ export default function CalculusPlaygroundCard() {
   }, [evaluateAt, compiledFunc, showFullDerivativeCurve, effectiveDomain.xMin, effectiveDomain.xMax]);
 
   const areaData = React.useMemo(() => {
-    if (!showArea || effectiveDomain.xMin >= effectiveDomain.xMax || !plotData.length) return [];
-    // Create area data points only for the segment from 0 to xValue
-    return plotData.map(p => {
-      const isInIntegrationRange = xValue >= 0 
-        ? (p.x >= 0 && p.x <= xValue) 
-        : (p.x >= xValue && p.x <= 0);
-      
-      return {
-        x: p.x,
-        y: isInIntegrationRange && p.y !== null && isFinite(p.y) ? p.y : null, // Use null for y outside range
-      };
+    if (!showArea || !compiledFunc || effectiveDomain.xMin >= effectiveDomain.xMax || Math.abs(xValue) < 1e-9) {
+      return []; // No area if toggle off, bad function, invalid domain, or xValue is effectively zero
+    }
+
+    const pointsForIntegrationSegment: { x: number; y: number }[] = [];
+
+    // 1. Add point at x=0
+    const yAtZero = evaluateAt(0);
+    if (0 >= effectiveDomain.xMin && 0 <= effectiveDomain.xMax && yAtZero !== null && isFinite(yAtZero)) {
+      pointsForIntegrationSegment.push({ x: 0, y: yAtZero });
+    }
+
+    // 2. Add points from plotData strictly between 0 and xValue
+    plotData.forEach(p => {
+      if (p.y !== null && isFinite(p.y)) {
+        // Check if p.x is strictly between 0 and xValue, and also within the visible domain
+        const strictlyBetween = (xValue > 0 && p.x > 0 && p.x < xValue) || (xValue < 0 && p.x < 0 && p.x > xValue);
+        const withinVisibleDomain = p.x >= effectiveDomain.xMin && p.x <= effectiveDomain.xMax;
+        if (strictlyBetween && withinVisibleDomain) {
+          pointsForIntegrationSegment.push({ x: p.x, y: p.y });
+        }
+      }
     });
-  }, [showArea, plotData, xValue, effectiveDomain.xMin, effectiveDomain.xMax]);
+
+    // 3. Add point at x=xValue
+    const yAtXValue = evaluateAt(xValue);
+    if (xValue >= effectiveDomain.xMin && xValue <= effectiveDomain.xMax && yAtXValue !== null && isFinite(yAtXValue)) {
+      pointsForIntegrationSegment.push({ x: xValue, y: yAtXValue });
+    }
+    
+    // 4. Sort points by x-coordinate
+    pointsForIntegrationSegment.sort((a, b) => a.x - b.x);
+    
+    // 5. Remove duplicate x-points (can happen if 0 or xValue coincide with a plotData point)
+    const uniqueXPoints = pointsForIntegrationSegment.filter((point, index, self) =>
+      index === self.findIndex((p) => p.x === point.x)
+    );
+
+    // Recharts Area component needs at least two distinct points to draw an area.
+    if (uniqueXPoints.length < 2) return [];
+
+    return uniqueXPoints;
+
+  }, [showArea, evaluateAt, compiledFunc, xValue, plotData, effectiveDomain.xMin, effectiveDomain.xMax]);
+
 
   const handleXValueChangeByClick = (newX: number) => {
     const clampedX = Math.max(effectiveDomain.xMin, Math.min(effectiveDomain.xMax, newX));
@@ -282,7 +312,7 @@ export default function CalculusPlaygroundCard() {
         <PlotDisplay
           plotData={plotData}
           derivativePlotData={derivativePlotData} 
-          areaData={areaData}
+          areaData={areaData} // Pass the accurately computed areaData
           xValue={xValue}
           fxValue={fx}
           fpxValue={fpx}
@@ -298,7 +328,7 @@ export default function CalculusPlaygroundCard() {
           onValueChange={setXValue}
           min={effectiveDomain.xMin}
           max={effectiveDomain.xMax}
-          step={(effectiveDomain.xMax - effectiveDomain.xMin) / 200} // Slider step relative to domain
+          step={(effectiveDomain.xMax - effectiveDomain.xMin) / 200} 
         />
         
         <ResultPanel xValue={xValue} fxValue={fx} fpxValue={fpx} integralValue={integralVal} />
