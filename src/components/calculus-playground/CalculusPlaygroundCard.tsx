@@ -232,6 +232,20 @@ export default function CalculusPlaygroundCard() {
     return points;
   }, [evaluateAt, compiledFunc, showFullDerivativeCurve, effectiveDomain.xMin, effectiveDomain.xMax]);
 
+  const areaData = React.useMemo(() => {
+    if (!showArea || effectiveDomain.xMin >= effectiveDomain.xMax || !plotData.length) return [];
+    return plotData.map(p => {
+      const isInIntegrationRange = xValue >= 0 
+        ? (p.x >= 0 && p.x <= xValue) 
+        : (p.x >= xValue && p.x <= 0);
+      
+      return {
+        x: p.x,
+        y: isInIntegrationRange && p.y !== null && isFinite(p.y) ? p.y : null,
+      };
+    });
+  }, [showArea, plotData, xValue, effectiveDomain.xMin, effectiveDomain.xMax]);
+
   const handleXValueChangeByClick = (newX: number) => {
     const clampedX = Math.max(effectiveDomain.xMin, Math.min(effectiveDomain.xMax, newX));
     setXValue(clampedX);
@@ -262,6 +276,7 @@ export default function CalculusPlaygroundCard() {
         <PlotDisplay
           plotData={plotData}
           derivativePlotData={derivativePlotData} 
+          areaData={areaData}
           xValue={xValue}
           fxValue={fx}
           fpxValue={fpx}
