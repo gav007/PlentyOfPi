@@ -21,14 +21,14 @@ import { cn } from '@/lib/utils';
 interface PlotDisplayProps {
   plotData: { x: number; y: number | null }[];
   derivativePlotData: { x: number; y: number | null }[];
-  areaData: { x: number; y: number | null }[]; // Data for integral area
+  areaData: { x: number; y: number | null }[]; 
   xValue: number;
   fxValue: number;
   fpxValue: number; 
   showTangent: boolean;
   showArea: boolean;
   showFullDerivativeCurve: boolean;
-  domain: { xMin: number; xMax: number; yMin: number | 'auto'; yMax: number | 'auto' }; // yMin/yMax can be numbers or 'auto' if resolved by parent
+  domain: { xMin: number; xMax: number; yMin: number | 'auto'; yMax: number | 'auto' };
   onXValueChangeByClick: (newX: number) => void;
 }
 
@@ -52,24 +52,24 @@ export default function PlotDisplay({
     const x0 = xValue;
     const m = fpxValue;
 
-    const yAtMin = m * (domain.xMin - x0) + y0;
-    const yAtMax = m * (domain.xMax - x0) + y0;
+    // Calculate tangent line points based on the current X-domain of the graph
+    const yAtDomainMin = m * (domain.xMin - x0) + y0;
+    const yAtDomainMax = m * (domain.xMax - x0) + y0;
     
     return [
-      { x: domain.xMin, y: yAtMin },
-      { x: domain.xMax, y: yAtMax },
+      { x: domain.xMin, y: yAtDomainMin },
+      { x: domain.xMax, y: yAtDomainMax },
     ];
   }, [showTangent, xValue, fxValue, fpxValue, domain.xMin, domain.xMax]);
 
-  // Area data is now passed as a prop, no need for local calculation here.
 
   const handleChartClick = (chartData: any) => {
     if (chartData && chartData.activeCoordinate && typeof chartData.activeCoordinate.x === 'number') {
-      const clickedX = Math.max(domain.xMin, Math.min(domain.xMax, chartData.activeCoordinate.x));
-      onXValueChangeByClick(clickedX);
-    } else if (chartData && typeof chartData.activeLabel === 'number') {
-      const clickedX = Math.max(domain.xMin, Math.min(domain.xMax, chartData.activeLabel));
-      onXValueChangeByClick(clickedX);
+      const clickedX = chartData.activeCoordinate.x; // Use the direct value
+      onXValueChangeByClick(clickedX); // Parent will clamp
+    } else if (chartData && typeof chartData.activeLabel === 'number') { // Fallback for some click events
+      const clickedX = chartData.activeLabel;
+      onXValueChangeByClick(clickedX); // Parent will clamp
     }
   };
 
@@ -79,8 +79,8 @@ export default function PlotDisplay({
         <div className="bg-background/80 backdrop-blur-sm p-2 border border-border rounded-md shadow-lg text-sm">
           <p className="font-semibold">{`x: ${label !== undefined ? Number(label).toFixed(2) : 'N/A'}`}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={`item-${index}`} style={{ color: entry.color }}>
-              {`${entry.name}: ${entry.value !== undefined && entry.value !== null ? Number(entry.value).toFixed(3) : 'N/A'}`}
+            <p key={`item-${index}`} style={{ color: entry.stroke || entry.fill || entry.color /* Ensure color source */ }}>
+              {`${entry.name}: ${entry.value !== undefined && entry.value !== null && isFinite(Number(entry.value)) ? Number(entry.value).toFixed(3) : 'N/A'}`}
             </p>
           ))}
         </div>
@@ -90,13 +90,20 @@ export default function PlotDisplay({
   };
   
   const yAxisDomainConfig: [number | 'auto', number | 'auto'] = [domain.yMin, domain.yMax];
+  // Calculate tick count based on domain range for better readability
+  const xTickCount = Math.min(10, Math.max(5, Math.floor(Math.abs(domain.xMax - domain.xMin) / 2)));
 
 
   return (
-    <div className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner aspect-[2/1] min-h-[400px] cursor-pointer" title="Click on graph to set x-value">
+    <div 
+      className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner aspect-[2/1] min-h-[400px] cursor-pointer" 
+      title="Click on graph to set x-value"
+      role="application" // More appropriate role
+      aria-label="Interactive calculus graph. Click to set x-value."
+    >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
-            margin={{ top: 5, right: 20, left: -25, bottom: 5 }}
+            margin={{ top: 5, right: 30, left: 5, bottom: 5 }} // Adjusted margins for better label visibility
             onClick={handleChartClick}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.5)" />
@@ -104,16 +111,18 @@ export default function PlotDisplay({
             type="number" 
             dataKey="x" 
             domain={[domain.xMin, domain.xMax]} 
-            allowDataOverflow 
+            allowDataOverflow // Important for tangents that extend beyond plotData range
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(tick) => Number(tick).toFixed(Math.abs(domain.xMax - domain.xMin) > 20 ? 0 : 1)}
+            // tickCount={xTickCount} // Dynamic tick count
           />
           <YAxis 
             stroke="hsl(var(--muted-foreground))"
-            tickFormatter={(tick) => Number(tick).toFixed(1)}
+            tickFormatter={(tick) => Number(tick).toFixed(Math.abs(Number(domain.yMax) - Number(domain.yMin)) > 20 ? 0 : 1)} // Adjust precision
             domain={yAxisDomainConfig} 
             allowDataOverflow 
-            padding={{ top: 20, bottom: 20 }}
+            padding={{ top: 20, bottom: 20 }} // Increased padding
+            // tickCount={7} // Example fixed tick count for Y
           />
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--primary))', strokeDasharray: '3 3' }}/>
           
@@ -125,11 +134,11 @@ export default function PlotDisplay({
                 type="monotone" 
                 dataKey="y" 
                 data={areaData} 
-                fill="hsl(var(--chart-3))" 
-                stroke="hsl(var(--chart-3))" 
-                fillOpacity={0.4} 
-                strokeWidth={0} 
-                name="∫f(x)dx" 
+                fill="hsl(var(--accent))" 
+                stroke="hsl(var(--accent-foreground))" 
+                fillOpacity={0.5} 
+                strokeWidth={0.5}
+                name="∫f(x)dx Area" 
                 connectNulls={false} 
                 baseValue={0} 
             />
@@ -145,7 +154,7 @@ export default function PlotDisplay({
             <Line type="linear" dataKey="y" data={tangentLineData} stroke="hsl(var(--destructive))" strokeWidth={1.5} dot={false} name="Tangent" />
           )}
           
-          {!isNaN(fxValue) && isFinite(fxValue) && xValue >= domain.xMin && xValue <= domain.xMax && (
+          {!isNaN(fxValue) && isFinite(fxValue) && xValue >= domain.xMin && xValue <= domain.xMax && ( // Ensure dot is within current domain
             <ReferenceDot x={xValue} y={fxValue} r={5} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} isFront={true} ifOverflow="visible" />
           )}
            

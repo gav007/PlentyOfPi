@@ -42,7 +42,7 @@ function trapezoidalRule(fn: (x: number) => number, a: number, b: number, n: num
     for (let i = 1; i < n; i++) {
       const x_i = a + i * h;
       const f_x_i = fn(x_i);
-      if (isNaN(f_x_i) || !isFinite(f_x_i)) return NaN;
+      if (isNaN(f_x_i) || !isFinite(f_x_i)) return NaN; // Check if point is evaluable
       sum += f_x_i;
     }
     return sum * h;
@@ -93,7 +93,7 @@ export default function CalculusPlaygroundCard() {
     }
     
     if (typeof yMinProcessed === 'number' && typeof yMaxProcessed === 'number' && yMinProcessed >= yMaxProcessed) {
-        yMinProcessed = 'auto'; // Default to auto if numeric bounds are invalid
+        yMinProcessed = 'auto'; 
         yMaxProcessed = 'auto';
     }
 
@@ -166,50 +166,55 @@ export default function CalculusPlaygroundCard() {
     let yMinResolved: number | 'auto' = parsedDomain.yMin;
     let yMaxResolved: number | 'auto' = parsedDomain.yMax;
 
-    if ((parsedDomain.yMin === 'auto' || parsedDomain.yMax === 'auto') && plotData.length > 0) {
+    if (parsedDomain.yMin === 'auto' || parsedDomain.yMax === 'auto') {
+      if (plotData.length > 0) {
         const yValues = plotData.map(p => p.y).filter(y => y !== null && isFinite(y)) as number[];
         
         if (yValues.length > 0) {
             const dataMinY = Math.min(...yValues);
             const dataMaxY = Math.max(...yValues);
             const range = dataMaxY - dataMinY;
-            const padding = range === 0 ? 1 : range * 0.1; // 10% padding, or 1 if range is 0
+            const padding = range === 0 ? 1 : range * 0.1; 
 
             if (parsedDomain.yMin === 'auto') {
-                yMinResolved = dataMinY - padding;
+                yMinResolved = Math.min(0, dataMinY - padding); // Ensure 0 is included or below for area base
             }
             if (parsedDomain.yMax === 'auto') {
-                yMaxResolved = dataMaxY + padding;
+                yMaxResolved = Math.max(0, dataMaxY + padding); // Ensure 0 is included or above for area base
             }
             
-            if (typeof yMinResolved === 'number' && typeof yMaxResolved === 'number' && yMinResolved >= yMaxResolved) {
-                 yMinResolved -= 0.5; 
-                 yMaxResolved += 0.5;
-                 if (yMinResolved === yMaxResolved) { // If still equal (e.g. started at 0)
-                    yMinResolved = -1;
-                    yMaxResolved = 1;
+            if (yMinResolved === 0 && yMaxResolved === 0 && dataMinY === 0 && dataMaxY === 0) { // If function is y=0
+                 yMinResolved = -1;
+                 yMaxResolved = 1;
+            } else if (typeof yMinResolved === 'number' && typeof yMaxResolved === 'number' && yMinResolved >= yMaxResolved) {
+                 // This case should be less likely with the Math.min/max(0, ...)
+                 // but as a fallback ensure some range
+                 yMinResolved = Math.min(yMinResolved, yMaxResolved - 0.5); 
+                 yMaxResolved = Math.max(yMaxResolved, yMinResolved + 0.5);
+                 if (yMinResolved === yMaxResolved) { 
+                    yMinResolved -= 0.5;
+                    yMaxResolved += 0.5;
                  }
             }
         } else { 
+            // No valid yValues from plotData, default to -10, 10 including 0
             if (parsedDomain.yMin === 'auto') yMinResolved = -10;
             if (parsedDomain.yMax === 'auto') yMaxResolved = 10;
         }
-    } else if (plotData.length === 0 && (parsedDomain.yMin === 'auto' || parsedDomain.yMax === 'auto')) {
-        if (parsedDomain.yMin === 'auto') yMinResolved = -10;
-        if (parsedDomain.yMax === 'auto') yMaxResolved = 10;
+      } else { // plotData is empty (e.g. bad function or xMin=xMax)
+          if (parsedDomain.yMin === 'auto') yMinResolved = -10;
+          if (parsedDomain.yMax === 'auto') yMaxResolved = 10;
+      }
     }
-    
-    // If user provided numeric Y bounds but they are invalid (min >= max), Recharts might auto-correct or ignore.
-    // Here, we ensure that if both are numbers, min < max.
+    // If user provided numeric Y bounds but they are invalid (min >= max), adjust them.
     if (typeof yMinResolved === 'number' && typeof yMaxResolved === 'number' && yMinResolved >= yMaxResolved) {
         const mid = (yMinResolved + yMaxResolved) / 2;
-        yMinResolved = mid - 5; // Default span of 10
+        yMinResolved = mid - 5; 
         yMaxResolved = mid + 5;
-        if (yMinResolved === yMaxResolved) { // if mid was 0, yMin= -5, yMax = 5
-             yMinResolved -= 0.5; yMaxResolved += 0.5; // ensure range
+        if (yMinResolved === yMaxResolved) { // if mid was 0, results in -5, 5
+             yMinResolved -= 0.5; yMaxResolved += 0.5; 
         }
     }
-
 
     return {
         xMin: parsedDomain.xMin,
@@ -234,6 +239,7 @@ export default function CalculusPlaygroundCard() {
 
   const areaData = React.useMemo(() => {
     if (!showArea || effectiveDomain.xMin >= effectiveDomain.xMax || !plotData.length) return [];
+    // Create area data points only for the segment from 0 to xValue
     return plotData.map(p => {
       const isInIntegrationRange = xValue >= 0 
         ? (p.x >= 0 && p.x <= xValue) 
@@ -241,7 +247,7 @@ export default function CalculusPlaygroundCard() {
       
       return {
         x: p.x,
-        y: isInIntegrationRange && p.y !== null && isFinite(p.y) ? p.y : null,
+        y: isInIntegrationRange && p.y !== null && isFinite(p.y) ? p.y : null, // Use null for y outside range
       };
     });
   }, [showArea, plotData, xValue, effectiveDomain.xMin, effectiveDomain.xMax]);
@@ -283,7 +289,7 @@ export default function CalculusPlaygroundCard() {
           showTangent={showTangent}
           showArea={showArea}
           showFullDerivativeCurve={showFullDerivativeCurve}
-          domain={effectiveDomain} // Use the calculated effectiveDomain
+          domain={effectiveDomain}
           onXValueChangeByClick={handleXValueChangeByClick}
         />
         
@@ -292,7 +298,7 @@ export default function CalculusPlaygroundCard() {
           onValueChange={setXValue}
           min={effectiveDomain.xMin}
           max={effectiveDomain.xMax}
-          step={(effectiveDomain.xMax - effectiveDomain.xMin) / 200}
+          step={(effectiveDomain.xMax - effectiveDomain.xMin) / 200} // Slider step relative to domain
         />
         
         <ResultPanel xValue={xValue} fxValue={fx} fpxValue={fpx} integralValue={integralVal} />
