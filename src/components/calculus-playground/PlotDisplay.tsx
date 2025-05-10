@@ -23,8 +23,8 @@ interface PlotDisplayProps {
   derivativePlotData: { x: number; y: number | null }[];
   areaData: { x: number; y: number | null }[]; 
   xValue: number;
-  fxValue: number;
-  fpxValue: number; 
+  fxValue: number; // Value of f(x) at current xValue (slider/click)
+  fpxValue: number; // Value of f'(x) at current xValue (slider/click)
   showTangent: boolean;
   showArea: boolean;
   showFullDerivativeCurve: boolean;
@@ -48,10 +48,11 @@ export default function PlotDisplay({
   
   const tangentLineData = React.useMemo(() => {
     if (!showTangent || isNaN(fxValue) || isNaN(fpxValue) || !isFinite(fxValue) || !isFinite(fpxValue) || domain.xMin >= domain.xMax) return [];
-    const y0 = fxValue;
-    const x0 = xValue;
-    const m = fpxValue;
+    const y0 = fxValue; // f(x_slider)
+    const x0 = xValue; // x_slider
+    const m = fpxValue; // f'(x_slider)
 
+    // Calculate y values at the domain boundaries using the tangent line equation y - y0 = m(x - x0)
     const yAtDomainMin = m * (domain.xMin - x0) + y0;
     const yAtDomainMax = m * (domain.xMax - x0) + y0;
     
@@ -64,24 +65,44 @@ export default function PlotDisplay({
 
   const handleChartClick = (chartData: any) => {
     if (chartData && chartData.activeCoordinate && typeof chartData.activeCoordinate.x === 'number') {
-      const clickedX = chartData.activeCoordinate.x; 
-      onXValueChangeByClick(clickedX); 
+      onXValueChangeByClick(chartData.activeCoordinate.x); 
     } else if (chartData && typeof chartData.activeLabel === 'number') { 
-      const clickedX = chartData.activeLabel;
-      onXValueChangeByClick(clickedX); 
+      onXValueChangeByClick(chartData.activeLabel);
     }
   };
 
   const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && label !== undefined) {
+      const currentX = Number(label);
+      // Find the corresponding f(x) value from plotData for the hovered point
+      const hoveredFData = payload.find(p => p.name === "f(x)");
+      const hoveredFValue = hoveredFData?.value;
+
+      // Find the corresponding f'(x) value from derivativePlotData for the hovered point
+      const hoveredFPrimeData = payload.find(p => p.name === "f'(x) full");
+      const hoveredFPrimeValue = hoveredFPrimeData?.value;
+      
+      // The integral value is a cumulative value up to xValue (slider pos), not point-specific for hover.
+      // It's better displayed in ResultPanel. Here, we show point-specific values.
+
       return (
         <div className="bg-background/80 backdrop-blur-sm p-2 border border-border rounded-md shadow-lg text-sm">
-          <p className="font-semibold">{`x: ${label !== undefined ? Number(label).toFixed(2) : 'N/A'}`}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={`item-${index}`} style={{ color: entry.stroke || entry.fill || entry.color }}>
-              {`${entry.name}: ${entry.value !== undefined && entry.value !== null && isFinite(Number(entry.value)) ? Number(entry.value).toFixed(3) : 'N/A'}`}
+          <p className="font-semibold">{`x: ${currentX.toFixed(3)}`}</p>
+          {hoveredFValue !== undefined && isFinite(Number(hoveredFValue)) && (
+             <p style={{ color: payload.find(p => p.name === "f(x)")?.stroke || 'hsl(var(--primary))' }}>
+              {`f(x): ${Number(hoveredFValue).toFixed(3)}`}
             </p>
-          ))}
+          )}
+           {showFullDerivativeCurve && hoveredFPrimeValue !== undefined && isFinite(Number(hoveredFPrimeValue)) && (
+             <p style={{ color: payload.find(p => p.name === "f'(x) full")?.stroke || 'hsl(var(--chart-2))' }}>
+              {`f'(x): ${Number(hoveredFPrimeValue).toFixed(3)}`}
+            </p>
+          )}
+           {payload.find(item => item.name === "Tangent") && !isNaN(fpxValue) && (
+             <p style={{ color: 'hsl(var(--destructive))' }}>
+               {`Tangent slope: ${fpxValue.toFixed(3)} (at x=${xValue.toFixed(3)})`}
+             </p>
+           )}
         </div>
       );
     }
@@ -89,7 +110,6 @@ export default function PlotDisplay({
   };
   
   const yAxisDomainConfig: [number | 'auto', number | 'auto'] = [domain.yMin, domain.yMax];
-
 
   return (
     <div 
@@ -100,7 +120,7 @@ export default function PlotDisplay({
     >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
-            margin={{ top: 5, right: 30, left: 5, bottom: 5 }} 
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }} // Adjusted left margin for y-axis labels
             onClick={handleChartClick}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.5)" />
@@ -111,13 +131,16 @@ export default function PlotDisplay({
             allowDataOverflow 
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(tick) => Number(tick).toFixed(Math.abs(domain.xMax - domain.xMin) > 20 ? 0 : 1)}
+            name="x"
           />
           <YAxis 
+            type="number" // Ensure YAxis is treated as numeric for domain prop
             stroke="hsl(var(--muted-foreground))"
-            tickFormatter={(tick) => Number(tick).toFixed(Math.abs(Number(domain.yMax) - Number(domain.yMin)) > 20 ? 0 : 1)} 
+            tickFormatter={(tick) => Number(tick).toFixed(Math.abs(Number(domain.yMax) - Number(domain.yMin)) > 20 || Math.abs(Number(domain.yMax) - Number(domain.yMin)) < 0.1 ? 0 : 1)} 
             domain={yAxisDomainConfig} 
             allowDataOverflow 
-            padding={{ top: 20, bottom: 20 }} 
+            padding={{ top: 20, bottom: 20 }}
+            name="f(x)"
           />
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--primary))', strokeDasharray: '3 3' }}/>
           
@@ -129,28 +152,41 @@ export default function PlotDisplay({
                 type="monotone" 
                 dataKey="y" 
                 data={areaData} 
-                fill="hsl(var(--accent))" 
-                stroke="hsl(var(--accent-foreground))" 
-                fillOpacity={0.3} // Updated opacity
-                strokeWidth={0.5}
-                name="∫f(x)dx Area" 
-                connectNulls={true} 
-                baseValue={0} 
+                fill="hsl(var(--accent))" // Using accent for area fill
+                stroke="none" // No stroke for the area itself
+                fillOpacity={0.4} 
+                name="∫f(x)dx Area" // This name will appear in tooltip legend if enabled
+                connectNulls={true} // Connects over null/NaN points in areaData if any
+                baseValue={0} // Shades area towards y=0 (the x-axis)
             />
           )}
 
-          <Line type="monotone" dataKey="y" data={plotData} stroke="hsl(var(--primary))" strokeWidth={2} dot={false} connectNulls={false} name="f(x)" />
+          <Line type="monotone" dataKey="y" data={plotData} stroke="hsl(var(--primary))" strokeWidth={2} dot={false} connectNulls={true} name="f(x)" />
 
           {showFullDerivativeCurve && derivativePlotData.length > 0 && (
-            <Line type="monotone" dataKey="y" data={derivativePlotData} stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} connectNulls={false} name="f'(x) full" strokeDasharray="5 5" />
+            <Line type="monotone" dataKey="y" data={derivativePlotData} stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} connectNulls={true} name="f'(x) full" strokeDasharray="5 5" />
           )}
           
           {showTangent && tangentLineData.length > 0 && !isNaN(fxValue) && isFinite(fxValue) && (
             <Line type="linear" dataKey="y" data={tangentLineData} stroke="hsl(var(--destructive))" strokeWidth={1.5} dot={false} name="Tangent" />
           )}
           
-          {!isNaN(fxValue) && isFinite(fxValue) && xValue >= domain.xMin && xValue <= domain.xMax && ( 
-            <ReferenceDot x={xValue} y={fxValue} r={5} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} isFront={true} ifOverflow="visible" />
+          {/* ReferenceDot for the point (xValue, fxValue) on the main f(x) curve */}
+          {!isNaN(fxValue) && isFinite(fxValue) && 
+           xValue >= domain.xMin && xValue <= domain.xMax &&
+           (typeof domain.yMin === 'string' || (fxValue >= domain.yMin && fxValue <= (domain.yMax as number))) && // Check if point is within Y domain if numeric
+           (
+            <ReferenceDot 
+              x={xValue} 
+              y={fxValue} 
+              r={5} 
+              fill="hsl(var(--primary))" 
+              stroke="hsl(var(--background))" 
+              strokeWidth={2} 
+              isFront={true} 
+              ifOverflow="visible" 
+              aria-label={`Current point at x=${xValue.toFixed(2)}, f(x)=${fxValue.toFixed(2)}`}
+            />
           )}
            
         </LineChart>
@@ -158,4 +194,3 @@ export default function PlotDisplay({
     </div>
   );
 }
-

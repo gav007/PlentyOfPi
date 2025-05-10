@@ -9,7 +9,7 @@ import { Send, Settings2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export interface DomainOptions {
-  xMin: string; // Use string to allow 'auto' and numerical values
+  xMin: string;
   xMax: string;
   yMin: string;
   yMax: string;
@@ -38,7 +38,6 @@ export default function FunctionInput({
   }, [functionStr]);
 
   React.useEffect(() => {
-    // Update temporary options when global domainOptions change, e.g. on initial load or external reset
     setTempDomainOptions(domainOptions);
   }, [domainOptions]);
 
@@ -49,36 +48,37 @@ export default function FunctionInput({
 
   const handleDomainInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setTempDomainOptions(prev => ({ ...prev, [name]: value }));
+    setTempDomainOptions(prev => ({ ...prev, [name]: value.trim() }));
   };
 
   const handleApplyDomainChanges = () => {
-    // Basic validation
-    const xMinNum = parseFloat(tempDomainOptions.xMin);
-    const xMaxNum = parseFloat(tempDomainOptions.xMax);
-    if (!isNaN(xMinNum) && !isNaN(xMaxNum) && xMinNum >= xMaxNum) {
+    const newXMin = parseFloat(tempDomainOptions.xMin);
+    const newXMax = parseFloat(tempDomainOptions.xMax);
+    
+    if (!isNaN(newXMin) && !isNaN(newXMax) && newXMin >= newXMax) {
       alert("X Min must be less than X Max.");
-      // Optionally, revert tempDomainOptions.xMin or xMax to previous valid values or defaults
-      // For now, just alert and don't apply.
       return;
     }
-    
-    const yMinNum = parseFloat(tempDomainOptions.yMin);
-    const yMaxNum = parseFloat(tempDomainOptions.yMax);
+
     if (tempDomainOptions.yMin.toLowerCase() !== 'auto' && tempDomainOptions.yMax.toLowerCase() !== 'auto') {
-      if (!isNaN(yMinNum) && !isNaN(yMaxNum) && yMinNum >= yMaxNum) {
-         alert("Y Min must be less than Y Max if both are numbers.");
-         return;
+      const newYMin = parseFloat(tempDomainOptions.yMin);
+      const newYMax = parseFloat(tempDomainOptions.yMax);
+      if (!isNaN(newYMin) && !isNaN(newYMax) && newYMin >= newYMax) {
+        alert("Y Min must be less than Y Max if both are numbers.");
+        return;
       }
     }
+
     onDomainOptionsChange(tempDomainOptions);
-    setIsPopoverOpen(false); // Close popover on apply
+    setIsPopoverOpen(false);
   };
   
   const handleResetDomainToDefaults = () => {
     const defaultOptions = { xMin: '-10', xMax: '10', yMin: 'auto', yMax: 'auto' };
-    setTempDomainOptions(defaultOptions); // Update temp state
-    // onDomainOptionsChange(defaultOptions); // Optionally apply immediately, or wait for "Apply Scale"
+    setTempDomainOptions(defaultOptions);
+    // Optionally apply immediately, or wait for "Apply Scale" by user
+    // onDomainOptionsChange(defaultOptions); 
+    // setIsPopoverOpen(false);
   };
 
 
@@ -143,5 +143,3 @@ export default function FunctionInput({
     </div>
   );
 }
-
-    

@@ -15,8 +15,10 @@ interface SliderControlProps {
 
 export default function SliderControl({ value, onValueChange, min, max, step }: SliderControlProps) {
   // Ensure step is positive and sensible, especially if min === max
-  const effectiveStep = (max > min && step > 0) ? step : 0.01; 
-  // Clamp value to be within min and max, primarily for initial render or if props change unexpectedly
+  // A very small step is preferred for smooth dragging if (max - min) is large.
+  // For PLOT_POINTS = 200, this makes 200 steps across the domain.
+  const effectiveStep = (max > min && step > 1e-9) ? step : 0.01; 
+  
   const clampedValue = Math.max(min, Math.min(max, value));
 
 
@@ -27,7 +29,7 @@ export default function SliderControl({ value, onValueChange, min, max, step }: 
           Adjust x-value (or click on graph):
         </Label>
         <span className="font-mono text-primary text-lg bg-muted/50 px-2 py-0.5 rounded-md">
-          {clampedValue.toFixed(2)}
+          {clampedValue.toFixed(3)} {/* Increased precision for display */}
         </span>
       </div>
       <Slider
@@ -37,11 +39,9 @@ export default function SliderControl({ value, onValueChange, min, max, step }: 
         min={min}
         max={max}
         step={effectiveStep}
-        aria-label={`x-value slider, current value ${clampedValue.toFixed(2)}`}
-        disabled={min >= max} // Disable slider if domain is invalid (e.g., min is not less than max)
+        aria-label={`x-value slider, current value ${clampedValue.toFixed(3)}`}
+        disabled={min >= max || isNaN(min) || isNaN(max)} // Disable slider if domain is invalid
       />
     </div>
   );
 }
-
-    
