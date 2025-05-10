@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function BinaryGamePage() {
   return (
-    <div className="py-8">
+    <div>
       <BitToggleGame />
     </div>
   );

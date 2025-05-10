@@ -8,9 +8,8 @@ import GameControls from './GameControls';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import * as BitUtils from '@/lib/BitUtils';
-import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 const INITIAL_TIMER_SECONDS = 60;
 
@@ -44,7 +43,7 @@ export default function BitToggleGame() {
   }, [bits, bitCount]);
 
   const handleToggleBit = (index: number) => {
-    if (!isChallengeActive && gameMode) return; // Prevent changes if not in an active challenge or if game is over
+    if (!isChallengeActive && gameMode) return;
 
     setFeedbackMessage(null);
     setIsCorrect(null);
@@ -106,11 +105,12 @@ export default function BitToggleGame() {
 
   const handleCheckAnswer = () => {
     if (targetDecimal === null) return;
-    if (timerId) clearInterval(timerId); // Stop timer on submit
+    if (timerId) clearInterval(timerId); 
 
     if (decimalValue === targetDecimal) {
-      setScore((prevScore) => prevScore + 10 + timeLeft); // Bonus for time left
-      setFeedbackMessage(`Awesome! ${decimalValue} is correct. Your score: ${score + 10 + timeLeft}`);
+      const newScore = score + 10 + timeLeft;
+      setScore(newScore);
+      setFeedbackMessage(`Awesome! ${decimalValue} is correct. Your score: ${newScore}`);
       setIsCorrect(true);
     } else {
       setFeedbackMessage(`Not quite. You entered ${decimalValue} (${BitUtils.decimalToBinary(decimalValue, bitCount)}). The correct binary for ${targetDecimal} is ${BitUtils.decimalToBinary(targetDecimal, bitCount)}.`);
@@ -130,16 +130,16 @@ export default function BitToggleGame() {
   }, [timerId]);
 
   return (
-    <div className="container mx-auto p-4 flex flex-col items-center">
-      <Card className="w-full max-w-2xl mb-6 shadow-xl">
-        <CardHeader>
+    <div className="container mx-auto px-2 sm:px-4 py-8 flex flex-col items-center max-w-screen-md">
+      <Card className="w-full shadow-xl">
+        <CardHeader className="pb-4">
           <CardTitle className="text-center text-2xl sm:text-3xl font-bold text-primary">
-            Binary Converter Game
+            Binary Converter
           </CardTitle>
-          <p className="text-center text-muted-foreground">Light the Bits. Learn the System.</p>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 mb-6">
+          <CardDescription className="text-center text-muted-foreground">
+            Light the Bits. Learn the System.
+          </CardDescription>
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mt-4">
             <div className="flex items-center space-x-2">
               <Label htmlFor="bit-count-8" className="text-sm sm:text-base">8-Bit</Label>
               <Switch
@@ -160,26 +160,33 @@ export default function BitToggleGame() {
               />
             </div>
           </div>
-
+        </CardHeader>
+        <CardContent className="pt-2 sm:pt-4">
           <BitDisplayRow bits={bits} bitCount={bitCount} />
           <BitSwitchRow bits={bits} onToggleBit={handleToggleBit} bitCount={bitCount} disabled={gameMode && !isChallengeActive} />
-          <BitOutputPanel decimal={decimalValue} hex={hexValue} binary={binaryString} />
+          
+          <BitOutputPanel 
+            decimal={decimalValue} 
+            hex={hexValue} 
+            binary={binaryString}
+            gameMode={gameMode}
+            targetDecimal={targetDecimal}
+            score={score}
+            timeLeft={timeLeft}
+          />
+
+          {gameMode && (
+            <GameControls
+              feedbackMessage={feedbackMessage}
+              isCorrect={isCorrect}
+              onCheckAnswer={handleCheckAnswer}
+              onNextChallenge={handleNextChallenge}
+              isChallengeActive={isChallengeActive}
+              timeLeft={timeLeft}
+            />
+          )}
         </CardContent>
       </Card>
-
-      {gameMode && (
-        <GameControls
-          gameMode={gameMode}
-          targetDecimal={targetDecimal}
-          score={score}
-          timeLeft={timeLeft}
-          feedbackMessage={feedbackMessage}
-          isCorrect={isCorrect}
-          onCheckAnswer={handleCheckAnswer}
-          onNextChallenge={handleNextChallenge}
-          isChallengeActive={isChallengeActive}
-        />
-      )}
     </div>
   );
 }

@@ -1,35 +1,76 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface BitOutputPanelProps {
   decimal: number;
   hex: string;
   binary: string;
+  gameMode: boolean;
+  targetDecimal: number | null;
+  score: number;
+  timeLeft: number;
 }
 
-export default function BitOutputPanel({ decimal, hex, binary }: BitOutputPanelProps) {
+export default function BitOutputPanel({
+  decimal,
+  hex,
+  binary,
+  gameMode,
+  targetDecimal,
+  score,
+  timeLeft,
+}: BitOutputPanelProps) {
   return (
-    <Card 
-      className="mb-6 shadow-lg w-full max-w-md mx-auto" 
-      role="status" 
+    <div
+      className="grid grid-cols-1 min-[400px]:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-4 mb-6 text-center"
+      role="status"
       aria-live="polite"
     >
-      <CardHeader className="pb-2">
-        <CardTitle className="text-center text-xl sm:text-2xl text-primary">Converted Values</CardTitle>
-      </CardHeader>
-      <CardContent className="text-center space-y-2">
-        <p className="text-sm sm:text-base">
-          <span className="font-semibold text-muted-foreground">DEC:</span>{' '}
-          <span className="font-mono text-lg sm:text-xl text-foreground" aria-label={`Decimal value: ${decimal}`}>{decimal}</span>
-        </p>
-        <p className="text-sm sm:text-base">
-          <span className="font-semibold text-muted-foreground">HEX:</span>{' '}
-          <span className="font-mono text-lg sm:text-xl text-foreground" aria-label={`Hexadecimal value: ${hex}`}>{hex}</span>
-        </p>
-        <p className="text-sm sm:text-base">
-          <span className="font-semibold text-muted-foreground">BIN:</span>{' '}
-          <span className="font-mono text-lg sm:text-xl text-foreground break-all" aria-label={`Binary value: ${binary}`}>{binary}</span>
-        </p>
-      </CardContent>
-    </Card>
+      <div className="p-3 bg-muted/30 rounded-lg shadow">
+        <span className="font-semibold text-muted-foreground block text-xs sm:text-sm">DECIMAL</span>
+        <span className="font-mono text-lg sm:text-xl text-foreground" aria-label={`Decimal value: ${decimal}`}>
+          {decimal}
+        </span>
+      </div>
+      <div className="p-3 bg-muted/30 rounded-lg shadow">
+        <span className="font-semibold text-muted-foreground block text-xs sm:text-sm">HEX</span>
+        <span className="font-mono text-lg sm:text-xl text-foreground uppercase" aria-label={`Hexadecimal value: ${hex}`}>
+          {hex}
+        </span>
+      </div>
+      <div className="p-3 bg-muted/30 rounded-lg shadow col-span-1 min-[400px]:col-span-2 md:col-span-1">
+        <span className="font-semibold text-muted-foreground block text-xs sm:text-sm">BINARY</span>
+        <span className="font-mono text-base sm:text-lg text-foreground break-all" aria-label={`Binary value: ${binary}`}>
+          {binary}
+        </span>
+      </div>
+
+      {gameMode && (
+        <>
+          <div className="p-3 bg-accent/20 rounded-lg shadow">
+            <span className="font-semibold text-muted-foreground block text-xs sm:text-sm">🎯 TARGET</span>
+            <span className="font-mono text-lg sm:text-xl text-primary">
+              {targetDecimal ?? '-'}
+            </span>
+          </div>
+          <div className="p-3 bg-accent/20 rounded-lg shadow">
+            <span className="font-semibold text-muted-foreground block text-xs sm:text-sm">🏆 SCORE</span>
+            <span className="font-mono text-lg sm:text-xl text-primary">
+              {score}
+            </span>
+          </div>
+          <div className="p-3 bg-accent/20 rounded-lg shadow">
+            <span className="font-semibold text-muted-foreground block text-xs sm:text-sm">⏱️ TIME</span>
+            <span
+              className={cn(
+                'font-mono text-lg sm:text-xl',
+                timeLeft <= 10 && timeLeft > 0 ? 'text-destructive animate-pulse' : 'text-primary'
+              )}
+            >
+              {timeLeft > 0 ? `${timeLeft}s` : "N/A"}
+            </span>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
