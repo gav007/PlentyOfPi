@@ -61,7 +61,7 @@ export default function CalculusPlaygroundCard() {
   });
 
   // Parsed domain values, with fallbacks
-  const currentDomain = React.useMemo(() => {
+  const parsedDomain = React.useMemo(() => {
     const xMin = parseFloat(domainOptions.xMin);
     const xMax = parseFloat(domainOptions.xMax);
     const yMinRaw = domainOptions.yMin.toLowerCase();
@@ -84,21 +84,18 @@ export default function CalculusPlaygroundCard() {
       yMaxProcessed = isNaN(parsed) ? 'auto' : parsed;
     }
     
-    const finalXMin = isNaN(xMin) ? -10 : xMin;
-    const finalXMax = isNaN(xMax) ? 10 : xMax;
+    let finalXMin = isNaN(xMin) ? -10 : xMin;
+    let finalXMax = isNaN(xMax) ? 10 : xMax;
 
-    // Ensure xMin < xMax, if not, use defaults or swap
     if (finalXMin >= finalXMax) {
-        return { xMin: -10, xMax: 10, yMin: yMinProcessed, yMax: yMaxProcessed };
+        finalXMin = -10;
+        finalXMax = 10;
     }
     
-    // Ensure yMin < yMax if both are numbers
     if (typeof yMinProcessed === 'number' && typeof yMaxProcessed === 'number' && yMinProcessed >= yMaxProcessed) {
-        // Default to auto or swap, here defaulting to auto for simplicity
-        yMinProcessed = 'auto';
+        yMinProcessed = 'auto'; // Default to auto if numeric bounds are invalid
         yMaxProcessed = 'auto';
     }
-
 
     return {
       xMin: finalXMin,
@@ -108,17 +105,16 @@ export default function CalculusPlaygroundCard() {
     };
   }, [domainOptions]);
   
-  // Ensure xValue is within currentDomain.xMin and currentDomain.xMax
   React.useEffect(() => {
-    if (xValue < currentDomain.xMin) {
-      setXValue(currentDomain.xMin);
-    } else if (xValue > currentDomain.xMax) {
-      setXValue(currentDomain.xMax);
+    if (xValue < parsedDomain.xMin) {
+      setXValue(parsedDomain.xMin);
+    } else if (xValue > parsedDomain.xMax) {
+      setXValue(parsedDomain.xMax);
     }
-  }, [currentDomain.xMin, currentDomain.xMax, xValue]);
+  }, [parsedDomain.xMin, parsedDomain.xMax, xValue]);
 
 
-  const [showFullDerivativeCurve, setShowFullDerivativeCurve] = React.useState<boolean>(false); // Default to hidden
+  const [showFullDerivativeCurve, setShowFullDerivativeCurve] = React.useState<boolean>(false);
   const [showTangent, setShowTangent] = React.useState<boolean>(true);
   const [showArea, setShowArea] = React.useState<boolean>(true);
 
@@ -155,32 +151,89 @@ export default function CalculusPlaygroundCard() {
   const integralVal = React.useMemo(() => trapezoidalRule(evaluateAt, 0, xValue), [evaluateAt, xValue]);
 
   const plotData = React.useMemo(() => {
-    if (!compiledFunc || currentDomain.xMin >= currentDomain.xMax) return [];
+    if (!compiledFunc || parsedDomain.xMin >= parsedDomain.xMax) return [];
     const points: { x: number; y: number | null }[] = [];
-    const step = (currentDomain.xMax - currentDomain.xMin) / PLOT_POINTS;
+    const step = (parsedDomain.xMax - parsedDomain.xMin) / PLOT_POINTS;
     for (let i = 0; i <= PLOT_POINTS; i++) {
-      const x = currentDomain.xMin + i * step;
+      const x = parsedDomain.xMin + i * step;
       const y = evaluateAt(x);
       points.push({ x, y: isNaN(y) || !isFinite(y) ? null : y });
     }
     return points;
-  }, [evaluateAt, compiledFunc, currentDomain.xMin, currentDomain.xMax]);
+  }, [evaluateAt, compiledFunc, parsedDomain.xMin, parsedDomain.xMax]);
+  
+  const effectiveDomain = React.useMemo(() => {
+    let yMinResolved: number | 'auto' = parsedDomain.yMin;
+    let yMaxResolved: number | 'auto' = parsedDomain.yMax;
+
+    if ((parsedDomain.yMin === 'auto' || parsedDomain.yMax === 'auto') && plotData.length > 0) {
+        const yValues = plotData.map(p => p.y).filter(y => y !== null && isFinite(y)) as number[];
+        
+        if (yValues.length > 0) {
+            const dataMinY = Math.min(...yValues);
+            const dataMaxY = Math.max(...yValues);
+            const range = dataMaxY - dataMinY;
+            const padding = range === 0 ? 1 : range * 0.1; // 10% padding, or 1 if range is 0
+
+            if (parsedDomain.yMin === 'auto') {
+                yMinResolved = dataMinY - padding;
+            }
+            if (parsedDomain.yMax === 'auto') {
+                yMaxResolved = dataMaxY + padding;
+            }
+            
+            if (typeof yMinResolved === 'number' && typeof yMaxResolved === 'number' && yMinResolved >= yMaxResolved) {
+                 yMinResolved -= 0.5; 
+                 yMaxResolved += 0.5;
+                 if (yMinResolved === yMaxResolved) { // If still equal (e.g. started at 0)
+                    yMinResolved = -1;
+                    yMaxResolved = 1;
+                 }
+            }
+        } else { 
+            if (parsedDomain.yMin === 'auto') yMinResolved = -10;
+            if (parsedDomain.yMax === 'auto') yMaxResolved = 10;
+        }
+    } else if (plotData.length === 0 && (parsedDomain.yMin === 'auto' || parsedDomain.yMax === 'auto')) {
+        if (parsedDomain.yMin === 'auto') yMinResolved = -10;
+        if (parsedDomain.yMax === 'auto') yMaxResolved = 10;
+    }
+    
+    // If user provided numeric Y bounds but they are invalid (min >= max), Recharts might auto-correct or ignore.
+    // Here, we ensure that if both are numbers, min < max.
+    if (typeof yMinResolved === 'number' && typeof yMaxResolved === 'number' && yMinResolved >= yMaxResolved) {
+        const mid = (yMinResolved + yMaxResolved) / 2;
+        yMinResolved = mid - 5; // Default span of 10
+        yMaxResolved = mid + 5;
+        if (yMinResolved === yMaxResolved) { // if mid was 0, yMin= -5, yMax = 5
+             yMinResolved -= 0.5; yMaxResolved += 0.5; // ensure range
+        }
+    }
+
+
+    return {
+        xMin: parsedDomain.xMin,
+        xMax: parsedDomain.xMax,
+        yMin: yMinResolved,
+        yMax: yMaxResolved,
+    };
+  }, [parsedDomain, plotData]);
+
 
   const derivativePlotData = React.useMemo(() => {
-    if (!compiledFunc || !showFullDerivativeCurve || currentDomain.xMin >= currentDomain.xMax) return [];
+    if (!compiledFunc || !showFullDerivativeCurve || effectiveDomain.xMin >= effectiveDomain.xMax) return [];
     const points: { x: number; y: number | null }[] = [];
-    const step = (currentDomain.xMax - currentDomain.xMin) / PLOT_POINTS;
+    const step = (effectiveDomain.xMax - effectiveDomain.xMin) / PLOT_POINTS;
     for (let i = 0; i <= PLOT_POINTS; i++) {
-      const x = currentDomain.xMin + i * step;
+      const x = effectiveDomain.xMin + i * step;
       const yPrime = numericalDerivative(evaluateAt, x);
       points.push({ x, y: isNaN(yPrime) || !isFinite(yPrime) ? null : yPrime });
     }
     return points;
-  }, [evaluateAt, compiledFunc, showFullDerivativeCurve, currentDomain.xMin, currentDomain.xMax]);
+  }, [evaluateAt, compiledFunc, showFullDerivativeCurve, effectiveDomain.xMin, effectiveDomain.xMax]);
 
   const handleXValueChangeByClick = (newX: number) => {
-    // Clamp newX to be within the current domain before setting
-    const clampedX = Math.max(currentDomain.xMin, Math.min(currentDomain.xMax, newX));
+    const clampedX = Math.max(effectiveDomain.xMin, Math.min(effectiveDomain.xMax, newX));
     setXValue(clampedX);
   };
 
@@ -208,23 +261,23 @@ export default function CalculusPlaygroundCard() {
 
         <PlotDisplay
           plotData={plotData}
-          derivativePlotData={derivativePlotData} // Pass full derivative data
+          derivativePlotData={derivativePlotData} 
           xValue={xValue}
           fxValue={fx}
           fpxValue={fpx}
           showTangent={showTangent}
           showArea={showArea}
-          showFullDerivativeCurve={showFullDerivativeCurve} // Control visibility of f'(x) curve
-          domain={currentDomain}
+          showFullDerivativeCurve={showFullDerivativeCurve}
+          domain={effectiveDomain} // Use the calculated effectiveDomain
           onXValueChangeByClick={handleXValueChangeByClick}
         />
         
         <SliderControl
           value={xValue}
           onValueChange={setXValue}
-          min={currentDomain.xMin}
-          max={currentDomain.xMax}
-          step={(currentDomain.xMax - currentDomain.xMin) / 200} // Dynamic step
+          min={effectiveDomain.xMin}
+          max={effectiveDomain.xMax}
+          step={(effectiveDomain.xMax - effectiveDomain.xMin) / 200}
         />
         
         <ResultPanel xValue={xValue} fxValue={fx} fpxValue={fpx} integralValue={integralVal} />
@@ -241,5 +294,3 @@ export default function CalculusPlaygroundCard() {
     </Card>
   );
 }
-
-    

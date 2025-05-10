@@ -13,22 +13,22 @@ import {
   ReferenceDot,
   Area,
   ReferenceLine,
-  TooltipProps, // Import TooltipProps for type safety
+  TooltipProps, 
 } from 'recharts';
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import { cn } from '@/lib/utils';
 
 interface PlotDisplayProps {
   plotData: { x: number; y: number | null }[];
-  derivativePlotData: { x: number; y: number | null }[]; // For the full f'(x) curve
+  derivativePlotData: { x: number; y: number | null }[];
   xValue: number;
   fxValue: number;
-  fpxValue: number; // derivative value at xValue (slope of tangent)
+  fpxValue: number; 
   showTangent: boolean;
   showArea: boolean;
-  showFullDerivativeCurve: boolean; // New prop to control f'(x) curve visibility
-  domain: { xMin: number; xMax: number; yMin: string | number; yMax: string | number };
-  onXValueChangeByClick: (newX: number) => void; // Callback for click interaction
+  showFullDerivativeCurve: boolean;
+  domain: { xMin: number; xMax: number; yMin: number | 'auto'; yMax: number | 'auto' }; // yMin/yMax can be numbers or 'auto' if resolved by parent
+  onXValueChangeByClick: (newX: number) => void;
 }
 
 export default function PlotDisplay({
@@ -50,7 +50,6 @@ export default function PlotDisplay({
     const x0 = xValue;
     const m = fpxValue;
 
-    // Calculate tangent line points at the boundaries of the current x-domain
     const yAtMin = m * (domain.xMin - x0) + y0;
     const yAtMax = m * (domain.xMax - x0) + y0;
     
@@ -62,15 +61,13 @@ export default function PlotDisplay({
 
   const areaData = React.useMemo(() => {
     if (!showArea || domain.xMin >= domain.xMax) return [];
-    // Filter plotData to only include points relevant for the area calculation
-    // This ensures the area is shaded correctly within the current xValue and origin
     return plotData.map(p => ({
       x: p.x,
       y: (xValue >= 0 ? (p.x >= 0 && p.x <= xValue) : (p.x >= xValue && p.x <= 0)) && p.y !== null && isFinite(p.y)
            ? p.y 
-           : null, // Use null for points outside the integration range so Area component doesn't draw them
-      base: 0, // Define a base for the area chart, useful if you want to shade from y=0
-    })).filter(p => p.y !== null); // Remove points that are not part of the area
+           : null, 
+      base: 0,
+    })).filter(p => p.y !== null);
   }, [showArea, plotData, xValue, domain.xMin, domain.xMax]);
 
   const handleChartClick = (chartData: any) => {
@@ -99,15 +96,13 @@ export default function PlotDisplay({
     return null;
   };
   
-  const yAxisDomainConfig: [string | number, string | number] = [
-    domain.yMin === 'auto' || (typeof domain.yMin === 'number' && isNaN(domain.yMin)) ? 'auto' : domain.yMin,
-    domain.yMax === 'auto' || (typeof domain.yMax === 'number' && isNaN(domain.yMax)) ? 'auto' : domain.yMax,
-  ];
+  // Use domain.yMin and domain.yMax directly as they are now resolved by the parent
+  const yAxisDomainConfig: [number | 'auto', number | 'auto'] = [domain.yMin, domain.yMax];
 
 
   return (
     <div className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner min-h-[400px] cursor-pointer" title="Click on graph to set x-value">
-      <ResponsiveContainer width="100%" aspect={1.6}> {/* Adjusted aspect ratio for better height (taller) */}
+      <ResponsiveContainer width="100%" aspect={1.6}>
         <LineChart 
             margin={{ top: 5, right: 20, left: -25, bottom: 5 }}
             onClick={handleChartClick}
@@ -117,18 +112,16 @@ export default function PlotDisplay({
             type="number" 
             dataKey="x" 
             domain={[domain.xMin, domain.xMax]} 
-            allowDataOverflow // Important for custom domains
+            allowDataOverflow 
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(tick) => Number(tick).toFixed(Math.abs(domain.xMax - domain.xMin) > 20 ? 0 : 1)}
-            // ticks={/* Consider generating dynamic ticks based on domain range */}
           />
           <YAxis 
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(tick) => Number(tick).toFixed(1)}
-            domain={yAxisDomainConfig}
-            allowDataOverflow // Important for custom domains
-            padding={{ top: 20, bottom: 20 }} // Added Y-axis padding
-            // ticks={/* Consider generating dynamic ticks based on domain range */}
+            domain={yAxisDomainConfig} // Use the resolved domain
+            allowDataOverflow 
+            padding={{ top: 20, bottom: 20 }}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--primary))', strokeDasharray: '3 3' }}/>
           
