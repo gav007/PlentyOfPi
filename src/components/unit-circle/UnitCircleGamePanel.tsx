@@ -6,7 +6,7 @@ import AnglePrompt from './AnglePrompt';
 import GameControlsUnitCircle from './GameControlsUnitCircle';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
-import { CheckCircle, XCircle, Trophy, Repeat, Info, Flag, HelpCircle } from 'lucide-react'; // Replaced FlagCheckered with Flag
+import { CheckCircle, XCircle, Trophy, Info, Flag, HelpCircle } from 'lucide-react'; 
 
 interface UnitCircleGamePanelProps {
   targetAngleRad: number;
@@ -18,6 +18,7 @@ interface UnitCircleGamePanelProps {
   isCorrect: boolean | null;
   isGameInteractionLocked: boolean;
   isGameOver: boolean;
+  onRestartGame: () => void; // Added new prop
 }
 
 export default function UnitCircleGamePanel({
@@ -30,6 +31,7 @@ export default function UnitCircleGamePanel({
   isCorrect,
   isGameInteractionLocked,
   isGameOver,
+  onRestartGame, // Destructure new prop
 }: UnitCircleGamePanelProps) {
   
   const alertVariant = isCorrect === false && !isGameOver ? 'destructive' : 'default';
@@ -40,7 +42,7 @@ export default function UnitCircleGamePanel({
     'border-blue-500 bg-blue-500/10 text-blue-700 dark:text-blue-400' 
   );
   
-  const feedbackIcon = isGameOver ? <Flag className="h-5 w-5" /> : // Changed from FlagCheckered
+  const feedbackIcon = isGameOver ? <Flag className="h-5 w-5" /> :
                        isCorrect === true ? <CheckCircle className="h-5 w-5" /> : 
                        isCorrect === false ? <XCircle className="h-5 w-5" /> : 
                        <Info className="h-5 w-5" />;
@@ -63,7 +65,7 @@ export default function UnitCircleGamePanel({
           Game Challenge
         </CardTitle>
         <CardDescription>
-          {isGameOver ? "Game has ended. See your results below." : `Match the target angle on the circle. Turn ${turn}/${maxTurns}`}
+          {isGameOver ? "Game has ended. See your results below." : `Match the target angle on the circle. Turn ${Math.min(turn, maxTurns)}/${maxTurns}`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -88,9 +90,12 @@ export default function UnitCircleGamePanel({
           </div>
         </div>
         
-        {!isGameOver && (
-            <GameControlsUnitCircle onLockIn={onLockIn} isGameInteractionLocked={isGameInteractionLocked} />
-        )}
+        <GameControlsUnitCircle 
+            onLockIn={onLockIn} 
+            isGameInteractionLocked={isGameInteractionLocked}
+            isGameOver={isGameOver}
+            onRestartGame={onRestartGame}
+        />
 
         {feedbackMessage && (
           <Alert variant={alertVariant} className={cn("mt-4", alertCustomClasses)}>
