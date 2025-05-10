@@ -34,7 +34,9 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
 
     const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse());
     
-    let newAngle = Math.atan2(svgP.y, svgP.x);
+    // With manual Y inversion for display, atan2 needs the inverted Y coordinate
+    // from SVG's default (positive Y down) to mathematical (positive Y up)
+    let newAngle = Math.atan2(-svgP.y, svgP.x);
     if (newAngle < 0) {
       newAngle += 2 * Math.PI;
     }
@@ -85,8 +87,13 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
     };
   }, [isDragging, drag, stopDrag]);
 
-  const handleX = radius * Math.cos(angle);
-  const handleY = radius * Math.sin(angle);
+  const mathHandleX = radius * Math.cos(angle);
+  const mathHandleY = radius * Math.sin(angle);
+
+  // SVG Y coordinates are inverted from mathematical Y
+  const svgHandleX = mathHandleX;
+  const svgHandleY = -mathHandleY;
+
 
   const referenceAngles = [
     { deg: 0,     rad: 0,       label: "0" },
@@ -108,7 +115,7 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
     { deg: 360,   rad: 2*Math.PI, label: "2π" },
   ];
 
-  const labelOffsetRadius = radius + 0.22; // Determines how far labels are from the circle's edge
+  const labelOffsetRadius = radius + 0.22;
 
   return (
     <svg
@@ -121,7 +128,7 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
       className="cursor-pointer touch-none border border-border rounded-md bg-card"
       aria-label="Interactive unit circle. Drag to change the angle."
       role="application"
-      style={{ transform: "scaleY(-1)" }} // Invert Y-axis for standard math coordinates
+      // Removed style={{ transform: "scaleY(-1)" }} - Y inversion is now manual
     >
       {/* Axes */}
       <line x1={viewBoxMin} y1="0" x2={-viewBoxMin} y2="0" stroke="hsl(var(--muted-foreground))" strokeWidth="0.02" />
@@ -130,43 +137,44 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
       {/* Unit Circle */}
       <circle cx="0" cy="0" r={radius} fill="none" stroke="hsl(var(--primary))" strokeWidth="0.03" />
       
-      {/* Quadrant Labels */}
-      <text x={radius * 0.7} y={radius * 0.7} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" style={{ transform: "scaleY(-1)"}}>I</text>
-      <text x={-radius * 0.7} y={radius * 0.7} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" style={{ transform: "scaleY(-1)"}}>II</text>
-      <text x={-radius * 0.7} y={-radius * 0.7} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" style={{ transform: "scaleY(-1)"}}>III</text>
-      <text x={radius * 0.7} y={-radius * 0.7} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" style={{ transform: "scaleY(-1)"}}>IV</text>
+      {/* Quadrant Labels - Y coordinates manually inverted */}
+      <text x={radius * 0.7} y={-(radius * 0.7)} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" dominantBaseline="middle">I</text>
+      <text x={-(radius * 0.7)} y={-(radius * 0.7)} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" dominantBaseline="middle">II</text>
+      <text x={-(radius * 0.7)} y={radius * 0.7} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" dominantBaseline="middle">III</text>
+      <text x={radius * 0.7} y={radius * 0.7} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" dominantBaseline="middle">IV</text>
 
       {/* Cheat Overlay Elements */}
       {showCheatOverlay && (
         <g>
-          {/* Radial Guide Lines and Labels for reference angles */}
           {referenceAngles.map(refAngle => {
-            const x = radius * Math.cos(refAngle.rad);
-            const y = radius * Math.sin(refAngle.rad);
+            const mathX = radius * Math.cos(refAngle.rad);
+            const mathY = radius * Math.sin(refAngle.rad);
             
-            const lx = labelOffsetRadius * Math.cos(refAngle.rad);
-            let ly = labelOffsetRadius * Math.sin(refAngle.rad);
+            const mathLabelX = labelOffsetRadius * Math.cos(refAngle.rad);
+            let mathLabelY = labelOffsetRadius * Math.sin(refAngle.rad);
 
-            // Slightly offset 2π label from 0 label
-            if (refAngle.label === "2π") {
-              // For 2Pi (which is at 0 radians visually for text positioning)
-              // if y is 0, move it slightly down in the text's coordinate system
-              // (which is up on screen before text's own scaleY(-1))
-              ly = (labelOffsetRadius * Math.sin(refAngle.rad)) - 0.15; // Adjust this offset as needed
+            // Adjustments for 0 and 2π labels to avoid overlap
+            if (refAngle.label === "2π" && Math.abs(mathLabelY) < 0.001) { // If Y is ~0 for 2pi
+                mathLabelY -= 0.10; // Move 2π label slightly down mathematically
             }
-             if (refAngle.label === "0" && Math.abs(ly) < 0.001) {
-               ly = (labelOffsetRadius * Math.sin(refAngle.rad)) + 0.02; // Nudge "0" slightly up to not clash with axis text potentially
-             }
+            if (refAngle.label === "0" && Math.abs(mathLabelY) < 0.001) { // If Y is ~0 for 0
+                mathLabelY += 0.05; // Move 0 label slightly up mathematically
+            }
+
+            const svgX = mathX;
+            const svgY = -mathY;
+            const svgLabelX = mathLabelX;
+            const svgLabelY = -mathLabelY;
 
 
             return (
               <g key={`ref-${refAngle.label}`}>
-                {(refAngle.rad !== 0 && refAngle.rad !== 2 * Math.PI) && ( // Avoid drawing line over x-axis for 0/2PI
+                {(refAngle.rad !== 0 && refAngle.rad !== 2 * Math.PI) && (
                   <line
                     x1="0"
                     y1="0"
-                    x2={x}
-                    y2={y}
+                    x2={svgX}
+                    y2={svgY}
                     stroke="hsl(var(--muted-foreground))"
                     strokeOpacity="0.5"
                     strokeWidth="0.015"
@@ -174,13 +182,13 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
                   />
                 )}
                 <text
-                  x={lx}
-                  y={ly}
+                  x={svgLabelX}
+                  y={svgLabelY}
                   fontSize="0.12"
                   fill="hsl(var(--accent-foreground))"
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  style={{ transform: "scaleY(-1)" }} // Counter-act parent SVG transform for text
+                  // Removed style={{ transform: "scaleY(-1)" }}
                 >
                   {refAngle.label}
                 </text>
@@ -189,12 +197,13 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
           })}
 
           {/* Triangle lines for the INTERACTIVE angle (cos and sin components) */}
-          <line x1="0" y1="0" x2={handleX} y2="0" stroke="hsla(var(--accent-foreground), 0.6)" strokeWidth="0.02" strokeDasharray="0.04 0.02" />
-          <line x1={handleX} y1="0" x2={handleX} y2={handleY} stroke="hsla(var(--accent-foreground), 0.6)" strokeWidth="0.02" strokeDasharray="0.04 0.02" />
+          {/* Y coordinates (svgHandleY and 0) are already SVG-correct */}
+          <line x1="0" y1="0" x2={svgHandleX} y2="0" stroke="hsla(var(--accent-foreground), 0.6)" strokeWidth="0.02" strokeDasharray="0.04 0.02" />
+          <line x1={svgHandleX} y1="0" x2={svgHandleX} y2={svgHandleY} stroke="hsla(var(--accent-foreground), 0.6)" strokeWidth="0.02" strokeDasharray="0.04 0.02" />
           
-          {/* Arc for the INTERACTIVE angle */}
+          {/* Arc for the INTERACTIVE angle. Last Y param needs to be SVG Y. */}
           <path
-            d={`M ${radius * 0.3} 0 A ${radius * 0.3} ${radius * 0.3} 0 ${angle > Math.PI ? 1 : 0} 1 ${radius * 0.3 * Math.cos(angle)} ${radius * 0.3 * Math.sin(angle)}`}
+            d={`M ${radius * 0.3} 0 A ${radius * 0.3} ${radius * 0.3} 0 ${angle > Math.PI ? 1 : 0} 1 ${radius * 0.3 * Math.cos(angle)} ${-(radius * 0.3 * Math.sin(angle))}`}
             fill="none"
             stroke="hsla(var(--accent-foreground), 0.8)"
             strokeWidth="0.02"
@@ -203,13 +212,14 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
       )}
 
       {/* Line from center to handle (radius line for interactive angle) */}
-      <line x1="0" y1="0" x2={handleX} y2={handleY} stroke="hsl(var(--primary))" strokeWidth="0.03" />
+      <line x1="0" y1="0" x2={svgHandleX} y2={svgHandleY} stroke="hsl(var(--primary))" strokeWidth="0.03" />
 
       {/* Draggable Handle */}
-      <circle cx={handleX} cy={handleY} r="0.1" fill="hsl(var(--primary))" className="cursor-grab active:cursor-grabbing" />
-      <circle cx={handleX} cy={handleY} r="0.25" fill="transparent" /> {/* Larger invisible hit area for easier dragging */}
+      <circle cx={svgHandleX} cy={svgHandleY} r="0.1" fill="hsl(var(--primary))" className="cursor-grab active:cursor-grabbing" />
+      <circle cx={svgHandleX} cy={svgHandleY} r="0.25" fill="transparent" /> {/* Larger invisible hit area for easier dragging */}
     </svg>
   );
 };
 
 export default UnitCircleCanvas;
+
