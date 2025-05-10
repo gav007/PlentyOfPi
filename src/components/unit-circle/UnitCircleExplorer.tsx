@@ -1,58 +1,98 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Eye, HelpCircle, Orbit, Sigma, Waves, Gamepad2 } from 'lucide-react';
+import { Eye, Orbit, Sigma, Waves, Gamepad2 } from 'lucide-react';
 import UnitCircleCanvas from './UnitCircleCanvas';
 import AngleDisplay from './AngleDisplay';
 import TrigInfoPanel from './TrigInfoPanel';
 import SineWavePlot from './SineWavePlot';
 import UnitCircleGamePanel from './UnitCircleGamePanel';
-import { checkAngleMatch, commonAnglesDegrees, formatAngleToPiString } from '@/lib/AngleEvaluation'; 
+import { checkAngleMatch, formatAngleToPiString, getRandomAngleByDifficulty } from '@/lib/AngleEvaluation'; 
 
 const SVG_SIZE = 320;
 const SINE_WAVE_HEIGHT = 150;
+const MAX_TURNS_UNIT_CIRCLE = 10;
 
-// Convert commonAnglesDegrees to radians for internal use if needed, or keep target in degrees
-const commonAnglesRad = commonAnglesDegrees.map(deg => (deg * Math.PI) / 180);
+
+// Helper function for performance feedback
+const getPerformanceFeedback = (correct: number, total: number): string => {
+    const percentage = correct / total;
+    if (percentage <= 0.3) return "💡 Keep practicing! You'll get the hang of it.";
+    if (percentage <= 0.7) return "👍 Good job! Getting there.";
+    if (percentage < 1) return "🌟 Great work! Almost perfect.";
+    return "🔥 Perfect score! You're a Unit Circle master!";
+};
 
 export default function UnitCircleExplorer() {
-  const [angleRad, setAngleRad] = useState<number>(Math.PI / 4); // Current user-dragged angle in radians
+  const [angleRad, setAngleRad] = useState<number>(Math.PI / 4);
   const [showCheatOverlay, setShowCheatOverlay] = useState<boolean>(false);
 
   // Game Mode State
   const [gameMode, setGameMode] = useState<boolean>(false);
   const [targetAngleRad, setTargetAngleRad] = useState<number | null>(null);
-  const [score, setScore] = useState<number>(0);
-  const [streak, setStreak] = useState<number>(0);
+  const [correctCount, setCorrectCount] = useState<number>(0);
+  const [turn, setTurn] = useState<number>(1);
   const [gameFeedback, setGameFeedback] = useState<string | null>(null);
   const [isGuessCorrect, setIsGuessCorrect] = useState<boolean | null>(null);
   const [isGameInteractionLocked, setIsGameInteractionLocked] = useState<boolean>(false);
+  const [isGameOver, setIsGameOver] = useState<boolean>(false);
+  
+  const previousTargetAngleRef = useRef<number | null>(null);
 
 
   const startNewGameTurn = useCallback(() => {
-    const randomIndex = Math.floor(Math.random() * commonAnglesRad.length);
-    setTargetAngleRad(commonAnglesRad[randomIndex]);
+    if (turn > MAX_TURNS_UNIT_CIRCLE) {
+      setIsGameOver(true);
+      setIsGameInteractionLocked(true);
+      const finalMessage = `Game Over! You scored ${correctCount} / ${MAX_TURNS_UNIT_CIRCLE}. ${getPerformanceFeedback(correctCount, MAX_TURNS_UNIT_CIRCLE)}`;
+      setGameFeedback(finalMessage);
+      setIsGuessCorrect(null);
+      return;
+    }
+
+    setIsGameOver(false); // Ensure not game over if starting a new turn
+    const newTarget = getRandomAngleByDifficulty(turn, previousTargetAngleRef.current);
+    setTargetAngleRad(newTarget);
+    previousTargetAngleRef.current = newTarget;
+    
     setGameFeedback(null);
     setIsGuessCorrect(null);
     setIsGameInteractionLocked(false);
-  }, []);
+    // Optionally reset user's angle: setAngleRad(Math.PI / 4);
+  }, [turn, correctCount]);
+
 
   useEffect(() => {
     if (gameMode) {
-      startNewGameTurn();
-      setScore(0);
-      setStreak(0);
+      setTurn(1);
+      setCorrectCount(0);
+      setIsGameOver(false);
+      setIsGameInteractionLocked(false);
+      previousTargetAngleRef.current = null;
+      // The effect watching 'turn' and 'gameMode' will call startNewGameTurn
     } else {
       setTargetAngleRad(null);
       setGameFeedback(null);
       setIsGuessCorrect(null);
       setIsGameInteractionLocked(false);
+      setTurn(1);
+      setCorrectCount(0);
+      setIsGameOver(false);
     }
-  }, [gameMode, startNewGameTurn]);
+  }, [gameMode]);
+
+  useEffect(() => {
+    if (gameMode && (turn === 1 || !isGameInteractionLocked)) {
+        // This ensures that when gameMode is first enabled and turn becomes 1, startNewGameTurn is called.
+        // Also, for subsequent turns, it's called when interaction is unlocked (after feedback timeout).
+        startNewGameTurn();
+    }
+  }, [gameMode, turn, isGameInteractionLocked, startNewGameTurn]);
+
 
   const handleAngleChange = (newAngle: number) => {
     if (!isGameInteractionLocked) {
@@ -61,26 +101,25 @@ export default function UnitCircleExplorer() {
   };
   
   const handleLockIn = () => {
-    if (targetAngleRad === null || angleRad === null || isGameInteractionLocked) return;
+    if (targetAngleRad === null || angleRad === null || isGameInteractionLocked || isGameOver) return;
 
-    setIsGameInteractionLocked(true); // Lock interaction while processing
+    setIsGameInteractionLocked(true);
     const { match, errorDegrees } = checkAngleMatch(angleRad, targetAngleRad, true);
 
+    let turnFeedbackMsg = "";
     if (match) {
-      const turnScore = Math.max(0, 100 - Math.floor(errorDegrees));
-      setScore(prev => prev + turnScore);
-      setStreak(prev => prev + 1);
-      setGameFeedback(`Correct! Target was ${formatAngleToPiString(targetAngleRad)}. Error: ${errorDegrees.toFixed(1)}°. Score: +${turnScore}`);
+      setCorrectCount(prev => prev + 1);
       setIsGuessCorrect(true);
+      turnFeedbackMsg = `Correct! Target was ${formatAngleToPiString(targetAngleRad)}. Error: ${errorDegrees.toFixed(1)}°.`;
     } else {
-      setStreak(0);
-      setGameFeedback(`Incorrect. Target was ${formatAngleToPiString(targetAngleRad)}. Your error: ${errorDegrees.toFixed(1)}°.`);
       setIsGuessCorrect(false);
+      turnFeedbackMsg = `Incorrect. Target was ${formatAngleToPiString(targetAngleRad)}. Your error: ${errorDegrees.toFixed(1)}°.`;
     }
+    setGameFeedback(turnFeedbackMsg);
 
     setTimeout(() => {
-      startNewGameTurn();
-    }, 2500); // Delay for feedback readability
+      setTurn(prevTurn => prevTurn + 1);
+    }, 2500); 
   };
 
   return (
@@ -139,7 +178,7 @@ export default function UnitCircleExplorer() {
               size={SVG_SIZE}
               gameMode={gameMode}
               targetAngleRad={targetAngleRad}
-              isGameInteractionLocked={isGameInteractionLocked}
+              isGameInteractionLocked={isGameInteractionLocked || isGameOver}
             />
           </CardContent>
         </Card>
@@ -165,11 +204,13 @@ export default function UnitCircleExplorer() {
             <UnitCircleGamePanel
               targetAngleRad={targetAngleRad}
               onLockIn={handleLockIn}
-              score={score}
-              streak={streak}
+              correctCount={correctCount}
+              maxTurns={MAX_TURNS_UNIT_CIRCLE}
+              turn={turn}
               feedbackMessage={gameFeedback}
               isCorrect={isGuessCorrect}
               isGameInteractionLocked={isGameInteractionLocked}
+              isGameOver={isGameOver}
             />
           )}
         </div>

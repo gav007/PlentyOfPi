@@ -75,3 +75,41 @@ export function checkAngleMatch(
     return { match: angleErrorDegrees < 0.1, errorDegrees: angleErrorDegrees };
   }
 }
+
+const easyAnglesDeg: number[] = [0, 90, 180, 270]; // 0, π/2, π, 3π/2
+const mediumAnglesDeg: number[] = [45, 135, 225, 315]; // π/4, 3π/4, 5π/4, 7π/4
+const hardAnglesDeg: number[] = [30, 150, 210, 330]; // π/6, 5π/6, 7π/6, 11π/6
+
+const degToRad = (deg: number): number => (deg * Math.PI) / 180;
+
+/**
+ * Gets a random target angle in radians based on the game turn, ensuring it's not the same as the last angle.
+ * @param turn - Current game turn (1-indexed).
+ * @param lastAngleRad - The previous target angle in radians, to avoid repetition.
+ * @returns A new target angle in radians.
+ */
+export function getRandomAngleByDifficulty(turn: number, lastAngleRad: number | null = null): number {
+  let availableAnglesDeg: number[];
+
+  if (turn <= 3) {
+    availableAnglesDeg = easyAnglesDeg;
+  } else if (turn <= 6) {
+    availableAnglesDeg = mediumAnglesDeg;
+  } else { // Turns 7-10
+    availableAnglesDeg = hardAnglesDeg;
+  }
+
+  let candidateAnglesRad = availableAnglesDeg.map(degToRad);
+
+  if (lastAngleRad !== null) {
+    const filteredCandidates = candidateAnglesRad.filter(angleRad => Math.abs(angleRad - lastAngleRad) > 0.001); // Filter out last angle
+    // If filtering results in an empty list (e.g., tier has only one angle and it was the last one),
+    // then fall back to using the full list for that tier to prevent errors.
+    if (filteredCandidates.length > 0) {
+      candidateAnglesRad = filteredCandidates;
+    }
+  }
+  
+  const randomIndex = Math.floor(Math.random() * candidateAnglesRad.length);
+  return candidateAnglesRad[randomIndex];
+}
