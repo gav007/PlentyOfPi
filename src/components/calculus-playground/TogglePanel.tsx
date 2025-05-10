@@ -5,12 +5,12 @@ import type * as React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, TrendingUp, Minus, AreaChartIcon } from 'lucide-react';
+import { Eye, TrendingUp, Minus, AreaChart as AreaChartIcon } from 'lucide-react'; // Ensured AreaChartIcon is imported as AreaChartIcon
 
 
 interface TogglePanelProps {
-  showFullDerivativeCurve: boolean; // Changed from showDerivative
-  onShowFullDerivativeCurveChange: (checked: boolean) => void; // Changed handler name
+  showFullDerivativeCurve: boolean; 
+  onShowFullDerivativeCurveChange: (checked: boolean) => void; 
   showTangent: boolean;
   onShowTangentChange: (checked: boolean) => void;
   showArea: boolean;

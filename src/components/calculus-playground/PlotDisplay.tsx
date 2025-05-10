@@ -93,7 +93,7 @@ export default function PlotDisplay({
 
   return (
     <div 
-      className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner aspect-[2.2/1] min-h-[400px] cursor-pointer" // Adjusted aspect ratio, min-h
+      className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner aspect-[2.2/1] min-h-[400px] cursor-pointer"
       title="Click on graph to set x-value"
       role="application" 
       aria-label="Interactive calculus graph. Click to set x-value."
@@ -124,18 +124,18 @@ export default function PlotDisplay({
           <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" ifOverflow="visible" />
           <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" ifOverflow="visible" />
 
-          {showArea && areaData.length > 1 && ( // Need at least 2 points for an area
+          {showArea && areaData.length > 1 && ( 
              <Area 
                 type="monotone" 
                 dataKey="y" 
-                data={areaData} // This is the dedicated segment for the area
-                fill="hsl(var(--accent))" // Light blue
-                stroke="hsl(var(--accent-foreground))" // Darker blue for border
-                fillOpacity={0.5} 
+                data={areaData} 
+                fill="hsl(var(--accent))" 
+                stroke="hsl(var(--accent-foreground))" 
+                fillOpacity={0.3} // Updated opacity
                 strokeWidth={0.5}
                 name="∫f(x)dx Area" 
-                connectNulls={true} // True because areaData is a clean segment of actual values
-                baseValue={0} // Fill from y=0 (x-axis)
+                connectNulls={true} 
+                baseValue={0} 
             />
           )}
 
