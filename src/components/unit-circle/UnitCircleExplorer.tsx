@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -15,6 +16,7 @@ import { checkAngleMatch, formatAngleToPiString, getRandomAngleByDifficulty } fr
 const SVG_SIZE = 320;
 const SINE_WAVE_HEIGHT = 150;
 const MAX_TURNS_UNIT_CIRCLE = 10;
+const FEEDBACK_DELAY_MS = 2500;
 
 
 const getPerformanceFeedback = (correct: number, total: number): string => {
@@ -39,32 +41,26 @@ export default function UnitCircleExplorer() {
   const [isGuessCorrect, setIsGuessCorrect] = useState<boolean | null>(null);
   const [isGameInteractionLocked, setIsGameInteractionLocked] = useState<boolean>(false);
   const [isGameOver, setIsGameOver] = useState<boolean>(false);
+  const [isShowingFeedback, setIsShowingFeedback] = useState<boolean>(false); // New state
   
   const previousTargetAngleRef = useRef<number | null>(null);
 
-  // Memoized version of getPerformanceFeedback
   const memoizedGetPerformanceFeedback = useCallback(getPerformanceFeedback, []);
 
-  // Sets up a new active turn (not game over)
   const startNewActiveTurn = useCallback(() => {
     const newTarget = getRandomAngleByDifficulty(turn, previousTargetAngleRef.current);
     setTargetAngleRad(newTarget);
     previousTargetAngleRef.current = newTarget;
     
-    // Only reset feedback if it's for a new turn, not if game over message is showing
-    if (!isGameOver) {
-        setGameFeedback(null); 
-        setIsGuessCorrect(null);
-    }
+    setGameFeedback(null); 
+    setIsGuessCorrect(null);
     setIsGameInteractionLocked(false); 
-  }, [turn, isGameOver]); // Depends on turn (for difficulty) and isGameOver (for feedback clearing)
+  }, [turn]); 
 
-  // useEffect to manage game progression triggered by gameMode or turn changes
   useEffect(() => {
     if (!gameMode) return;
 
     if (turn > MAX_TURNS_UNIT_CIRCLE) {
-        // Handle Game Over only if not already set to avoid re-triggering feedback
         if (!isGameOver) {
             setIsGameOver(true);
             setIsGameInteractionLocked(true);
@@ -73,31 +69,32 @@ export default function UnitCircleExplorer() {
             setIsGuessCorrect(null);
         }
     } else {
-        // If not game over, start the active turn.
-        setIsGameOver(false); // Ensure game over is false if we are starting/in a turn
-        startNewActiveTurn();
+        // If not game over, and we are NOT in the feedback phase of the PREVIOUS turn:
+        if (!isShowingFeedback) {
+            setIsGameOver(false); 
+            startNewActiveTurn();
+        }
     }
-  }, [gameMode, turn, correctCount, isGameOver, memoizedGetPerformanceFeedback, startNewActiveTurn]);
+  }, [gameMode, turn, isGameOver, correctCount, memoizedGetPerformanceFeedback, startNewActiveTurn, isShowingFeedback]);
 
-  // useEffect for gameMode toggle to initialize/reset game
   useEffect(() => {
     if (gameMode) {
-        setTurn(1); // This will trigger the main game progression useEffect
+        setTurn(1); 
         setCorrectCount(0);
         setIsGameOver(false); 
         setIsGameInteractionLocked(false);
+        setIsShowingFeedback(false); // Reset feedback state
         previousTargetAngleRef.current = null;
         setGameFeedback(null); 
         setIsGuessCorrect(null);
+        // targetAngleRad will be set by the 'turn' effect.
     } else {
-      // Reset states when exiting game mode
       setTargetAngleRad(null);
       setGameFeedback(null);
       setIsGuessCorrect(null);
       setIsGameInteractionLocked(false);
-      // setTurn(1); // Not strictly needed to reset turn here as gameMode=false disables game logic
-      // setCorrectCount(0); // Already handled
       setIsGameOver(false);
+      setIsShowingFeedback(false);
     }
   }, [gameMode]);
 
@@ -111,7 +108,9 @@ export default function UnitCircleExplorer() {
   const handleLockIn = () => {
     if (targetAngleRad === null || isGameInteractionLocked || isGameOver) return;
 
-    setIsGameInteractionLocked(true); 
+    setIsGameInteractionLocked(true);
+    setIsShowingFeedback(true); // Start showing feedback
+
     const { match, errorDegrees } = checkAngleMatch(angleRad, targetAngleRad, true);
 
     let turnFeedbackMsg = "";
@@ -126,9 +125,10 @@ export default function UnitCircleExplorer() {
     setGameFeedback(turnFeedbackMsg);
 
     setTimeout(() => {
-      // The main useEffect (watching 'turn') will handle game over or starting the next active turn.
+      setIsShowingFeedback(false); // Feedback phase over
+      // Now advance to the next turn. The main useEffect (watching 'turn' & 'isShowingFeedback') will handle setting the new target.
       setTurn(prevTurn => prevTurn + 1); 
-    }, 2500); 
+    }, FEEDBACK_DELAY_MS); 
   };
 
   return (
@@ -187,7 +187,7 @@ export default function UnitCircleExplorer() {
               size={SVG_SIZE}
               gameMode={gameMode}
               targetAngleRad={targetAngleRad}
-              isGameInteractionLocked={isGameInteractionLocked}
+              isGameInteractionLocked={isGameInteractionLocked || isShowingFeedback} // Lock during feedback too
             />
           </CardContent>
         </Card>
@@ -218,7 +218,7 @@ export default function UnitCircleExplorer() {
               turn={turn}
               feedbackMessage={gameFeedback}
               isCorrect={isGuessCorrect}
-              isGameInteractionLocked={isGameInteractionLocked}
+              isGameInteractionLocked={isGameInteractionLocked || isShowingFeedback} // Lock controls during feedback
               isGameOver={isGameOver}
             />
           )}
