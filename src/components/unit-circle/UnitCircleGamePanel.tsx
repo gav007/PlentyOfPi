@@ -6,7 +6,7 @@ import AnglePrompt from './AnglePrompt';
 import GameControlsUnitCircle from './GameControlsUnitCircle';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
-import { CheckCircle, XCircle, Trophy, Repeat, Info, FlagCheckered, HelpCircle } from 'lucide-react'; // Added FlagCheckered for game over, HelpCircle for turn
+import { CheckCircle, XCircle, Trophy, Repeat, Info, Flag, HelpCircle } from 'lucide-react'; // Replaced FlagCheckered with Flag
 
 interface UnitCircleGamePanelProps {
   targetAngleRad: number;
@@ -40,7 +40,7 @@ export default function UnitCircleGamePanel({
     'border-blue-500 bg-blue-500/10 text-blue-700 dark:text-blue-400' 
   );
   
-  const feedbackIcon = isGameOver ? <FlagCheckered className="h-5 w-5" /> :
+  const feedbackIcon = isGameOver ? <Flag className="h-5 w-5" /> : // Changed from FlagCheckered
                        isCorrect === true ? <CheckCircle className="h-5 w-5" /> : 
                        isCorrect === false ? <XCircle className="h-5 w-5" /> : 
                        <Info className="h-5 w-5" />;
