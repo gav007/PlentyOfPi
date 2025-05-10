@@ -70,7 +70,7 @@ export default function BitToggleGame() {
   };
 
   const startNewTurnLogic = useCallback((currentTurnNum: number, currentFixedBitCount: 8) => {
-    if (currentTurnNum >= MAX_TURNS) {
+    if (currentTurnNum > MAX_TURNS) { // Changed from >= to > to allow 10th turn to complete
       setIsGameOver(true);
       setIsChallengeActive(false);
       if (timerId) clearInterval(timerId);
@@ -136,14 +136,15 @@ export default function BitToggleGame() {
       setFeedbackMessage(null);
       setIsCorrect(null);
       setIsChallengeActive(false);
-      setIsGameOver(false);
+      setIsGameOver(false); // Explicitly set game over to false
       setTurn(1); 
-      // Do not reset score here as it's total score, game is just off
     }
   };
   
   const handleToggleBit = (index: number) => {
-    if (!gameMode || (gameMode && !isChallengeActive) || isGameOver) return;
+    // Allow toggling if not in game mode, OR if in game mode and challenge is active and game is not over.
+    const canToggle = !gameMode || (gameMode && isChallengeActive && !isGameOver);
+    if (!canToggle) return;
 
     setFeedbackMessage(null); 
     const updatedBits = [...bits];
@@ -206,20 +207,33 @@ export default function BitToggleGame() {
   };
   
   useEffect(() => {
-    if (gameMode && !isGameOver && turn > 1 && !isChallengeActive) {
+    if (gameMode && !isGameOver && turn > MAX_TURNS) { // Check if turn has exceeded max turns
+        setIsGameOver(true);
+        setIsChallengeActive(false);
+        if (timerId) clearInterval(timerId);
+        setTimerId(null);
+        const avgStars = MAX_TURNS > 0 ? (totalStars / MAX_TURNS).toFixed(1) : "0.0";
+        setFeedbackMessage(
+          `Final Score: ${score}. Highest Streak: ${highestStreak}. Avg Stars: ${avgStars} ⭐. Well done!`
+        );
+        return; // Exit early if game over condition met here
+    }
+    
+    // This handles advancing to the next turn OR starting a new turn after feedback is displayed
+    if (gameMode && !isGameOver && !isChallengeActive) {
         const timeoutId = setTimeout(() => {
-            if (gameMode && !isGameOver) { 
+            if (gameMode && !isGameOver) { // Double check game state before starting new turn
                 startNewTurnLogic(turn, 8);
             }
         }, feedbackMessage ? 2500 : 50); // Longer delay for feedback readability
         return () => clearTimeout(timeoutId);
     }
-  }, [turn, gameMode, isGameOver, isChallengeActive, startNewTurnLogic, feedbackMessage]);
+  }, [turn, gameMode, isGameOver, isChallengeActive, startNewTurnLogic, feedbackMessage, score, totalStars, highestStreak, timerId]);
 
 
   const handleRestartGame = () => {
-    handleGameModeToggle(false); 
-    setTimeout(() => handleGameModeToggle(true), 50);
+    handleGameModeToggle(false); // Turn game mode off to reset
+    setTimeout(() => handleGameModeToggle(true), 50); // Then turn it back on to start fresh
   };
   
   useEffect(() => {
@@ -268,7 +282,7 @@ export default function BitToggleGame() {
               bits={bits} 
               onToggleBit={handleToggleBit} 
               bitCount={bitCount} 
-              disabled={(gameMode && !isChallengeActive) || isGameOver} 
+              disabled={(gameMode && !isChallengeActive) || (gameMode && isGameOver)} 
             />
           </div>
           
@@ -280,7 +294,7 @@ export default function BitToggleGame() {
             targetDecimal={targetDecimal}
             score={score} 
             timeLeft={timeLeft}
-            turn={turn}
+            turn={gameMode && !isGameOver ? turn : null} // Only show turn if game is active and not over
             maxTurns={MAX_TURNS}
             isGameOver={isGameOver}
           />
