@@ -27,7 +27,7 @@ interface PlotDisplayProps {
   showTangent: boolean;
   showArea: boolean;
   showFullDerivativeCurve: boolean; // New prop to control f'(x) curve visibility
-  domain: { xMin: number; xMax: number; yMin: string | number; yMax: string | number }; // Updated domain prop
+  domain: { xMin: number; xMax: number; yMin: string | number; yMax: string | number };
   onXValueChangeByClick: (newX: number) => void; // Callback for click interaction
 }
 
@@ -45,11 +45,12 @@ export default function PlotDisplay({
 }: PlotDisplayProps) {
   
   const tangentLineData = React.useMemo(() => {
-    if (!showTangent || isNaN(fxValue) || isNaN(fpxValue) || !isFinite(fxValue) || !isFinite(fpxValue)) return [];
+    if (!showTangent || isNaN(fxValue) || isNaN(fpxValue) || !isFinite(fxValue) || !isFinite(fpxValue) || domain.xMin >= domain.xMax) return [];
     const y0 = fxValue;
     const x0 = xValue;
     const m = fpxValue;
 
+    // Calculate tangent line points at the boundaries of the current x-domain
     const yAtMin = m * (domain.xMin - x0) + y0;
     const yAtMax = m * (domain.xMax - x0) + y0;
     
@@ -60,23 +61,23 @@ export default function PlotDisplay({
   }, [showTangent, xValue, fxValue, fpxValue, domain.xMin, domain.xMax]);
 
   const areaData = React.useMemo(() => {
-    if (!showArea) return [];
+    if (!showArea || domain.xMin >= domain.xMax) return [];
+    // Filter plotData to only include points relevant for the area calculation
+    // This ensures the area is shaded correctly within the current xValue and origin
     return plotData.map(p => ({
       x: p.x,
       y: (xValue >= 0 ? (p.x >= 0 && p.x <= xValue) : (p.x >= xValue && p.x <= 0)) && p.y !== null && isFinite(p.y)
            ? p.y 
-           : 0,
-    }));
-  }, [showArea, plotData, xValue]);
+           : null, // Use null for points outside the integration range so Area component doesn't draw them
+      base: 0, // Define a base for the area chart, useful if you want to shade from y=0
+    })).filter(p => p.y !== null); // Remove points that are not part of the area
+  }, [showArea, plotData, xValue, domain.xMin, domain.xMax]);
 
   const handleChartClick = (chartData: any) => {
     if (chartData && chartData.activeCoordinate && typeof chartData.activeCoordinate.x === 'number') {
-       // Recharts' activeCoordinate.x is usually the direct data x-value or interpolated.
-       // Ensure it's within the current plot domain before updating.
       const clickedX = Math.max(domain.xMin, Math.min(domain.xMax, chartData.activeCoordinate.x));
       onXValueChangeByClick(clickedX);
     } else if (chartData && typeof chartData.activeLabel === 'number') {
-       // Fallback if activeCoordinate.x is not available, use activeLabel if it's numeric
       const clickedX = Math.max(domain.xMin, Math.min(domain.xMax, chartData.activeLabel));
       onXValueChangeByClick(clickedX);
     }
@@ -98,15 +99,16 @@ export default function PlotDisplay({
     return null;
   };
   
-  const yAxisDomain: [string | number, string | number] = [
-    domain.yMin === 'auto' || isNaN(Number(domain.yMin)) ? 'auto' : Number(domain.yMin),
-    domain.yMax === 'auto' || isNaN(Number(domain.yMax)) ? 'auto' : Number(domain.yMax),
+  const yAxisDomainConfig: [string | number, string | number] = [
+    domain.yMin === 'auto' || (typeof domain.yMin === 'number' && isNaN(domain.yMin)) ? 'auto' : domain.yMin,
+    domain.yMax === 'auto' || (typeof domain.yMax === 'number' && isNaN(domain.yMax)) ? 'auto' : domain.yMax,
   ];
 
 
   return (
-    <div className="h-[400px] w-full rounded-md border border-input bg-background/30 p-4 shadow-inner">
-      <ResponsiveContainer width="100%" height="100%">
+    // Removed fixed height h-[400px] to allow ResponsiveContainer with aspect to control height
+    <div className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner">
+      <ResponsiveContainer width="100%" aspect={1.8}> {/* Adjusted aspect ratio for better height */}
         <LineChart 
             margin={{ top: 5, right: 20, left: -25, bottom: 5 }}
             onClick={handleChartClick}
@@ -116,15 +118,17 @@ export default function PlotDisplay({
             type="number" 
             dataKey="x" 
             domain={[domain.xMin, domain.xMax]} 
-            allowDataOverflow 
+            allowDataOverflow // Important for custom domains
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(tick) => Number(tick).toFixed(Math.abs(domain.xMax - domain.xMin) > 20 ? 0 : 1)}
+            // ticks={/* Consider generating dynamic ticks based on domain range */}
           />
           <YAxis 
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(tick) => Number(tick).toFixed(1)}
-            domain={yAxisDomain}
-            allowDataOverflow
+            domain={yAxisDomainConfig}
+            allowDataOverflow // Important for custom domains
+            // ticks={/* Consider generating dynamic ticks based on domain range */}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--primary))', strokeDasharray: '3 3' }}/>
 
@@ -135,19 +139,21 @@ export default function PlotDisplay({
           )}
           
           {showArea && areaData.length > 0 && (
-             <Area type="monotone" dataKey="y" data={areaData} fill="hsl(var(--chart-3))" stroke="hsl(var(--chart-3))" fillOpacity={0.3} strokeWidth={0} name="∫f(x)dx" connectNulls={false} />
+             <Area type="monotone" dataKey="y" data={areaData} fill="hsl(var(--chart-3))" stroke="hsl(var(--chart-3))" fillOpacity={0.3} strokeWidth={0} name="∫f(x)dx" connectNulls={false} baseValue={0} />
           )}
 
           {showTangent && tangentLineData.length > 0 && !isNaN(fxValue) && isFinite(fxValue) && (
             <Line type="linear" dataKey="y" data={tangentLineData} stroke="hsl(var(--destructive))" strokeWidth={1.5} dot={false} name="Tangent" />
           )}
           
-          {!isNaN(fxValue) && isFinite(fxValue) && (
-            <ReferenceDot x={xValue} y={fxValue} r={5} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} isFront={true} />
+          {!isNaN(fxValue) && isFinite(fxValue) && xValue >= domain.xMin && xValue <= domain.xMax && (
+             // Ensure reference dot is within Y domain if y-domain is fixed, or Recharts might not show it.
+             // For auto y-domain, this is less of an issue.
+            <ReferenceDot x={xValue} y={fxValue} r={5} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} isFront={true} ifOverflow="visible" />
           )}
            
-           {showArea && <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" />}
-           <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" />
+           {showArea && <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" ifOverflow="visible" />}
+           <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" ifOverflow="visible" />
 
 
         </LineChart>
@@ -155,3 +161,5 @@ export default function PlotDisplay({
     </div>
   );
 }
+
+    

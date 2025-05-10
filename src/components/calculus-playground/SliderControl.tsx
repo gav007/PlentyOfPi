@@ -14,7 +14,11 @@ interface SliderControlProps {
 }
 
 export default function SliderControl({ value, onValueChange, min, max, step }: SliderControlProps) {
-  const effectiveStep = (max - min) > 0 ? step : 0.01; // Prevent step=0 if min=max
+  // Ensure step is positive and sensible, especially if min === max
+  const effectiveStep = (max > min && step > 0) ? step : 0.01; 
+  // Clamp value to be within min and max, primarily for initial render or if props change unexpectedly
+  const clampedValue = Math.max(min, Math.min(max, value));
+
 
   return (
     <div className="space-y-3">
@@ -23,19 +27,21 @@ export default function SliderControl({ value, onValueChange, min, max, step }: 
           Adjust x-value (or click on graph):
         </Label>
         <span className="font-mono text-primary text-lg bg-muted/50 px-2 py-0.5 rounded-md">
-          {value.toFixed(2)}
+          {clampedValue.toFixed(2)}
         </span>
       </div>
       <Slider
         id="x-slider"
-        value={[value]}
+        value={[clampedValue]}
         onValueChange={(newValues) => onValueChange(newValues[0])}
         min={min}
         max={max}
         step={effectiveStep}
-        aria-label={`x-value slider, current value ${value.toFixed(2)}`}
-        disabled={min >= max} // Disable slider if domain is invalid
+        aria-label={`x-value slider, current value ${clampedValue.toFixed(2)}`}
+        disabled={min >= max} // Disable slider if domain is invalid (e.g., min is not less than max)
       />
     </div>
   );
 }
+
+    

@@ -64,13 +64,47 @@ export default function CalculusPlaygroundCard() {
   const currentDomain = React.useMemo(() => {
     const xMin = parseFloat(domainOptions.xMin);
     const xMax = parseFloat(domainOptions.xMax);
-    const yMin = domainOptions.yMin.toLowerCase() === 'auto' ? 'auto' : parseFloat(domainOptions.yMin);
-    const yMax = domainOptions.yMax.toLowerCase() === 'auto' ? 'auto' : parseFloat(domainOptions.yMax);
+    const yMinRaw = domainOptions.yMin.toLowerCase();
+    const yMaxRaw = domainOptions.yMax.toLowerCase();
+
+    let yMinProcessed: number | 'auto';
+    let yMaxProcessed: number | 'auto';
+
+    if (yMinRaw === 'auto') {
+      yMinProcessed = 'auto';
+    } else {
+      const parsed = parseFloat(yMinRaw);
+      yMinProcessed = isNaN(parsed) ? 'auto' : parsed;
+    }
+
+    if (yMaxRaw === 'auto') {
+      yMaxProcessed = 'auto';
+    } else {
+      const parsed = parseFloat(yMaxRaw);
+      yMaxProcessed = isNaN(parsed) ? 'auto' : parsed;
+    }
+    
+    const finalXMin = isNaN(xMin) ? -10 : xMin;
+    const finalXMax = isNaN(xMax) ? 10 : xMax;
+
+    // Ensure xMin < xMax, if not, use defaults or swap
+    if (finalXMin >= finalXMax) {
+        return { xMin: -10, xMax: 10, yMin: yMinProcessed, yMax: yMaxProcessed };
+    }
+    
+    // Ensure yMin < yMax if both are numbers
+    if (typeof yMinProcessed === 'number' && typeof yMaxProcessed === 'number' && yMinProcessed >= yMaxProcessed) {
+        // Default to auto or swap, here defaulting to auto for simplicity
+        yMinProcessed = 'auto';
+        yMaxProcessed = 'auto';
+    }
+
+
     return {
-      xMin: isNaN(xMin) ? -10 : xMin,
-      xMax: isNaN(xMax) ? 10 : xMax,
-      yMin: isNaN(Number(yMin)) ? 'auto' : yMin as number, // Type assertion after isNaN check
-      yMax: isNaN(Number(yMax)) ? 'auto' : yMax as number, // Type assertion after isNaN check
+      xMin: finalXMin,
+      xMax: finalXMax,
+      yMin: yMinProcessed,
+      yMax: yMaxProcessed,
     };
   }, [domainOptions]);
   
@@ -121,7 +155,7 @@ export default function CalculusPlaygroundCard() {
   const integralVal = React.useMemo(() => trapezoidalRule(evaluateAt, 0, xValue), [evaluateAt, xValue]);
 
   const plotData = React.useMemo(() => {
-    if (!compiledFunc) return [];
+    if (!compiledFunc || currentDomain.xMin >= currentDomain.xMax) return [];
     const points: { x: number; y: number | null }[] = [];
     const step = (currentDomain.xMax - currentDomain.xMin) / PLOT_POINTS;
     for (let i = 0; i <= PLOT_POINTS; i++) {
@@ -133,7 +167,7 @@ export default function CalculusPlaygroundCard() {
   }, [evaluateAt, compiledFunc, currentDomain.xMin, currentDomain.xMax]);
 
   const derivativePlotData = React.useMemo(() => {
-    if (!compiledFunc || !showFullDerivativeCurve) return [];
+    if (!compiledFunc || !showFullDerivativeCurve || currentDomain.xMin >= currentDomain.xMax) return [];
     const points: { x: number; y: number | null }[] = [];
     const step = (currentDomain.xMax - currentDomain.xMin) / PLOT_POINTS;
     for (let i = 0; i <= PLOT_POINTS; i++) {
@@ -145,7 +179,9 @@ export default function CalculusPlaygroundCard() {
   }, [evaluateAt, compiledFunc, showFullDerivativeCurve, currentDomain.xMin, currentDomain.xMax]);
 
   const handleXValueChangeByClick = (newX: number) => {
-    setXValue(newX);
+    // Clamp newX to be within the current domain before setting
+    const clampedX = Math.max(currentDomain.xMin, Math.min(currentDomain.xMax, newX));
+    setXValue(clampedX);
   };
 
   return (
@@ -205,3 +241,5 @@ export default function CalculusPlaygroundCard() {
     </Card>
   );
 }
+
+    
