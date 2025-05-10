@@ -106,9 +106,8 @@ export default function PlotDisplay({
 
 
   return (
-    // Removed fixed height h-[400px] to allow ResponsiveContainer with aspect to control height
-    <div className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner">
-      <ResponsiveContainer width="100%" aspect={1.8}> {/* Adjusted aspect ratio for better height */}
+    <div className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner min-h-[400px] cursor-pointer" title="Click on graph to set x-value">
+      <ResponsiveContainer width="100%" aspect={1.6}> {/* Adjusted aspect ratio for better height (taller) */}
         <LineChart 
             margin={{ top: 5, right: 20, left: -25, bottom: 5 }}
             onClick={handleChartClick}
@@ -128,9 +127,14 @@ export default function PlotDisplay({
             tickFormatter={(tick) => Number(tick).toFixed(1)}
             domain={yAxisDomainConfig}
             allowDataOverflow // Important for custom domains
+            padding={{ top: 20, bottom: 20 }} // Added Y-axis padding
             // ticks={/* Consider generating dynamic ticks based on domain range */}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--primary))', strokeDasharray: '3 3' }}/>
+          
+          {showArea && areaData.length > 0 && (
+             <Area type="monotone" dataKey="y" data={areaData} fill="hsl(var(--chart-3))" stroke="hsl(var(--chart-3))" fillOpacity={0.4} strokeWidth={0} name="∫f(x)dx" connectNulls={false} baseValue={0} />
+          )}
 
           <Line type="monotone" dataKey="y" data={plotData} stroke="hsl(var(--primary))" strokeWidth={2} dot={false} connectNulls={false} name="f(x)" />
 
@@ -138,28 +142,19 @@ export default function PlotDisplay({
             <Line type="monotone" dataKey="y" data={derivativePlotData} stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} connectNulls={false} name="f'(x) full" strokeDasharray="5 5" />
           )}
           
-          {showArea && areaData.length > 0 && (
-             <Area type="monotone" dataKey="y" data={areaData} fill="hsl(var(--chart-3))" stroke="hsl(var(--chart-3))" fillOpacity={0.3} strokeWidth={0} name="∫f(x)dx" connectNulls={false} baseValue={0} />
-          )}
-
           {showTangent && tangentLineData.length > 0 && !isNaN(fxValue) && isFinite(fxValue) && (
             <Line type="linear" dataKey="y" data={tangentLineData} stroke="hsl(var(--destructive))" strokeWidth={1.5} dot={false} name="Tangent" />
           )}
           
           {!isNaN(fxValue) && isFinite(fxValue) && xValue >= domain.xMin && xValue <= domain.xMax && (
-             // Ensure reference dot is within Y domain if y-domain is fixed, or Recharts might not show it.
-             // For auto y-domain, this is less of an issue.
             <ReferenceDot x={xValue} y={fxValue} r={5} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} isFront={true} ifOverflow="visible" />
           )}
            
            {showArea && <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" ifOverflow="visible" />}
            <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" ifOverflow="visible" />
 
-
         </LineChart>
       </ResponsiveContainer>
     </div>
   );
 }
-
-    
