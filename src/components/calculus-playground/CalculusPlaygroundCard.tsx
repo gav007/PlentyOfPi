@@ -53,7 +53,7 @@ function trapezoidalRule(fn: (x: number) => number, a: number, b: number, n: num
          // If any intermediate point is NaN, the integral is likely undefined or requires more advanced handling.
          // Consider skipping the point or returning NaN. For now, skipping.
          // A more robust solution might involve adaptive step sizes or handling discontinuities.
-         continue; 
+         continue;
       }
       sum += f_x_i;
     }
@@ -82,7 +82,7 @@ export default function CalculusPlaygroundCard() {
       xMin = -10;
       xMax = 10;
     }
-    
+
     let yMinProcessed: number | 'auto' = yMinRaw === 'auto' ? 'auto' : parseFloat(yMinRaw);
     let yMaxProcessed: number | 'auto' = yMaxRaw === 'auto' ? 'auto' : parseFloat(yMaxRaw);
 
@@ -93,10 +93,10 @@ export default function CalculusPlaygroundCard() {
       yMinProcessed = 'auto';
       yMaxProcessed = 'auto';
     }
-    
+
     return { xMin, xMax, yMin: yMinProcessed, yMax: yMaxProcessed };
   }, [domainOptions]);
-  
+
   React.useEffect(() => {
     if (xValue < parsedDomain.xMin) setXValue(parsedDomain.xMin);
     else if (xValue > parsedDomain.xMax) setXValue(parsedDomain.xMax);
@@ -141,7 +141,7 @@ export default function CalculusPlaygroundCard() {
     }
     return points;
   }, [evaluateAt, compiledFunc, parsedDomain.xMin, parsedDomain.xMax]);
-  
+
   const effectiveDomain = React.useMemo(() => {
     let yMinResolved = parsedDomain.yMin;
     let yMaxResolved = parsedDomain.yMax;
@@ -152,12 +152,11 @@ export default function CalculusPlaygroundCard() {
         const dataMinY = Math.min(...yValues);
         const dataMaxY = Math.max(...yValues);
         const range = dataMaxY - dataMinY;
-        const padding = range === 0 ? 1 : range * 0.15; // Increased padding slightly
+        const padding = range === 0 ? 1 : range * 0.15; 
 
         if (yMinResolved === 'auto') yMinResolved = dataMinY - padding;
         if (yMaxResolved === 'auto') yMaxResolved = dataMaxY + padding;
-        
-        // Ensure yMinResolved is not greater than dataMinY for visibility of the curve itself
+
         if (typeof yMinResolved === 'number' && yMinResolved > dataMinY) yMinResolved = dataMinY - padding * 0.5;
         if (typeof yMaxResolved === 'number' && yMaxResolved < dataMaxY) yMaxResolved = dataMaxY + padding * 0.5;
 
@@ -167,7 +166,7 @@ export default function CalculusPlaygroundCard() {
         } else if (typeof yMinResolved === 'number' && typeof yMaxResolved === 'number' && yMinResolved >= yMaxResolved) {
              yMinResolved = dataMinY - padding;
              yMaxResolved = dataMaxY + padding;
-             if (yMinResolved >= yMaxResolved) { // Fallback if still problematic
+             if (yMinResolved >= yMaxResolved) { 
                  yMinResolved = (yMinResolved + yMaxResolved)/2 - 1;
                  yMaxResolved = yMinResolved + 2;
              }
@@ -177,8 +176,7 @@ export default function CalculusPlaygroundCard() {
         if (yMaxResolved === 'auto') yMaxResolved = 10;
       }
     }
-    
-    // Final check to ensure yMin < yMax if both are numbers
+
     if (typeof yMinResolved === 'number' && typeof yMaxResolved === 'number' && yMinResolved >= yMaxResolved) {
         const mid = (yMinResolved + yMaxResolved) / 2 || 0;
         yMinResolved = mid - 5;
@@ -203,33 +201,12 @@ export default function CalculusPlaygroundCard() {
   }, [evaluateAt, compiledFunc, showFullDerivativeCurve, effectiveDomain.xMin, effectiveDomain.xMax]);
 
   const areaData = React.useMemo(() => {
-    if (!showArea || !compiledFunc || effectiveDomain.xMin >= effectiveDomain.xMax) return [];
-    
-    const integrationPoints: { x: number; y: number | null }[] = [];
-    const numAreaPoints = 100; // Number of points specifically for area rendering smoothness
-
-    const startX = Math.min(0, xValue);
-    const endX = Math.max(0, xValue);
-    
-    if (startX === endX) return []; // No area if xValue is 0
-
-    // Add (startX, 0) only if we need explicit bounding for some chart types, Recharts Area with baseValue handles this.
-    // integrationPoints.push({ x: startX, y: 0 });
-
-    for (let i = 0; i <= numAreaPoints; i++) {
-        const currentX = startX + ( (endX - startX) * i ) / numAreaPoints;
-        const yVal = evaluateAt(currentX);
-        integrationPoints.push({ x: currentX, y: isNaN(yVal) ? null : yVal });
-    }
-    // Add (endX, 0) only if needed for bounding.
-    // integrationPoints.push({ x: endX, y: 0 });
-    
-    // Ensure points are sorted by x for Recharts Area component
-    integrationPoints.sort((a,b) => a.x - b.x);
-
-    return integrationPoints;
-
-  }, [showArea, evaluateAt, compiledFunc, xValue, effectiveDomain.xMin, effectiveDomain.xMax]);
+    if (!plotData || plotData.length === 0) return [];
+    return plotData.map((p) => ({
+      x: p.x,
+      y: (p.y !== null && isFinite(p.y) && p.x >= Math.min(0, xValue) && p.x <= Math.max(0, xValue)) ? p.y : 0,
+    }));
+  }, [plotData, xValue]);
 
 
   const handleXValueChangeByClick = (newX: number) => {
@@ -261,7 +238,7 @@ export default function CalculusPlaygroundCard() {
 
         <PlotDisplay
           plotData={plotData}
-          derivativePlotData={derivativePlotData} 
+          derivativePlotData={derivativePlotData}
           areaData={areaData}
           xValue={xValue}
           fxValue={fx}
@@ -269,20 +246,20 @@ export default function CalculusPlaygroundCard() {
           showTangent={showTangent}
           showArea={showArea}
           showFullDerivativeCurve={showFullDerivativeCurve}
-          domain={effectiveDomain} // Pass the calculated effective domain
+          domain={effectiveDomain}
           onXValueChangeByClick={handleXValueChangeByClick}
         />
-        
+
         <SliderControl
           value={xValue}
           onValueChange={setXValue}
           min={effectiveDomain.xMin}
           max={effectiveDomain.xMax}
-          step={(effectiveDomain.xMax - effectiveDomain.xMin) / PLOT_POINTS} 
+          step={(effectiveDomain.xMax - effectiveDomain.xMin) / PLOT_POINTS}
         />
-        
+
         <ResultPanel xValue={xValue} fxValue={fx} fpxValue={fpx} integralValue={integralVal} />
-        
+
         <TogglePanel
           showFullDerivativeCurve={showFullDerivativeCurve}
           onShowFullDerivativeCurveChange={setShowFullDerivativeCurve}

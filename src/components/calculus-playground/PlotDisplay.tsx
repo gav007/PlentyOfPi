@@ -13,7 +13,7 @@ import {
   ReferenceDot,
   Area,
   ReferenceLine,
-  TooltipProps, 
+  TooltipProps,
 } from 'recharts';
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import { cn } from '@/lib/utils';
@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 interface PlotDisplayProps {
   plotData: { x: number; y: number | null }[];
   derivativePlotData: { x: number; y: number | null }[];
-  areaData: { x: number; y: number | null }[]; 
+  areaData: { x: number; y: number | null }[];
   xValue: number;
   fxValue: number; // Value of f(x) at current xValue (slider/click)
   fpxValue: number; // Value of f'(x) at current xValue (slider/click)
@@ -45,17 +45,23 @@ export default function PlotDisplay({
   domain,
   onXValueChangeByClick,
 }: PlotDisplayProps) {
-  
+
+  React.useEffect(() => {
+    console.log(
+      'areaData (first 10 points):', areaData.slice(0, 10),
+      'Total points:', areaData.length
+    );
+  }, [areaData]);
+
   const tangentLineData = React.useMemo(() => {
     if (!showTangent || isNaN(fxValue) || isNaN(fpxValue) || !isFinite(fxValue) || !isFinite(fpxValue) || domain.xMin >= domain.xMax) return [];
     const y0 = fxValue; // f(x_slider)
     const x0 = xValue; // x_slider
     const m = fpxValue; // f'(x_slider)
 
-    // Calculate y values at the domain boundaries using the tangent line equation y - y0 = m(x - x0)
     const yAtDomainMin = m * (domain.xMin - x0) + y0;
     const yAtDomainMax = m * (domain.xMax - x0) + y0;
-    
+
     return [
       { x: domain.xMin, y: yAtDomainMin },
       { x: domain.xMax, y: yAtDomainMax },
@@ -65,8 +71,8 @@ export default function PlotDisplay({
 
   const handleChartClick = (chartData: any) => {
     if (chartData && chartData.activeCoordinate && typeof chartData.activeCoordinate.x === 'number') {
-      onXValueChangeByClick(chartData.activeCoordinate.x); 
-    } else if (chartData && typeof chartData.activeLabel === 'number') { 
+      onXValueChangeByClick(chartData.activeCoordinate.x);
+    } else if (chartData && typeof chartData.activeLabel === 'number') {
       onXValueChangeByClick(chartData.activeLabel);
     }
   };
@@ -74,16 +80,18 @@ export default function PlotDisplay({
   const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
     if (active && payload && payload.length && label !== undefined) {
       const currentX = Number(label);
-      // Find the corresponding f(x) value from plotData for the hovered point
       const hoveredFData = payload.find(p => p.name === "f(x)");
       const hoveredFValue = hoveredFData?.value;
 
-      // Find the corresponding f'(x) value from derivativePlotData for the hovered point
       const hoveredFPrimeData = payload.find(p => p.name === "f'(x) full");
       const hoveredFPrimeValue = hoveredFPrimeData?.value;
-      
-      // The integral value is a cumulative value up to xValue (slider pos), not point-specific for hover.
-      // It's better displayed in ResultPanel. Here, we show point-specific values.
+
+      // Find integral value from areaData at the current x label for tooltip display
+      // This requires areaData to be passed to the tooltip or derived in a way it can access it
+      // For simplicity, assuming the ResultPanel shows the integral up to xValue (slider pos)
+      // For point-specific integral value, it's more complex. We'll show what Recharts provides.
+      const integralPayloadEntry = payload.find(p => p.name === "∫f(x)dx");
+
 
       return (
         <div className="bg-background/80 backdrop-blur-sm p-2 border border-border rounded-md shadow-lg text-sm">
@@ -103,92 +111,106 @@ export default function PlotDisplay({
                {`Tangent slope: ${fpxValue.toFixed(3)} (at x=${xValue.toFixed(3)})`}
              </p>
            )}
+           {showArea && integralPayloadEntry && integralPayloadEntry.value !== 0 && ( // Show integral if area is visible and value isn't just 0 from outside range
+             <p style={{ color: integralPayloadEntry.fill || '#3B82F6' }}>
+                {/* The value from areaData is f(x) or 0, not the integral itself.
+                    The cumulative integral is better shown in ResultPanel.
+                    If you want to show the y-value of the *area curve at this point*, that's what `integralPayloadEntry.value` is.
+                */}
+               {`Area Point y: ${Number(integralPayloadEntry.value).toFixed(3)}`}
+             </p>
+           )}
         </div>
       );
     }
     return null;
   };
-  
+
   const yAxisDomainConfig: [number | 'auto', number | 'auto'] = [domain.yMin, domain.yMax];
 
   return (
-    <div 
+    <div
       className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner aspect-[2.2/1] min-h-[400px] cursor-pointer"
       title="Click on graph to set x-value"
-      role="application" 
+      role="application"
       aria-label="Interactive calculus graph. Click to set x-value."
     >
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart 
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }} // Adjusted left margin for y-axis labels
+        <LineChart
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             onClick={handleChartClick}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.5)" />
-          <XAxis 
-            type="number" 
-            dataKey="x" 
-            domain={[domain.xMin, domain.xMax]} 
-            allowDataOverflow 
+          <XAxis
+            type="number"
+            dataKey="x"
+            domain={[domain.xMin, domain.xMax]}
+            allowDataOverflow
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(tick) => Number(tick).toFixed(Math.abs(domain.xMax - domain.xMin) > 20 ? 0 : 1)}
             name="x"
           />
-          <YAxis 
-            type="number" // Ensure YAxis is treated as numeric for domain prop
+          <YAxis
+            type="number"
             stroke="hsl(var(--muted-foreground))"
-            tickFormatter={(tick) => Number(tick).toFixed(Math.abs(Number(domain.yMax) - Number(domain.yMin)) > 20 || Math.abs(Number(domain.yMax) - Number(domain.yMin)) < 0.1 ? 0 : 1)} 
-            domain={yAxisDomainConfig} 
-            allowDataOverflow 
-            padding={{ top: 20, bottom: 20 }}
+            tickFormatter={(tick) => Number(tick).toFixed(Math.abs(Number(domain.yMax) - Number(domain.yMin)) > 20 || Math.abs(Number(domain.yMax) - Number(domain.yMin)) < 0.1 ? 0 : 1)}
+            domain={yAxisDomainConfig}
+            allowDataOverflow
+            padding={{ top: 10, bottom: 10 }}
             name="f(x)"
           />
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--primary))', strokeDasharray: '3 3' }}/>
-          
+
           <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" ifOverflow="visible" />
           <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" ifOverflow="visible" />
 
-          {showArea && areaData.length > 1 && ( 
-             <Area 
-                type="monotone" 
-                dataKey="y" 
-                data={areaData} 
-                fill="hsl(var(--accent))" // Using accent for area fill
-                stroke="none" // No stroke for the area itself
-                fillOpacity={0.4} 
-                name="∫f(x)dx Area" // This name will appear in tooltip legend if enabled
-                connectNulls={true} // Connects over null/NaN points in areaData if any
-                baseValue={0} // Shades area towards y=0 (the x-axis)
+          {/* 1. Shaded integration area under f(x) */}
+          {showArea && areaData.length > 0 && (
+             <Area
+                type="monotone"
+                dataKey="y"
+                data={areaData}
+                fill="#3B82F6" // Use specific blue color
+                stroke="none"
+                fillOpacity={0.4}
+                name="∫f(x)dx"
+                connectNulls={false} // As per checklist example for Area
+                baseValue={0}
+                isAnimationActive={false}
             />
           )}
 
-          <Line type="monotone" dataKey="y" data={plotData} stroke="hsl(var(--primary))" strokeWidth={2} dot={false} connectNulls={true} name="f(x)" />
+          {/* 2. Main function curve */}
+          <Line type="monotone" dataKey="y" data={plotData} stroke="hsl(var(--primary))" strokeWidth={2} dot={false} connectNulls={false} name="f(x)" />
 
+          {/* 3. Full derivative curve (dashed) */}
           {showFullDerivativeCurve && derivativePlotData.length > 0 && (
             <Line type="monotone" dataKey="y" data={derivativePlotData} stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} connectNulls={true} name="f'(x) full" strokeDasharray="5 5" />
           )}
-          
+
+          {/* 4. Tangent line at current xValue */}
           {showTangent && tangentLineData.length > 0 && !isNaN(fxValue) && isFinite(fxValue) && (
             <Line type="linear" dataKey="y" data={tangentLineData} stroke="hsl(var(--destructive))" strokeWidth={1.5} dot={false} name="Tangent" />
           )}
-          
-          {/* ReferenceDot for the point (xValue, fxValue) on the main f(x) curve */}
-          {!isNaN(fxValue) && isFinite(fxValue) && 
+
+          {/* 5. Current point marker */}
+          {!isNaN(fxValue) && isFinite(fxValue) &&
            xValue >= domain.xMin && xValue <= domain.xMax &&
-           (typeof domain.yMin === 'string' || (fxValue >= domain.yMin && fxValue <= (domain.yMax as number))) && // Check if point is within Y domain if numeric
+           (typeof domain.yMin === 'string' || (fxValue >= domain.yMin && fxValue <= (domain.yMax as number))) &&
            (
-            <ReferenceDot 
-              x={xValue} 
-              y={fxValue} 
-              r={5} 
-              fill="hsl(var(--primary))" 
-              stroke="hsl(var(--background))" 
-              strokeWidth={2} 
-              isFront={true} 
-              ifOverflow="visible" 
+            <ReferenceDot
+              x={xValue}
+              y={fxValue}
+              r={5}
+              fill="hsl(var(--primary))"
+              stroke="hsl(var(--background))"
+              strokeWidth={2}
+              isFront={true}
+              ifOverflow="visible"
               aria-label={`Current point at x=${xValue.toFixed(2)}, f(x)=${fxValue.toFixed(2)}`}
             />
           )}
-           
+
         </LineChart>
       </ResponsiveContainer>
     </div>
