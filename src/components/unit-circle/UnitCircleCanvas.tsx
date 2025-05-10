@@ -35,16 +35,6 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
     const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse());
     
     let newAngle = Math.atan2(svgP.y, svgP.x);
-    // atan2 returns angle in radians from -PI to PI.
-    // We want it in [0, 2PI] with 0 along the positive x-axis.
-    // SVG y-coordinates are typically inverted (positive down), but viewBox transform handles this
-    // so svgP.y should be standard Cartesian y.
-    // Standard atan2(y,x):
-    // Positive y up, Positive x right.
-    // Angle 0 is along positive x-axis.
-    // Angle increases counter-clockwise.
-    // Result is [-PI, PI].
-    // To convert to [0, 2PI]:
     if (newAngle < 0) {
       newAngle += 2 * Math.PI;
     }
@@ -98,13 +88,27 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
   const handleX = radius * Math.cos(angle);
   const handleY = radius * Math.sin(angle);
 
-  const cheatAngles = [
-    { rad: 0, label: "0" }, // Simplified 0, 2π to just 0 for label to avoid overlap, 2PI is same pos
-    { rad: Math.PI / 6, label: "π/6" }, { rad: Math.PI / 4, label: "π/4" }, { rad: Math.PI / 3, label: "π/3" },
-    { rad: Math.PI / 2, label: "π/2" }, { rad: 2 * Math.PI / 3, label: "2π/3" }, { rad: 3 * Math.PI / 4, label: "3π/4" }, { rad: 5 * Math.PI / 6, label: "5π/6" },
-    { rad: Math.PI, label: "π" }, { rad: 7 * Math.PI / 6, label: "7π/6" }, { rad: 5 * Math.PI / 4, label: "5π/4" }, { rad: 4 * Math.PI / 3, label: "4π/3" },
-    { rad: 3 * Math.PI / 2, label: "3π/2" }, { rad: 5 * Math.PI / 3, label: "5π/3" }, { rad: 7 * Math.PI / 4, label: "7π/4" }, { rad: 11 * Math.PI / 6, label: "11π/6" },
+  const referenceAngles = [
+    { deg: 0,     rad: 0,       label: "0" },
+    { deg: 30,    rad: Math.PI/6, label: "π/6" },
+    { deg: 45,    rad: Math.PI/4, label: "π/4" },
+    { deg: 60,    rad: Math.PI/3, label: "π/3" },
+    { deg: 90,    rad: Math.PI/2, label: "π/2" },
+    { deg: 120,   rad: 2*Math.PI/3, label: "2π/3" },
+    { deg: 135,   rad: 3*Math.PI/4, label: "3π/4" },
+    { deg: 150,   rad: 5*Math.PI/6, label: "5π/6" },
+    { deg: 180,   rad: Math.PI, label: "π" },
+    { deg: 210,   rad: 7*Math.PI/6, label: "7π/6" },
+    { deg: 225,   rad: 5*Math.PI/4, label: "5π/4" },
+    { deg: 240,   rad: 4*Math.PI/3, label: "4π/3" },
+    { deg: 270,   rad: 3*Math.PI/2, label: "3π/2" },
+    { deg: 300,   rad: 5*Math.PI/3, label: "5π/3" },
+    { deg: 315,   rad: 7*Math.PI/4, label: "7π/4" },
+    { deg: 330,   rad: 11*Math.PI/6, label: "11π/6" },
+    { deg: 360,   rad: 2*Math.PI, label: "2π" },
   ];
+
+  const labelOffsetRadius = radius + 0.22; // Determines how far labels are from the circle's edge
 
   return (
     <svg
@@ -126,7 +130,7 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
       {/* Unit Circle */}
       <circle cx="0" cy="0" r={radius} fill="none" stroke="hsl(var(--primary))" strokeWidth="0.03" />
       
-      {/* Quadrant Labels (optional, if not too cluttered) - adjust y due to scaleY(-1) */}
+      {/* Quadrant Labels */}
       <text x={radius * 0.7} y={radius * 0.7} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" style={{ transform: "scaleY(-1)"}}>I</text>
       <text x={-radius * 0.7} y={radius * 0.7} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" style={{ transform: "scaleY(-1)"}}>II</text>
       <text x={-radius * 0.7} y={-radius * 0.7} fontSize="0.1" fill="hsl(var(--muted-foreground))" textAnchor="middle" style={{ transform: "scaleY(-1)"}}>III</text>
@@ -135,23 +139,52 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
       {/* Cheat Overlay Elements */}
       {showCheatOverlay && (
         <g>
-          {/* Radial Guide Lines for cheat angles */}
-          {cheatAngles.map(a => {
-            // Don't draw line for angle 0 as it's the x-axis itself
-            if (a.rad === 0 && Math.PI*2) return null; 
-            const lineX = radius * Math.cos(a.rad);
-            const lineY = radius * Math.sin(a.rad);
+          {/* Radial Guide Lines and Labels for reference angles */}
+          {referenceAngles.map(refAngle => {
+            const x = radius * Math.cos(refAngle.rad);
+            const y = radius * Math.sin(refAngle.rad);
+            
+            const lx = labelOffsetRadius * Math.cos(refAngle.rad);
+            let ly = labelOffsetRadius * Math.sin(refAngle.rad);
+
+            // Slightly offset 2π label from 0 label
+            if (refAngle.label === "2π") {
+              // For 2Pi (which is at 0 radians visually for text positioning)
+              // if y is 0, move it slightly down in the text's coordinate system
+              // (which is up on screen before text's own scaleY(-1))
+              ly = (labelOffsetRadius * Math.sin(refAngle.rad)) - 0.15; // Adjust this offset as needed
+            }
+             if (refAngle.label === "0" && Math.abs(ly) < 0.001) {
+               ly = (labelOffsetRadius * Math.sin(refAngle.rad)) + 0.02; // Nudge "0" slightly up to not clash with axis text potentially
+             }
+
+
             return (
-              <line
-                key={`radial-line-${a.label}`}
-                x1="0"
-                y1="0"
-                x2={lineX}
-                y2={lineY}
-                stroke="hsla(var(--muted-foreground), 0.4)" // Faint color
-                strokeWidth="0.015"
-                strokeDasharray="0.04 0.02"
-              />
+              <g key={`ref-${refAngle.label}`}>
+                {(refAngle.rad !== 0 && refAngle.rad !== 2 * Math.PI) && ( // Avoid drawing line over x-axis for 0/2PI
+                  <line
+                    x1="0"
+                    y1="0"
+                    x2={x}
+                    y2={y}
+                    stroke="hsl(var(--muted-foreground))"
+                    strokeOpacity="0.5"
+                    strokeWidth="0.015"
+                    strokeDasharray="0.03 0.03" 
+                  />
+                )}
+                <text
+                  x={lx}
+                  y={ly}
+                  fontSize="0.12"
+                  fill="hsl(var(--accent-foreground))"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  style={{ transform: "scaleY(-1)" }} // Counter-act parent SVG transform for text
+                >
+                  {refAngle.label}
+                </text>
+              </g>
             );
           })}
 
@@ -166,34 +199,6 @@ const UnitCircleCanvas: React.FC<UnitCircleCanvasProps> = ({
             stroke="hsla(var(--accent-foreground), 0.8)"
             strokeWidth="0.02"
           />
-
-          {/* Labels for common angles. Apply inverse scaleY to text to make it upright. */}
-          {cheatAngles.map(a => (
-             <text
-                key={`label-${a.label}`}
-                x={(radius + 0.18) * Math.cos(a.rad)} // Adjust distance from circle
-                y={(radius + 0.18) * Math.sin(a.rad)}
-                fontSize="0.12" // Slightly larger for readability
-                fill="hsl(var(--accent-foreground))"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                style={{ transform: "scaleY(-1)" }} // Counter-act parent SVG transform for text
-              >
-                {a.label}
-              </text>
-          ))}
-           {/* Label for 2PI at the 0 position */}
-           <text
-                x={(radius + 0.18) * Math.cos(0)}
-                y={(radius + 0.18) * Math.sin(0) - 0.15} // Offset slightly below 0 label
-                fontSize="0.12"
-                fill="hsl(var(--accent-foreground))"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                style={{ transform: "scaleY(-1)" }}
-              >
-                2π
-            </text>
         </g>
       )}
 
