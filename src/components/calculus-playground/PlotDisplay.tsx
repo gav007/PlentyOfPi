@@ -80,48 +80,47 @@ export default function PlotDisplay({
 
 
   const handleChartClick = (chartData: any) => {
+    console.log("Calculus Plot: Chart click data received:", chartData);
     if (chartData && chartData.activeCoordinate && typeof chartData.activeCoordinate.x === 'number') {
+      console.log("Calculus Plot: Clicked x (from activeCoordinate):", chartData.activeCoordinate.x);
       onXValueChangeByClick(chartData.activeCoordinate.x);
     } else if (chartData && typeof chartData.activeLabel === 'number') {
       // Fallback if activeCoordinate is not available but activeLabel (x-value) is
+      console.log("Calculus Plot: Clicked x (from activeLabel):", chartData.activeLabel);
       onXValueChangeByClick(chartData.activeLabel);
+    } else {
+      console.warn("Calculus Plot: Could not determine clicked x-coordinate from chartData.");
     }
   };
 
   const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
     if (active && payload && payload.length && label !== undefined) {
       const currentX = Number(label);
-      const hoveredFData = payload.find(p => p.name === "f(x)");
-      const hoveredFValue = hoveredFData?.value;
-
-      const hoveredFPrimeData = payload.find(p => p.name === "f'(x) full");
-      const hoveredFPrimeValue = hoveredFPrimeData?.value;
+      // Find the f(x) value from the payload, which corresponds to the main plotData series
+      const fDataPoint = payload.find(p => p.name === "f(x)");
+      const fValueAtHover = fDataPoint?.value;
       
-      const integralPayloadEntry = payload.find(p => p.name === "∫f(x)dx");
+      // Find ∫f(x)dx value from the payload, if area is shown
+      // The area data might not directly appear in tooltip payload unless specifically configured
+      // For now, we'll show the global integralVal passed to ResultPanel, not specific to hover.
+      // If you want integral at hover, areaData needs 'integral_at_x' field or similar.
+      // This tooltip is primarily for f(x) and derivative at hover point.
+
+      // Calculate derivative at this specific hover point 'currentX' if showFullDerivativeCurve
+      // This is complex as derivativePlotData needs to be searched or re-calculated.
+      // For simplicity, the current tooltip structure is fine.
+      // The main derivative fpxValue (at slider xValue) is shown in ResultPanel.
+
 
       return (
         <div className="bg-background/80 backdrop-blur-sm p-2 border border-border rounded-md shadow-lg text-sm">
           <p className="font-semibold">{`x: ${currentX.toFixed(3)}`}</p>
-          {hoveredFValue !== undefined && isFinite(Number(hoveredFValue)) && (
-             <p style={{ color: payload.find(p => p.name === "f(x)")?.stroke || 'hsl(var(--primary))' }}>
-              {`f(x): ${Number(hoveredFValue).toFixed(3)}`}
+          {fValueAtHover !== undefined && isFinite(Number(fValueAtHover)) && (
+             <p style={{ color: 'hsl(var(--primary))' }}>
+              {`f(x): ${Number(fValueAtHover).toFixed(3)}`}
             </p>
           )}
-           {showFullDerivativeCurve && hoveredFPrimeValue !== undefined && isFinite(Number(hoveredFPrimeValue)) && (
-             <p style={{ color: payload.find(p => p.name === "f'(x) full")?.stroke || 'hsl(var(--chart-2))' }}>
-              {`f'(x): ${Number(hoveredFPrimeValue).toFixed(3)}`}
-            </p>
-          )}
-           {payload.find(item => item.name === "Tangent") && !isNaN(fpxValue) && isFinite(fpxValue) && (
-             <p style={{ color: 'hsl(var(--destructive))' }}>
-               {`Tangent slope: ${fpxValue.toFixed(3)} (at x=${xValue.toFixed(3)})`}
-             </p>
-           )}
-           {showArea && integralPayloadEntry && integralPayloadEntry.value !== 0 && isFinite(Number(integralPayloadEntry.value)) && (
-             <p style={{ color: integralPayloadEntry.fill || '#3B82F6' }}>
-               {`Area Point y: ${Number(integralPayloadEntry.value).toFixed(3)}`}
-             </p>
-           )}
+           {/* To show derivative from full curve at hover, you'd search derivativePlotData here */}
         </div>
       );
     }
