@@ -1,5 +1,5 @@
 import type { NavItem, FeatureCardItem } from '@/types';
-import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle } from 'lucide-react';
+import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon } from 'lucide-react'; // Added HomeIcon
 
 export const siteConfig = {
   name: "Plenty of π",
@@ -12,17 +12,17 @@ export const siteConfig = {
 };
 
 export const navItems: NavItem[] = [
-  { title: "Home", href: "/" },
-  { title: "Binary Game", href: "/binary-game" },
+  { title: "Home", href: "/", icon: HomeIcon },
+  { title: "Binary Game", href: "/binary-game", icon: Brain },
   { title: "Lessons", href: "/lessons", icon: BookOpen },
-  { title: "Calculators", href: "/calculators", icon: Calculator },
-  { title: "Flashcards", href: "/flashcards", icon: Archive },
+  { title: "Calculators", href: "/calculators", icon: Calculator, disabled: true }, // Mark as disabled if coming soon
+  { title: "Flashcards", href: "/flashcards", icon: Archive, disabled: true }, // Mark as disabled if coming soon
 ];
 
 export const featureCards: FeatureCardItem[] = [
   {
-    title: "8-Bit Binary Converter Game",
-    description: "Test your binary conversion skills! Convert 8-bit numbers to decimal and vice-versa in this interactive game. Sharpen your understanding of base-2 systems.",
+    title: "8-Bit & 16-Bit Binary Game",
+    description: "Test your binary skills! Convert numbers to decimal and hex in this interactive game. Supports 8-bit and 16-bit modes.",
     href: "/binary-game",
     icon: Brain,
     imageSrc: "https://picsum.photos/seed/binarygame/600/400",
@@ -44,7 +44,7 @@ export const featureCards: FeatureCardItem[] = [
   {
     title: "Math Calculators",
     description: "A suite of useful calculators for various mathematical problems. From algebra to calculus, find the tools you need. (Coming Soon)",
-    href: "#",
+    href: "/calculators",
     icon: Calculator,
     imageSrc: "https://picsum.photos/seed/calculators/600/400",
     imageAlt: "Stylized calculator interface",
@@ -55,7 +55,7 @@ export const featureCards: FeatureCardItem[] = [
   {
     title: "Digital Flashcards",
     description: "Memorize key concepts with our digital flashcard system. Create your own decks or use pre-made ones. (Coming Soon)",
-    href: "#",
+    href: "/flashcards",
     icon: Archive,
     imageSrc: "https://picsum.photos/seed/flashcards/600/400",
     imageAlt: "Stack of digital flashcards",
@@ -66,7 +66,7 @@ export const featureCards: FeatureCardItem[] = [
   {
     title: "Logic Puzzles",
     description: "Challenge your mind with a variety of logic puzzles designed to improve critical thinking and problem-solving skills. (Coming Soon)",
-    href: "#",
+    href: "/puzzles", // Changed href to be unique if it's a separate page
     icon: Puzzle,
     imageSrc: "https://picsum.photos/seed/puzzles/600/400",
     imageAlt: "Abstract puzzle pieces",
@@ -77,7 +77,7 @@ export const featureCards: FeatureCardItem[] = [
   {
     title: "Quick Algorithms",
     description: "Explore and understand common algorithms with interactive visualizations and explanations. (Coming Soon)",
-    href: "#",
+    href: "/algorithms", // Changed href to be unique
     icon: Zap,
     imageSrc: "https://picsum.photos/seed/algorithms/600/400",
     imageAlt: "Flowchart of an algorithm",

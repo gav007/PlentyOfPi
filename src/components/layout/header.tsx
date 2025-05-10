@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -26,19 +27,28 @@ export default function Header() {
   }, []);
 
   const NavLink = ({ item, mobile = false }: { item: NavItem, mobile?: boolean }) => (
-    <Link
-      href={item.href}
+    <Button
+      asChild
+      variant="link"
       className={cn(
-        "transition-colors hover:text-primary",
-        pathname === item.href ? "text-primary font-semibold" : "text-foreground/70",
-        mobile ? "block py-3 text-lg" : "text-sm font-medium px-3 py-2"
+        "transition-colors hover:text-primary px-0", // remove default button padding
+        pathname === item.href && !item.disabled ? "text-primary font-semibold" : "text-foreground/70",
+        item.disabled && "cursor-not-allowed opacity-50 hover:text-foreground/70",
+        mobile ? "block w-full justify-start py-3 text-lg px-3" : "text-sm font-medium px-3 py-2"
       )}
-      onClick={() => mobile && setMobileMenuOpen(false)}
-      aria-current={pathname === item.href ? "page" : undefined}
+      disabled={item.disabled}
+      onClick={() => {
+        if (!item.disabled && mobile) {
+          setMobileMenuOpen(false);
+        }
+      }}
+      aria-current={pathname === item.href && !item.disabled ? "page" : undefined}
     >
-      {item.icon && <item.icon className={cn("mr-2 h-4 w-4 inline-block", mobile ? "h-5 w-5" : "")} />}
-      {item.title}
-    </Link>
+      <Link href={item.disabled ? "#" : item.href}>
+        {item.icon && <item.icon className={cn("mr-2 h-4 w-4 inline-block", mobile ? "h-5 w-5" : "")} />}
+        {item.title}
+      </Link>
+    </Button>
   );
 
   return (
@@ -76,7 +86,7 @@ export default function Header() {
                      </Button>
                   </SheetClose>
                 </div>
-                <nav className="flex flex-col space-y-4">
+                <nav className="flex flex-col space-y-1">
                   {navItems.map((item) => (
                      <NavLink key={item.href} item={item} mobile />
                   ))}
