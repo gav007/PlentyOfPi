@@ -1,3 +1,4 @@
+
 import type { LucideIcon } from 'lucide-react';
 
 export type NavItem = {
@@ -5,20 +6,19 @@ export type NavItem = {
   href: string;
   disabled?: boolean;
   external?: boolean;
-  icon?: LucideIcon;
+  icon?: LucideIcon; // Allow any LucideIcon
   label?: string;
-  subItems?: NavItem[]; // Added for dropdown menus
+  subItems?: NavItem[]; 
 };
 
 export type FeatureCardItem = {
   title: string;
   description: string;
   href: string;
-  icon?: LucideIcon;
+  icon?: LucideIcon; // Allow any LucideIcon
   imageSrc?: string;
   imageAlt?: string;
   dataAiHint?: string;
   ctaLabel?: string;
   isComingSoon?: boolean;
 };
-

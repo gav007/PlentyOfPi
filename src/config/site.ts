@@ -1,5 +1,6 @@
+
 import type { NavItem, FeatureCardItem } from '@/types';
-import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon, Orbit } from 'lucide-react';
+import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon, Orbit, SigmaSquare } from 'lucide-react'; // Added SigmaSquare for Calculus
 
 export const siteConfig = {
   name: "Plenty of π",
@@ -21,9 +22,10 @@ export const navItems: NavItem[] = [
       { title: "Binary Game", href: "/binary-game", icon: Brain },
       { title: "Unit Circle", href: "/unit-circle", icon: Orbit },
       { title: "Hex Boxes", href: "/hex-boxes", icon: Puzzle },
+      { title: "Calculus Playground", href: "/calculus-playground", icon: SigmaSquare },
     ]
   },
-  { title: "Lessons", href: "/lessons", icon: BookOpen },
+  { title: "Lessons", href: "/lessons", icon: BookOpen, disabled: false }, // Enabled lessons
   { title: "Calculators", href: "/calculators", icon: Calculator, disabled: true },
   { title: "Flashcards", href: "/flashcards", icon: Archive, disabled: true },
 ];
@@ -59,6 +61,16 @@ export const featureCards: FeatureCardItem[] = [
     dataAiHint: "hexadecimal conversion",
     ctaLabel: "Play Game",
   },
+   {
+    title: "Calculus Playground",
+    description: "Visualize functions, derivatives, and integrals. Input a function and see its graph, tangent, and area under the curve interactively.",
+    href: "/calculus-playground",
+    icon: SigmaSquare, // Icon for Calculus
+    imageSrc: "https://picsum.photos/seed/calculus/600/400",
+    imageAlt: "Graph of a function with its derivative and integral highlighted",
+    dataAiHint: "calculus graph",
+    ctaLabel: "Explore Calculus",
+  },
   {
     title: "Interactive Lessons",
     description: "Dive into curated lessons on computer science fundamentals, mathematical concepts, and more. Learn at your own pace with engaging content.",
@@ -68,7 +80,7 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: "Open book with glowing pages",
     dataAiHint: "education learning",
     ctaLabel: "Explore Lessons",
-    isComingSoon: false,
+    isComingSoon: false, // Assuming lessons page is or will be available
   },
   {
     title: "Math Calculators",
