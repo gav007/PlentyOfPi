@@ -7,6 +7,7 @@ export type NavItem = {
   external?: boolean;
   icon?: LucideIcon;
   label?: string;
+  subItems?: NavItem[]; // Added for dropdown menus
 };
 
 export type FeatureCardItem = {
@@ -20,3 +21,4 @@ export type FeatureCardItem = {
   ctaLabel?: string;
   isComingSoon?: boolean;
 };
+

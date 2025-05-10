@@ -1,5 +1,5 @@
 import type { NavItem, FeatureCardItem } from '@/types';
-import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon, Orbit } from 'lucide-react'; // Added Orbit
+import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon, Orbit } from 'lucide-react';
 
 export const siteConfig = {
   name: "Plenty of π",
@@ -13,8 +13,16 @@ export const siteConfig = {
 
 export const navItems: NavItem[] = [
   { title: "Home", href: "/", icon: HomeIcon },
-  { title: "Binary Game", href: "/binary-game", icon: Brain },
-  { title: "Unit Circle", href: "/unit-circle", icon: Orbit },
+  {
+    title: "Practice",
+    href: "#", // Non-clickable parent for dropdown
+    icon: Brain, // Icon for the "Practice" category
+    subItems: [
+      { title: "Binary Game", href: "/binary-game", icon: Brain },
+      { title: "Unit Circle", href: "/unit-circle", icon: Orbit },
+      { title: "Hex Boxes", href: "/hex-boxes", icon: Puzzle },
+    ]
+  },
   { title: "Lessons", href: "/lessons", icon: BookOpen },
   { title: "Calculators", href: "/calculators", icon: Calculator, disabled: true },
   { title: "Flashcards", href: "/flashcards", icon: Archive, disabled: true },
@@ -40,6 +48,16 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: "Unit circle diagram with sine wave",
     dataAiHint: "math trigonometry",
     ctaLabel: "Explore Now",
+  },
+  {
+    title: "Hex Boxes Game",
+    description: "Convert decimal numbers (0-255) to two-digit hexadecimal values using interactive digit selection.",
+    href: "/hex-boxes",
+    icon: Puzzle,
+    imageSrc: "https://picsum.photos/seed/hexboxes/600/400",
+    imageAlt: "Grid of hexadecimal digits",
+    dataAiHint: "hexadecimal conversion",
+    ctaLabel: "Play Game",
   },
   {
     title: "Interactive Lessons",
@@ -77,7 +95,7 @@ export const featureCards: FeatureCardItem[] = [
   {
     title: "Logic Puzzles",
     description: "Challenge your mind with a variety of logic puzzles designed to improve critical thinking and problem-solving skills. (Coming Soon)",
-    href: "/puzzles", 
+    href: "/puzzles",
     icon: Puzzle,
     imageSrc: "https://picsum.photos/seed/puzzles/600/400",
     imageAlt: "Abstract puzzle pieces",
@@ -88,7 +106,7 @@ export const featureCards: FeatureCardItem[] = [
   {
     title: "Quick Algorithms",
     description: "Explore and understand common algorithms with interactive visualizations and explanations. (Coming Soon)",
-    href: "/algorithms", 
+    href: "/algorithms",
     icon: Zap,
     imageSrc: "https://picsum.photos/seed/algorithms/600/400",
     imageAlt: "Flowchart of an algorithm",
