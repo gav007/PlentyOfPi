@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -32,6 +31,17 @@ interface PlotDisplayProps {
   onXValueChangeByClick: (newX: number) => void;
 }
 
+// Helper function for adaptive tick formatting
+const formatTick = (tick: number, range: number): string => {
+  if (isNaN(tick)) return '';
+  if (range === 0) return tick.toFixed(2);
+  if (Math.abs(range) >= 100) return tick.toFixed(0);
+  if (Math.abs(range) >= 10) return tick.toFixed(1);
+  if (Math.abs(range) < 1 && Math.abs(range) > 0) return tick.toFixed(3);
+  return tick.toFixed(2);
+};
+
+
 export default function PlotDisplay({
   plotData,
   derivativePlotData,
@@ -47,17 +57,17 @@ export default function PlotDisplay({
 }: PlotDisplayProps) {
 
   React.useEffect(() => {
-    console.log(
-      'areaData (first 10 points):', areaData.slice(0, 10),
-      'Total points:', areaData.length
-    );
+    // console.log(
+    //   'areaData (first 10 points):', areaData.slice(0, 10),
+    //   'Total points:', areaData.length
+    // );
   }, [areaData]);
 
   const tangentLineData = React.useMemo(() => {
     if (!showTangent || isNaN(fxValue) || isNaN(fpxValue) || !isFinite(fxValue) || !isFinite(fpxValue) || domain.xMin >= domain.xMax) return [];
-    const y0 = fxValue; // f(x_slider)
-    const x0 = xValue; // x_slider
-    const m = fpxValue; // f'(x_slider)
+    const y0 = fxValue; 
+    const x0 = xValue; 
+    const m = fpxValue; 
 
     const yAtDomainMin = m * (domain.xMin - x0) + y0;
     const yAtDomainMax = m * (domain.xMax - x0) + y0;
@@ -73,6 +83,7 @@ export default function PlotDisplay({
     if (chartData && chartData.activeCoordinate && typeof chartData.activeCoordinate.x === 'number') {
       onXValueChangeByClick(chartData.activeCoordinate.x);
     } else if (chartData && typeof chartData.activeLabel === 'number') {
+      // Fallback if activeCoordinate is not available but activeLabel (x-value) is
       onXValueChangeByClick(chartData.activeLabel);
     }
   };
@@ -85,13 +96,8 @@ export default function PlotDisplay({
 
       const hoveredFPrimeData = payload.find(p => p.name === "f'(x) full");
       const hoveredFPrimeValue = hoveredFPrimeData?.value;
-
-      // Find integral value from areaData at the current x label for tooltip display
-      // This requires areaData to be passed to the tooltip or derived in a way it can access it
-      // For simplicity, assuming the ResultPanel shows the integral up to xValue (slider pos)
-      // For point-specific integral value, it's more complex. We'll show what Recharts provides.
+      
       const integralPayloadEntry = payload.find(p => p.name === "∫f(x)dx");
-
 
       return (
         <div className="bg-background/80 backdrop-blur-sm p-2 border border-border rounded-md shadow-lg text-sm">
@@ -106,17 +112,13 @@ export default function PlotDisplay({
               {`f'(x): ${Number(hoveredFPrimeValue).toFixed(3)}`}
             </p>
           )}
-           {payload.find(item => item.name === "Tangent") && !isNaN(fpxValue) && (
+           {payload.find(item => item.name === "Tangent") && !isNaN(fpxValue) && isFinite(fpxValue) && (
              <p style={{ color: 'hsl(var(--destructive))' }}>
                {`Tangent slope: ${fpxValue.toFixed(3)} (at x=${xValue.toFixed(3)})`}
              </p>
            )}
-           {showArea && integralPayloadEntry && integralPayloadEntry.value !== 0 && ( // Show integral if area is visible and value isn't just 0 from outside range
+           {showArea && integralPayloadEntry && integralPayloadEntry.value !== 0 && isFinite(Number(integralPayloadEntry.value)) && (
              <p style={{ color: integralPayloadEntry.fill || '#3B82F6' }}>
-                {/* The value from areaData is f(x) or 0, not the integral itself.
-                    The cumulative integral is better shown in ResultPanel.
-                    If you want to show the y-value of the *area curve at this point*, that's what `integralPayloadEntry.value` is.
-                */}
                {`Area Point y: ${Number(integralPayloadEntry.value).toFixed(3)}`}
              </p>
            )}
@@ -127,6 +129,10 @@ export default function PlotDisplay({
   };
 
   const yAxisDomainConfig: [number | 'auto', number | 'auto'] = [domain.yMin, domain.yMax];
+  
+  const xRange = domain.xMax - domain.xMin;
+  const yRangeEffective = (typeof domain.yMax === 'number' && typeof domain.yMin === 'number') ? (domain.yMax - domain.yMin) : 20; // Default if auto
+
 
   return (
     <div
@@ -137,7 +143,7 @@ export default function PlotDisplay({
     >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            margin={{ top: 5, right: 30, left: 5, bottom: 5 }} // Adjusted left margin for Y-axis labels
             onClick={handleChartClick}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.5)" />
@@ -147,13 +153,13 @@ export default function PlotDisplay({
             domain={[domain.xMin, domain.xMax]}
             allowDataOverflow
             stroke="hsl(var(--muted-foreground))"
-            tickFormatter={(tick) => Number(tick).toFixed(Math.abs(domain.xMax - domain.xMin) > 20 ? 0 : 1)}
+            tickFormatter={(tick) => formatTick(Number(tick), xRange)}
             name="x"
           />
           <YAxis
             type="number"
             stroke="hsl(var(--muted-foreground))"
-            tickFormatter={(tick) => Number(tick).toFixed(Math.abs(Number(domain.yMax) - Number(domain.yMin)) > 20 || Math.abs(Number(domain.yMax) - Number(domain.yMin)) < 0.1 ? 0 : 1)}
+            tickFormatter={(tick) => formatTick(Number(tick), yRangeEffective)}
             domain={yAxisDomainConfig}
             allowDataOverflow
             padding={{ top: 10, bottom: 10 }}
@@ -170,34 +176,31 @@ export default function PlotDisplay({
                 type="monotone"
                 dataKey="y"
                 data={areaData}
-                fill="#3B82F6" // Use specific blue color
+                fill="hsl(var(--primary))" 
                 stroke="none"
                 fillOpacity={0.4}
-                name="∫f(x)dx"
-                connectNulls={false} // As per checklist example for Area
+                connectNulls={false} 
                 baseValue={0}
                 isAnimationActive={false}
+                name="∫f(x)dx"
             />
           )}
 
           {/* 2. Main function curve */}
-          <Line type="monotone" dataKey="y" data={plotData} stroke="hsl(var(--primary))" strokeWidth={2} dot={false} connectNulls={false} name="f(x)" />
+          <Line type="monotone" dataKey="y" data={plotData} stroke="hsl(var(--primary))" strokeWidth={2} dot={false} connectNulls={false} name="f(x)" isAnimationActive={false} />
 
           {/* 3. Full derivative curve (dashed) */}
           {showFullDerivativeCurve && derivativePlotData.length > 0 && (
-            <Line type="monotone" dataKey="y" data={derivativePlotData} stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} connectNulls={true} name="f'(x) full" strokeDasharray="5 5" />
+            <Line type="monotone" dataKey="y" data={derivativePlotData} stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} connectNulls={true} name="f'(x) full" strokeDasharray="5 5" isAnimationActive={false}/>
           )}
 
           {/* 4. Tangent line at current xValue */}
           {showTangent && tangentLineData.length > 0 && !isNaN(fxValue) && isFinite(fxValue) && (
-            <Line type="linear" dataKey="y" data={tangentLineData} stroke="hsl(var(--destructive))" strokeWidth={1.5} dot={false} name="Tangent" />
+            <Line type="linear" dataKey="y" data={tangentLineData} stroke="hsl(var(--destructive))" strokeWidth={1.5} dot={false} name="Tangent" isAnimationActive={false} />
           )}
 
           {/* 5. Current point marker */}
-          {!isNaN(fxValue) && isFinite(fxValue) &&
-           xValue >= domain.xMin && xValue <= domain.xMax &&
-           (typeof domain.yMin === 'string' || (fxValue >= domain.yMin && fxValue <= (domain.yMax as number))) &&
-           (
+          {!isNaN(fxValue) && isFinite(fxValue) && xValue >= domain.xMin && xValue <= domain.xMax && (
             <ReferenceDot
               x={xValue}
               y={fxValue}
