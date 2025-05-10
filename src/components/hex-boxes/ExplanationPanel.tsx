@@ -28,11 +28,19 @@ export default function ExplanationPanel({ targetDecimal }: ExplanationPanelProp
       <CardContent className="space-y-4 text-sm text-accent-foreground/80">
         <div>
           <p className="font-semibold text-accent-foreground flex items-center gap-1 mb-1">
-            <Divide className="w-4 h-4" /> Step 1: Divide the decimal number by 16
+            <Divide className="w-4 h-4" /> Step 1: Divide by 16 to find Quotient & Remainder
           </p>
-          <div className="pl-6 bg-background/30 p-3 rounded-md">
+          <div className="pl-6 bg-background/30 p-3 rounded-md space-y-1">
             <p>
-              {targetDecimal} ÷ 16 = <span className="font-bold text-primary">{quotient}</span> with a remainder of <span className="font-bold text-primary">{remainder}</span>.
+              To convert {targetDecimal} to hexadecimal, we first determine how many whole times 16 fits into it, and what is left over.
+            </p>
+            <p>When {targetDecimal} is divided by 16:</p>
+            <ul className="list-disc list-inside ml-2">
+                <li>The <strong>quotient</strong> (how many full times 16 goes into {targetDecimal}) is <span className="font-bold text-primary">{quotient}</span>.</li>
+                <li>The <strong>remainder</strong> (what's left over after taking out all multiples of 16) is <span className="font-bold text-primary">{remainder}</span>.</li>
+            </ul>
+            <p className="mt-2">
+              This means: {targetDecimal} = ({quotient} × 16) + {remainder}.
             </p>
           </div>
         </div>
@@ -73,13 +81,19 @@ export default function ExplanationPanel({ targetDecimal }: ExplanationPanelProp
         </div>
 
         <div>
-          <p className="font-semibold text-accent-foreground mb-1">Verification (Expanded Form)</p>
+          <p className="font-semibold text-accent-foreground mb-1">Verification (Using the Hex Value)</p>
           <div className="pl-6 bg-background/30 p-3 rounded-md">
             <p>
-              To verify, multiply the decimal value of the high nibble by 16 and add the decimal value of the low nibble:
+              To verify, convert the hex digits back to decimal and sum them up:
             </p>
             <p className="mt-1">
-                (<span className="font-bold text-primary">{quotient}</span> × 16) + <span className="font-bold text-primary">{remainder}</span> = {quotient * 16} + {remainder} = <span className="font-bold text-2xl text-primary">{targetDecimal}</span>
+                (Hex Digit <span className="font-mono text-primary font-bold">{hexHighNibbleChar}</span> × 16) + (Hex Digit <span className="font-mono text-primary font-bold">{hexLowNibbleChar}</span> × 1)
+            </p>
+            <p className="mt-1">
+                = (<span className="font-bold text-primary">{quotient}</span> × 16) + (<span className="font-bold text-primary">{remainder}</span> × 1)
+            </p>
+            <p className="mt-1">
+                = {quotient * 16} + {remainder} = <span className="font-bold text-2xl text-primary">{targetDecimal}</span>
             </p>
           </div>
         </div>
