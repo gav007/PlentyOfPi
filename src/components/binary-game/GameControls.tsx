@@ -29,22 +29,25 @@ export default function GameControls({
     <div className="w-full max-w-md mx-auto mt-2 space-y-4">
       {hasFeedback && (
         <Alert
-          variant={isCorrect === null ? 'default' : isCorrect ? 'default' : 'destructive'}
+          variant={isGameOver ? 'default' : (isCorrect === null ? 'default' : isCorrect ? 'default' : 'destructive')}
           className={cn(
-            isCorrect === true ? 'border-green-500 bg-green-500/10 text-green-700' : 
+            isGameOver ? 'border-primary bg-primary/10 text-primary-foreground' : // Neutral prominent style for game over
+            isCorrect === true ? 'border-green-500 bg-green-500/10 text-green-700 dark:text-green-400' : 
             isCorrect === false ? 'border-destructive bg-destructive/10 text-destructive' : 
-            '' // Neutral if isCorrect is null (e.g. initial game over message)
+            '' 
           )}
         >
-          {isCorrect !== null && !isGameOver && ( // Don't show Correct/Incorrect title for final game over message
-            <AlertTitle className={cn(isCorrect ? 'text-green-700' : 'text-destructive')}>
-              {isCorrect ? 'Correct!' : "Incorrect!"}
+          {isGameOver && feedbackMessage && (
+             <AlertTitle className="text-primary font-semibold">Game Over!</AlertTitle>
+           )}
+          {!isGameOver && isCorrect !== null && ( 
+            <AlertTitle className={cn(
+                isCorrect ? 'text-green-700 dark:text-green-400 font-semibold' : 'text-destructive font-semibold'
+                )}>
+              {isCorrect ? 'Correct!' : "Incorrect / Time's Up!"}
             </AlertTitle>
           )}
-           {isGameOver && feedbackMessage && ( // Special title for game over
-             <AlertTitle className="text-primary">Game Over!</AlertTitle>
-           )}
-          <AlertDescription>
+          <AlertDescription className={cn(isGameOver ? "text-foreground" : "")}>
             {feedbackMessage}
           </AlertDescription>
         </Alert>

@@ -37,6 +37,12 @@ export default function BitToggleGame() {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [isChallengeActive, setIsChallengeActive] = useState(false);
 
+  // Enhanced Scoring State
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [highestStreak, setHighestStreak] = useState(0);
+  const [totalStars, setTotalStars] = useState(0);
+
+
   const { toast } = useToast();
 
   const resetBits = useCallback((count: 8 | 16) => {
@@ -59,27 +65,30 @@ export default function BitToggleGame() {
     let maxTarget: number;
     if (currentTurn <= 3) maxTarget = 50;
     else if (currentTurn <= 6) maxTarget = 150;
-    else maxTarget = 255;
+    else maxTarget = 255; // Max for 8-bit
     return Math.floor(Math.random() * (maxTarget + 1));
   };
 
-  const startNewTurnLogic = useCallback((currentTurn: number, currentFixedBitCount: 8) => {
-    if (currentTurn > MAX_TURNS) {
+  const startNewTurnLogic = useCallback((currentTurnNum: number, currentFixedBitCount: 8) => {
+    if (currentTurnNum > MAX_TURNS) {
       setIsGameOver(true);
       setIsChallengeActive(false);
       if (timerId) clearInterval(timerId);
       setTimerId(null);
-      setFeedbackMessage(`Game Over! Final Score: ${score} / ${MAX_TURNS * 100}`);
+      const avgStars = MAX_TURNS > 0 ? (totalStars / MAX_TURNS).toFixed(1) : "0.0";
+      setFeedbackMessage(
+        `Final Score: ${score}. Highest Streak: ${highestStreak}. Avg Stars: ${avgStars} ⭐. Well done!`
+      );
       return;
     }
 
     setBitCount(currentFixedBitCount); // Ensure game is 8-bit
     resetBits(currentFixedBitCount);
     
-    const newTarget = getTargetForTurn(currentTurn);
+    const newTarget = getTargetForTurn(currentTurnNum);
     setTargetDecimal(newTarget);
     
-    const timeForThisTurn = getTimeForTurn(currentTurn);
+    const timeForThisTurn = getTimeForTurn(currentTurnNum);
     setTimeLeft(timeForThisTurn);
     setCurrentChallengeMaxTime(timeForThisTurn);
     
@@ -93,7 +102,8 @@ export default function BitToggleGame() {
         if (prevTime <= 1) {
           clearInterval(newTimerId);
           setIsChallengeActive(false);
-          setFeedbackMessage(`Time's up! Target was ${newTarget} (${BitUtils.decimalToBinary(newTarget, currentFixedBitCount)}). +0 points. Your score: ${score}`);
+          setCurrentStreak(0); // Streak reset on timeout
+          setFeedbackMessage(`Time's up! Target was ${newTarget} (${BitUtils.decimalToBinary(newTarget, currentFixedBitCount)}). +0 points. Streak reset. Your score: ${score}`);
           setIsCorrect(false);
           setTurn(turn => turn + 1); // Auto-advance on timeout
           return 0;
@@ -102,7 +112,7 @@ export default function BitToggleGame() {
       });
     }, 1000);
     setTimerId(newTimerId);
-  }, [resetBits, timerId, score]); // Added score to deps for feedback message
+  }, [resetBits, timerId, score, totalStars, highestStreak]);
 
   const handleGameModeToggle = (checked: boolean) => {
     setGameMode(checked);
@@ -112,7 +122,9 @@ export default function BitToggleGame() {
       setIsGameOver(false);
       setFeedbackMessage(null);
       setIsCorrect(null);
-      // Game is always 8-bit
+      setCurrentStreak(0);
+      setHighestStreak(0);
+      setTotalStars(0);
       setBitCount(8); 
       resetBits(8); 
       startNewTurnLogic(1, 8);
@@ -120,23 +132,20 @@ export default function BitToggleGame() {
       if (timerId) clearInterval(timerId);
       setTimerId(null);
       setTargetDecimal(null);
-      setTimeLeft(INITIAL_CONVERTER_TIMER_SECONDS); // Reset to a default or keep as is
+      setTimeLeft(INITIAL_CONVERTER_TIMER_SECONDS);
       setFeedbackMessage(null);
       setIsCorrect(null);
       setIsChallengeActive(false);
       setIsGameOver(false);
-      setTurn(1); // Reset turn
+      setTurn(1); 
       // Do not reset score here as it's total score, game is just off
-      // bitCount remains what it was, or user can toggle it.
-      // resetBits(bitCount); // Reset to current potentially non-8-bit value
     }
   };
   
   const handleToggleBit = (index: number) => {
     if (!gameMode || (gameMode && !isChallengeActive) || isGameOver) return;
 
-    setFeedbackMessage(null); // Clear previous turn's specific feedback if any
-    // setIsCorrect(null); // Don't clear isCorrect as it's tied to previous result
+    setFeedbackMessage(null); 
     const updatedBits = [...bits];
     updatedBits[index] = updatedBits[index] === 0 ? 1 : 0;
     setBits(updatedBits);
@@ -149,8 +158,6 @@ export default function BitToggleGame() {
     }
     setBitCount(newBitCount);
     resetBits(newBitCount);
-    // If gameMode was on and then turned off, and then bitCount changes, targetDecimal etc. should be null.
-    // This is handled by handleGameModeToggle(false).
   };
 
   const handleCheckAnswer = () => {
@@ -160,41 +167,59 @@ export default function BitToggleGame() {
     setIsChallengeActive(false);
 
     const accuracy = decimalValue === targetDecimal ? 1 : 0;
-    // Ensure timeFactor is between 0 and 1, and handle currentChallengeMaxTime potentially being 0 (though unlikely with getTimeForTurn logic)
-    const timeFactor = currentChallengeMaxTime > 0 ? Math.max(0, Math.min(1, timeLeft / currentChallengeMaxTime)) : 0;
-    const turnScore = Math.floor(100 * accuracy * timeFactor);
+    const timeFactor = currentChallengeMaxTime > 0 ? Math.pow(Math.max(0, timeLeft) / currentChallengeMaxTime, 1.25) : 0;
+    
+    const difficultyBonus =
+      targetDecimal >= 200 ? 1.2 :
+      targetDecimal >= 100 ? 1.1 : 1.0;
+    
+    const streakBonus = currentStreak >= 3 ? 1.15 : 1.0;
+
+    const turnScore = Math.floor(100 * accuracy * timeFactor * difficultyBonus * streakBonus);
     const newTotalScore = score + turnScore;
     setScore(newTotalScore);
 
+    const stars =
+      turnScore >= 90 ? 3 :
+      turnScore >= 60 ? 2 :
+      turnScore >= 30 ? 1 : 0;
+    
+    setTotalStars(prev => prev + stars);
+
     if (accuracy === 1) {
-      setFeedbackMessage(`Correct! +${turnScore} points. Target: ${targetDecimal}. Your score: ${newTotalScore}`);
+      const newStreak = currentStreak + 1;
+      setCurrentStreak(newStreak);
+      setHighestStreak(prev => Math.max(prev, newStreak));
       setIsCorrect(true);
+      const starDisplay = stars > 0 ? `${'⭐'.repeat(stars)}` : `(${stars} stars)`;
+      setFeedbackMessage(
+        `Correct! +${turnScore} points. ${starDisplay}. Streak: ${newStreak}. Your score: ${newTotalScore}`
+      );
     } else {
-      setFeedbackMessage(`Incorrect. Target: ${targetDecimal} (${BitUtils.decimalToBinary(targetDecimal, 8)}). You entered: ${decimalValue} (${BitUtils.decimalToBinary(decimalValue, 8)}). +0 points. Your score: ${newTotalScore}`);
+      setCurrentStreak(0);
       setIsCorrect(false);
+      setFeedbackMessage(
+        `Incorrect. Target: ${targetDecimal} (${BitUtils.decimalToBinary(targetDecimal, bitCount)}). You entered: ${decimalValue} (${BitUtils.decimalToBinary(decimalValue, bitCount)}). +0 points. Streak reset. Your score: ${newTotalScore}`
+      );
     }
-    setTurn(prev => prev + 1); // Auto-advance after checking
+    setTurn(prev => prev + 1);
   };
   
-  // Effect for auto-advancing turns after the first one
   useEffect(() => {
     if (gameMode && !isGameOver && turn > 1 && !isChallengeActive) {
-        // This means turn has advanced from a previous completed turn (submit or timeout).
-        // isChallengeActive is false, feedbackMessage is set.
-        // Apply delay for feedback readability.
         const timeoutId = setTimeout(() => {
-            if (gameMode && !isGameOver) { // Re-check state before executing
+            if (gameMode && !isGameOver) { 
                 startNewTurnLogic(turn, 8);
             }
-        }, feedbackMessage ? 2000 : 50); // Delay more if there's feedback, less otherwise
+        }, feedbackMessage ? 2500 : 50); // Longer delay for feedback readability
         return () => clearTimeout(timeoutId);
     }
   }, [turn, gameMode, isGameOver, isChallengeActive, startNewTurnLogic, feedbackMessage]);
 
 
   const handleRestartGame = () => {
-    handleGameModeToggle(false); // Turn off to clean up
-    setTimeout(() => handleGameModeToggle(true), 50); // Turn back on to restart
+    handleGameModeToggle(false); 
+    setTimeout(() => handleGameModeToggle(true), 50);
   };
   
   useEffect(() => {
@@ -253,7 +278,7 @@ export default function BitToggleGame() {
             binary={binaryString}
             gameMode={gameMode}
             targetDecimal={targetDecimal}
-            score={score} // Total score
+            score={score} 
             timeLeft={timeLeft}
             turn={turn}
             maxTurns={MAX_TURNS}
@@ -276,3 +301,4 @@ export default function BitToggleGame() {
     </div>
   );
 }
+
