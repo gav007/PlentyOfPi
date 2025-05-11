@@ -3,11 +3,11 @@
 
 import OnboardingCard from './OnboardingCard';
 import LessonViewer from './LessonViewer';
-import CodeSandbox from './CodeSandbox';
+import PythonSandbox from './PythonSandbox'; // Updated import
 import GamifiedSection from './GamifiedSection';
 import AssessmentLink from './AssessmentLink';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileCode } from 'lucide-react';
+import { FileCode, Brain } from 'lucide-react'; // Added Brain for sandbox
 
 export default function PythonFoundationsLayout() {
   // Placeholder lesson structure based on user's PDF scope
@@ -68,6 +68,18 @@ export default function PythonFoundationsLayout() {
 
       <Card className="shadow-lg">
         <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+             <Brain className="w-6 h-6 text-primary" /> {/* Icon for sandbox */}
+            Python Code Sandbox
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PythonSandbox />
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
           <CardTitle>Course Modules</CardTitle>
         </CardHeader>
         <CardContent>
@@ -75,18 +87,6 @@ export default function PythonFoundationsLayout() {
         </CardContent>
       </Card>
       
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>Python Code Sandbox</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CodeSandbox />
-          <p className="text-xs text-muted-foreground mt-2">
-            Note: Python execution in this sandbox is simulated for demonstration. Full Pyodide/backend integration would be needed for live execution.
-          </p>
-        </CardContent>
-      </Card>
-
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Gamified Learning Activities</CardTitle>
