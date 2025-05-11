@@ -1,5 +1,4 @@
 
-
 import type { NavItem, FeatureCardItem } from '@/types';
 import {
   Home,
@@ -9,15 +8,17 @@ import {
   Puzzle,
   Sigma,
   Calculator,
-  DivideSquare, // Will be replaced for Fraction Duel
-  TestTubeDiagonal, // New Icon for Fraction Duel
+  TestTubeDiagonal, 
   Scale,
   BookOpen,
-  Lightbulb,
-  BarChart3,
-  FileJson,
-  Github,
-  Settings
+  Settings,
+  FileCode, // For Python Foundations module
+  Target, // For Output Match
+  SearchCode, // For Syntax Spotter
+  Wrench, // For Debug It
+  ClipboardCheck, // For Assessment
+  BarChart3, // Keep for existing coming soon card
+  FileJson, // Keep for existing coming soon card
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -28,7 +29,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Games',
-    href: '#',
+    href: '#', // Main item not a link if it has subItems
     icon: Gamepad2,
     subItems: [
       {
@@ -53,7 +54,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Tools',
-    href: '#',
+    href: '#', // Main item not a link if it has subItems
     icon: Settings, 
     subItems: [
        {
@@ -66,13 +67,13 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Quick Math',
-    href: '#',
+    href: '#', // Main item not a link if it has subItems
     icon: Calculator,
     subItems: [
       {
-        title: 'Fraction Duel', // New Game
+        title: 'Fraction Duel',
         href: '/quick-math/fraction-duel',
-        icon: TestTubeDiagonal, // New Icon
+        icon: TestTubeDiagonal,
         description: 'Test your fraction arithmetic skills in a duel!',
       },
       {
@@ -85,9 +86,17 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Lessons',
-    href: '/lessons',
+    href: '/lessons', // Link to a lessons overview page
     icon: BookOpen,
-    disabled: true, 
+    disabled: false, // Enable lessons
+    subItems: [
+      {
+        title: 'Python Foundations',
+        href: '/lessons/python-foundations',
+        icon: FileCode,
+        description: 'Learn core Python concepts for PCEP certification.',
+      }
+    ]
   },
 ];
 
@@ -101,6 +110,16 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Binary game interface with toggles and lights',
     dataAiHint: 'binary code',
     ctaLabel: 'Play Now',
+  },
+  {
+    title: 'Python Foundations',
+    description: 'Embark on your Python journey! Learn the fundamentals needed for the PCEP certification with interactive lessons, a code sandbox, and gamified challenges.',
+    href: '/lessons/python-foundations',
+    icon: FileCode,
+    imageSrc: 'https://picsum.photos/seed/pythondev/600/400',
+    imageAlt: 'Python code on a screen',
+    dataAiHint: 'python programming',
+    ctaLabel: 'Start Learning',
   },
   {
     title: 'Interactive Unit Circle',
@@ -133,10 +152,10 @@ export const featureCards: FeatureCardItem[] = [
     ctaLabel: 'Play Hex Game',
   },
   {
-    title: 'Fraction Duel', // New Game
+    title: 'Fraction Duel',
     description: 'Challenge your fraction arithmetic! Solve expressions by choosing the correct simplified answer from multiple choices. Difficulty increases with each turn.',
     href: '/quick-math/fraction-duel',
-    icon: TestTubeDiagonal, // New Icon
+    icon: TestTubeDiagonal,
     imageSrc: 'https://picsum.photos/seed/fractionduel/600/400',
     imageAlt: 'Fraction expression with multiple choice answers',
     dataAiHint: 'fraction math quiz',
@@ -151,6 +170,40 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Balance scale with weights',
     dataAiHint: 'balance scale',
     ctaLabel: 'Explore Ratios',
+  },
+  // Python Foundations Gamified Cards - mark as coming soon
+  {
+    title: 'Python: Output Match',
+    description: 'Match Python code snippets to their correct output. A fun way to test your understanding of Python execution.',
+    href: '/lessons/python-foundations/output-match',
+    icon: Target,
+    imageSrc: 'https://picsum.photos/seed/pyoutput/600/400',
+    imageAlt: 'Python code and output comparison',
+    dataAiHint: 'python code',
+    isComingSoon: true,
+    ctaLabel: 'Coming Soon',
+  },
+  {
+    title: 'Python: Syntax Spotter',
+    description: 'Can you spot the syntax errors? Sharpen your Python debugging skills by identifying mistakes in code.',
+    href: '/lessons/python-foundations/syntax-spotter',
+    icon: SearchCode,
+    imageSrc: 'https://picsum.photos/seed/pysyntax/600/400',
+    imageAlt: 'Python code with highlighted errors',
+    dataAiHint: 'python syntax error',
+    isComingSoon: true,
+    ctaLabel: 'Coming Soon',
+  },
+  {
+    title: 'Python: Debug It',
+    description: 'Fix broken Python code! Apply your knowledge to debug real-world-like scenarios and make the code run.',
+    href: '/lessons/python-foundations/debug-it',
+    icon: Wrench,
+    imageSrc: 'https://picsum.photos/seed/pydebug/600/400',
+    imageAlt: 'Python code with debugging tools',
+    dataAiHint: 'python debugging',
+    isComingSoon: true,
+    ctaLabel: 'Coming Soon',
   },
   {
     title: 'Data Structures Visualizer',
