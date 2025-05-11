@@ -1,6 +1,7 @@
 
 'use client';
 
+import * as React from 'react'; // Added missing React import
 import type { FractionExpressionDef, FractionValue } from '@/types/fractionDuel';
 import { cn } from '@/lib/utils';
 
