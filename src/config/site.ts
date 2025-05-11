@@ -1,6 +1,6 @@
 
 import type { NavItem, FeatureCardItem } from '@/types';
-import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon, Orbit, SigmaSquare } from 'lucide-react'; // Added SigmaSquare for Calculus
+import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon, Orbit, SigmaSquare, Scale, Binary, Unplug } from 'lucide-react'; // Added SigmaSquare for Calculus, Scale, Binary, Unplug
 
 export const siteConfig = {
   name: "Plenty of π",
@@ -19,13 +19,23 @@ export const navItems: NavItem[] = [
     href: "#", // Non-clickable parent for dropdown
     icon: Brain, // Icon for the "Practice" category
     subItems: [
-      { title: "Binary Game", href: "/binary-game", icon: Brain },
+      { title: "Binary Game", href: "/binary-game", icon: Binary }, // Changed icon
       { title: "Unit Circle", href: "/unit-circle", icon: Orbit },
       { title: "Hex Boxes", href: "/hex-boxes", icon: Puzzle },
       { title: "Calculus Playground", href: "/calculus-playground", icon: SigmaSquare },
     ]
   },
-  { title: "Lessons", href: "/lessons", icon: BookOpen, disabled: false }, // Enabled lessons
+  {
+    title: "Quick Math",
+    href: "#",
+    icon: Zap,
+    subItems: [
+      { title: "Prime Quarry", href: "/quick-math/prime-quarry", icon: Unplug }, // Placeholder icon
+      { title: "Fraction Blocks", href: "/quick-math/fraction-blocks", icon: Puzzle }, // Placeholder icon
+      { title: "Ratio Scales", href: "/quick-math/ratio-scales", icon: Scale },
+    ]
+  },
+  { title: "Lessons", href: "/lessons", icon: BookOpen, disabled: false },
   { title: "Calculators", href: "/calculators", icon: Calculator, disabled: true },
   { title: "Flashcards", href: "/flashcards", icon: Archive, disabled: true },
 ];
@@ -35,7 +45,7 @@ export const featureCards: FeatureCardItem[] = [
     title: "8-Bit & 16-Bit Binary Game",
     description: "Test your binary skills! Convert numbers to decimal and hex in this interactive game. Supports 8-bit and 16-bit modes.",
     href: "/binary-game",
-    icon: Brain,
+    icon: Binary, // Changed icon
     imageSrc: "https://picsum.photos/seed/binarygame/600/400",
     imageAlt: "Abstract representation of binary code",
     dataAiHint: "binary code",
@@ -65,11 +75,41 @@ export const featureCards: FeatureCardItem[] = [
     title: "Calculus Playground",
     description: "Visualize functions, derivatives, and integrals. Input a function and see its graph, tangent, and area under the curve interactively.",
     href: "/calculus-playground",
-    icon: SigmaSquare, // Icon for Calculus
+    icon: SigmaSquare, 
     imageSrc: "https://picsum.photos/seed/calculus/600/400",
     imageAlt: "Graph of a function with its derivative and integral highlighted",
     dataAiHint: "calculus graph",
     ctaLabel: "Explore Calculus",
+  },
+  {
+    title: "Prime Quarry",
+    description: "Identify prime numbers by 'chipping away' composites. Test your knowledge of divisibility and prime factorization.",
+    href: "/quick-math/prime-quarry",
+    icon: Unplug, // Placeholder icon
+    imageSrc: "https://picsum.photos/seed/primequarry/600/400",
+    imageAlt: "Grid of numbers with some highlighted as prime",
+    dataAiHint: "prime numbers",
+    ctaLabel: "Play Now",
+  },
+  {
+    title: "Fraction Blocks",
+    description: "Combine and simplify fractions visually. Understand common denominators and fraction arithmetic step-by-step.",
+    href: "/quick-math/fraction-blocks",
+    icon: Puzzle, // Placeholder icon
+    imageSrc: "https://picsum.photos/seed/fractionblocks/600/400",
+    imageAlt: "Visual blocks representing fractions being combined",
+    dataAiHint: "fractions math",
+    ctaLabel: "Learn Fractions",
+  },
+  {
+    title: "Ratio Scales",
+    description: "Balance weights on scales to understand ratios and proportions. An interactive way to learn about equivalent ratios.",
+    href: "/quick-math/ratio-scales",
+    icon: Scale,
+    imageSrc: "https://picsum.photos/seed/ratioscales/600/400",
+    imageAlt: "A balance scale with weights on both sides",
+    dataAiHint: "ratio balance",
+    ctaLabel: "Explore Ratios",
   },
   {
     title: "Interactive Lessons",
@@ -80,7 +120,7 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: "Open book with glowing pages",
     dataAiHint: "education learning",
     ctaLabel: "Explore Lessons",
-    isComingSoon: false, // Assuming lessons page is or will be available
+    isComingSoon: false,
   },
   {
     title: "Math Calculators",
@@ -102,28 +142,6 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: "Stack of digital flashcards",
     dataAiHint: "study memory",
     ctaLabel: "Study Flashcards",
-    isComingSoon: true,
-  },
-  {
-    title: "Logic Puzzles",
-    description: "Challenge your mind with a variety of logic puzzles designed to improve critical thinking and problem-solving skills. (Coming Soon)",
-    href: "/puzzles",
-    icon: Puzzle,
-    imageSrc: "https://picsum.photos/seed/puzzles/600/400",
-    imageAlt: "Abstract puzzle pieces",
-    dataAiHint: "brain teaser",
-    ctaLabel: "Solve Puzzles",
-    isComingSoon: true,
-  },
-  {
-    title: "Quick Algorithms",
-    description: "Explore and understand common algorithms with interactive visualizations and explanations. (Coming Soon)",
-    href: "/algorithms",
-    icon: Zap,
-    imageSrc: "https://picsum.photos/seed/algorithms/600/400",
-    imageAlt: "Flowchart of an algorithm",
-    dataAiHint: "computer science",
-    ctaLabel: "Learn Algorithms",
     isComingSoon: true,
   },
 ];
