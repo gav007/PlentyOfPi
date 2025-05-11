@@ -1,4 +1,5 @@
 
+
 import type { NavItem, FeatureCardItem } from '@/types';
 import {
   Home,
@@ -8,7 +9,8 @@ import {
   Puzzle,
   Sigma,
   Calculator,
-  DivideSquare,
+  DivideSquare, // Will be replaced for Fraction Duel
+  TestTubeDiagonal, // New Icon for Fraction Duel
   Scale,
   BookOpen,
   Lightbulb,
@@ -52,7 +54,7 @@ export const navItems: NavItem[] = [
   {
     title: 'Tools',
     href: '#',
-    icon: Settings, // Using Settings as a generic "Tools" icon
+    icon: Settings, 
     subItems: [
        {
         title: 'Calculus Playground',
@@ -68,10 +70,10 @@ export const navItems: NavItem[] = [
     icon: Calculator,
     subItems: [
       {
-        title: 'Fraction Blocks',
-        href: '/quick-math/fraction-blocks',
-        icon: DivideSquare,
-        description: 'Combine and simplify fractions visually.',
+        title: 'Fraction Duel', // New Game
+        href: '/quick-math/fraction-duel',
+        icon: TestTubeDiagonal, // New Icon
+        description: 'Test your fraction arithmetic skills in a duel!',
       },
       {
         title: 'Ratio Scales',
@@ -85,7 +87,7 @@ export const navItems: NavItem[] = [
     title: 'Lessons',
     href: '/lessons',
     icon: BookOpen,
-    disabled: true, // Assuming lessons page is not yet ready
+    disabled: true, 
   },
 ];
 
@@ -131,14 +133,14 @@ export const featureCards: FeatureCardItem[] = [
     ctaLabel: 'Play Hex Game',
   },
   {
-    title: 'Fraction Blocks',
-    description: 'Understand fraction arithmetic visually. Add fraction blocks to a workspace, find common denominators, and compute their sum with step-by-step insights.',
-    href: '/quick-math/fraction-blocks',
-    icon: DivideSquare,
-    imageSrc: 'https://picsum.photos/seed/fractions/600/400',
-    imageAlt: 'Visual representation of fraction blocks',
-    dataAiHint: 'math blocks',
-    ctaLabel: 'Learn Fractions',
+    title: 'Fraction Duel', // New Game
+    description: 'Challenge your fraction arithmetic! Solve expressions by choosing the correct simplified answer from multiple choices. Difficulty increases with each turn.',
+    href: '/quick-math/fraction-duel',
+    icon: TestTubeDiagonal, // New Icon
+    imageSrc: 'https://picsum.photos/seed/fractionduel/600/400',
+    imageAlt: 'Fraction expression with multiple choice answers',
+    dataAiHint: 'fraction math quiz',
+    ctaLabel: 'Start Duel',
   },
   {
     title: 'Ratio Scales',
@@ -174,18 +176,17 @@ export const featureCards: FeatureCardItem[] = [
   },
 ];
 
-// Example of a more complex NavItem structure for the Header component
 export const siteConfig = {
   name: "Plenty of π",
   description: "Interactive tools and engaging lessons to make learning math and computer science fun and accessible.",
-  url: "https://example.com", // Replace with your actual domain
-  ogImage: "https://example.com/og.jpg", // Replace
+  url: "https://example.com", 
+  ogImage: "https://example.com/og.jpg", 
   links: {
-    twitter: "https://twitter.com/example", // Replace
-    github: "https://github.com/example/plenty-of-pi", // Replace
+    twitter: "https://twitter.com/example", 
+    github: "https://github.com/example/plenty-of-pi", 
   },
-  navItems, // from above
-  featureCards, // from above
+  navItems, 
+  featureCards, 
 };
 
 export type SiteConfig = typeof siteConfig;
