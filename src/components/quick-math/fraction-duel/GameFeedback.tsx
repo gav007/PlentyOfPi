@@ -44,9 +44,11 @@ export default function GameFeedback({
         </div>
         <AlertDescription className="space-y-2">
           {selectedAnswer && isCorrect === false && (
-            <p>You selected: <FractionDisplay fraction={selectedAnswer} isResult /></p>
+            // Changed p to div
+            <div className="flex items-center justify-center gap-1">You selected: <FractionDisplay fraction={selectedAnswer} isResult /></div>
           )}
-          <p>The correct answer was: <FractionDisplay fraction={correctAnswer} isResult /></p>
+           {/* Changed p to div */}
+          <div className="flex items-center justify-center gap-1">The correct answer was: <FractionDisplay fraction={correctAnswer} isResult /></div>
         </AlertDescription>
       </Alert>
 
