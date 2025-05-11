@@ -9,7 +9,6 @@ import {
   Sigma,
   Calculator,
   DivideSquare,
-  TreeDeciduous,
   Scale,
   BookOpen,
   Lightbulb,
@@ -73,12 +72,6 @@ export const navItems: NavItem[] = [
         href: '/quick-math/fraction-blocks',
         icon: DivideSquare,
         description: 'Combine and simplify fractions visually.',
-      },
-      {
-        title: 'Prime Factorization Tree',
-        href: '/quick-math/prime-quarry',
-        icon: TreeDeciduous,
-        description: 'Visualize prime factorization as a tree.',
       },
       {
         title: 'Ratio Scales',
@@ -146,16 +139,6 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Visual representation of fraction blocks',
     dataAiHint: 'math blocks',
     ctaLabel: 'Learn Fractions',
-  },
-  {
-    title: 'Prime Factorization Tree',
-    description: 'Enter a number and see its prime factors break down into an interactive tree structure. A great way to visualize how composite numbers are formed from primes.',
-    href: '/quick-math/prime-quarry',
-    icon: TreeDeciduous,
-    imageSrc: 'https://picsum.photos/seed/primetree/600/400',
-    imageAlt: 'Prime factorization tree diagram',
-    dataAiHint: 'math tree',
-    ctaLabel: 'Factorize Numbers',
   },
   {
     title: 'Ratio Scales',
