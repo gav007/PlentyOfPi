@@ -29,11 +29,11 @@ export default function GamifiedSection() {
   return (
     <div className="space-y-6">
       <p className="text-muted-foreground">
-        Reinforce your learning with these interactive challenges and games. (These are currently placeholders)
+        Reinforce your learning with these interactive challenges and games. (These are currently placeholders for full game functionality but will navigate to a page)
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {gamifiedActivities.map((activity) => (
-          <Card key={activity.title} className="flex flex-col">
+          <Card key={activity.title} className="flex flex-col h-full rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:scale-[1.03]">
             <CardHeader>
               <div className="flex items-center gap-3 mb-2">
                 <activity.icon className="w-7 h-7 text-primary" />
@@ -44,7 +44,8 @@ export default function GamifiedSection() {
               <CardDescription>{activity.description}</CardDescription>
             </CardContent>
             <CardFooter>
-              <Button asChild variant="outline" className="w-full" disabled>
+              {/* Enable the button and link */}
+              <Button asChild variant="outline" className="w-full">
                 <Link href={activity.href}>
                   Start Challenge <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

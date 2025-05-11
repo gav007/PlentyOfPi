@@ -96,6 +96,7 @@ export const navItems: NavItem[] = [
         icon: FileCode,
         description: 'Learn core Python concepts for PCEP certification.',
       }
+      // Add other lesson modules here, e.g. Statistics when ready
     ]
   },
 ];
@@ -171,7 +172,7 @@ export const featureCards: FeatureCardItem[] = [
     dataAiHint: 'balance scale',
     ctaLabel: 'Explore Ratios',
   },
-  // Python Foundations Gamified Cards - mark as coming soon
+  // Python Foundations Gamified Cards - mark as active
   {
     title: 'Python: Output Match',
     description: 'Match Python code snippets to their correct output. A fun way to test your understanding of Python execution.',
@@ -180,8 +181,8 @@ export const featureCards: FeatureCardItem[] = [
     imageSrc: 'https://picsum.photos/seed/pyoutput/600/400',
     imageAlt: 'Python code and output comparison',
     dataAiHint: 'python code',
-    isComingSoon: true,
-    ctaLabel: 'Coming Soon',
+    isComingSoon: false, // Activated
+    ctaLabel: 'Try Challenge',
   },
   {
     title: 'Python: Syntax Spotter',
@@ -191,19 +192,19 @@ export const featureCards: FeatureCardItem[] = [
     imageSrc: 'https://picsum.photos/seed/pysyntax/600/400',
     imageAlt: 'Python code with highlighted errors',
     dataAiHint: 'python syntax error',
-    isComingSoon: true,
-    ctaLabel: 'Coming Soon',
+    isComingSoon: false, // Activated
+    ctaLabel: 'Spot Errors',
   },
   {
-    title: 'Python: Debug It',
+    title: 'Python: Debug It!', // Updated title slightly for consistency
     description: 'Fix broken Python code! Apply your knowledge to debug real-world-like scenarios and make the code run.',
     href: '/lessons/python-foundations/debug-it',
     icon: Wrench,
     imageSrc: 'https://picsum.photos/seed/pydebug/600/400',
     imageAlt: 'Python code with debugging tools',
     dataAiHint: 'python debugging',
-    isComingSoon: true,
-    ctaLabel: 'Coming Soon',
+    isComingSoon: false, // Activated
+    ctaLabel: 'Debug Code',
   },
   {
     title: 'Data Structures Visualizer',
