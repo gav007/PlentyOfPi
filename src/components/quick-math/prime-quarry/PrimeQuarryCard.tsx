@@ -4,10 +4,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import RockGrid from './RockGrid';
 import DivisorToolbar from './DivisorToolbar';
+import ExplanationPanelPrime from './ExplanationPanelPrime'; // New component
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle, RefreshCw, Unplug } from 'lucide-react';
+import { CheckCircle, RefreshCw, Unplug, Lightbulb } from 'lucide-react';
 
 const INITIAL_MAX_NUMBER = 50; // Max number for rocks
 const MAX_POSSIBLE_DIVISOR = 10; // For the toolbar
@@ -20,6 +23,7 @@ export default function PrimeQuarryCard() {
   const [primesChecked, setPrimesChecked] = useState(false);
   const [revealedPrimes, setRevealedPrimes] = useState<Set<number>>(new Set());
   const [message, setMessage] = useState<string | null>(null);
+  const [showExplanation, setShowExplanation] = useState<boolean>(false);
 
   const generateTiles = useCallback((n: number) => {
     return Array.from({ length: n - 1 }, (_, i) => i + 2);
@@ -36,22 +40,21 @@ export default function PrimeQuarryCard() {
 
   useEffect(() => {
     resetGame();
-  }, [resetGame]);
+  }, [resetGame, showExplanation]); // Reset game when mode changes too
 
   const handleDivisorSelect = (divisor: number) => {
     setSelectedDivisor(divisor);
-    setPrimesChecked(false); // Allow chipping again if a new divisor is selected after checking
+    setPrimesChecked(false); 
     setMessage(null);
   };
 
   const handleRockClick = (tile: number) => {
-    if (primesChecked) return; // Don't allow chipping after checking primes until reset or new divisor
+    if (primesChecked || showExplanation) return; 
 
     if (selectedDivisor !== null) {
       if (tile % selectedDivisor === 0 && tile !== selectedDivisor) {
         setChipped(prev => new Set(prev).add(tile));
       } else if (tile % selectedDivisor !== 0) {
-        // Optional: feedback if they click a rock not divisible by the selected divisor
         setMessage(`Rock ${tile} is not divisible by ${selectedDivisor}.`);
         setTimeout(() => setMessage(null), 2000);
       } else if (tile === selectedDivisor) {
@@ -99,48 +102,68 @@ export default function PrimeQuarryCard() {
 
   const possibleDivisors = Array.from({ length: Math.min(MAX_POSSIBLE_DIVISOR, Math.floor(Math.sqrt(maxNumber))) -1  }, (_, i) => i + 2);
 
+  const handleModeToggle = (checked: boolean) => {
+    setShowExplanation(checked);
+    // resetGame will be called by useEffect due to showExplanation dependency
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-xl">
-      <CardHeader className="text-center">
+      <CardHeader className="text-center pb-4">
         <CardTitle className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
           <Unplug className="w-8 h-8" /> Prime Quarry
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Select a divisor, then click on rocks to chip away composite numbers. Unchipped rocks are your prime candidates!
+          {showExplanation 
+            ? "Learn about prime numbers and how to find them using divisors."
+            : "Select a divisor, then click on rocks to chip away composite numbers. Unchipped rocks are your prime candidates!"}
         </CardDescription>
+        <div className="flex justify-end items-center pt-3">
+            <Label htmlFor="mode-toggle-prime" className="mr-2 text-sm flex items-center gap-1">
+                <Lightbulb className="w-4 h-4 text-yellow-500" /> How It Works
+            </Label>
+            <Switch id="mode-toggle-prime" checked={showExplanation} onCheckedChange={handleModeToggle} />
+          </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <DivisorToolbar
-          divisors={possibleDivisors}
-          selectedDivisor={selectedDivisor}
-          onSelectDivisor={handleDivisorSelect}
-          disabled={primesChecked}
-        />
-        
-        {message && (
-          <Alert className={primesChecked && message.includes("Excellent") ? "border-green-500 bg-green-500/10 text-green-700" : ""}>
-            <AlertTitle>{primesChecked ? "Results" : "Hint"}</AlertTitle>
-            <AlertDescription>{message}</AlertDescription>
-          </Alert>
-        )}
+        {showExplanation ? (
+          <ExplanationPanelPrime />
+        ) : (
+          <>
+            <DivisorToolbar
+              divisors={possibleDivisors}
+              selectedDivisor={selectedDivisor}
+              onSelectDivisor={handleDivisorSelect}
+              disabled={primesChecked}
+            />
+            
+            {message && (
+              <Alert className={primesChecked && message.includes("Excellent") ? "border-green-500 bg-green-500/10 text-green-700" : ""}>
+                <AlertTitle>{primesChecked ? "Results" : "Hint"}</AlertTitle>
+                <AlertDescription>{message}</AlertDescription>
+              </Alert>
+            )}
 
-        <RockGrid
-          tiles={tiles}
-          chipped={chipped}
-          onRockClick={handleRockClick}
-          selectedDivisor={selectedDivisor}
-          primesChecked={primesChecked}
-          revealedPrimes={revealedPrimes}
-        />
-        <div className="flex justify-center space-x-4 mt-6">
-          <Button onClick={handleCheckPrimes} disabled={primesChecked} variant="secondary">
-            <CheckCircle className="mr-2 h-5 w-5" /> Check My Primes
-          </Button>
-          <Button onClick={resetGame} variant="outline">
-            <RefreshCw className="mr-2 h-5 w-5" /> Reset Quarry
-          </Button>
-        </div>
+            <RockGrid
+              tiles={tiles}
+              chipped={chipped}
+              onRockClick={handleRockClick}
+              selectedDivisor={selectedDivisor}
+              primesChecked={primesChecked}
+              revealedPrimes={revealedPrimes}
+            />
+            <div className="flex justify-center space-x-4 mt-6">
+              <Button onClick={handleCheckPrimes} disabled={primesChecked} variant="secondary">
+                <CheckCircle className="mr-2 h-5 w-5" /> Check My Primes
+              </Button>
+              <Button onClick={resetGame} variant="outline">
+                <RefreshCw className="mr-2 h-5 w-5" /> Reset Quarry
+              </Button>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
 }
+

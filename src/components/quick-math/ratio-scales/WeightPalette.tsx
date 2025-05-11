@@ -17,15 +17,15 @@ export default function WeightPalette({ weights, onAddWeight }: WeightPalettePro
       <div className="flex flex-wrap justify-center gap-3">
         {weights.map((weightValue, index) => (
           <div key={index} className="flex flex-col items-center gap-1">
-            <div className="bg-primary/20 border border-primary/50 p-3 rounded-md text-center shadow-md w-16 h-16 flex items-center justify-center">
-              <span className="text-2xl font-bold text-primary-foreground">{weightValue}</span>
+            <div className="bg-card border border-primary p-3 rounded-md text-center shadow-lg w-16 h-16 flex items-center justify-center hover:shadow-xl transition-shadow">
+              <span className="text-2xl font-bold text-primary">{weightValue}</span>
             </div>
             <div className="flex gap-1">
                 <Button
                     variant="outline"
                     size="sm"
                     onClick={() => onAddWeight('left', weightValue)}
-                    className="text-xs px-2 py-1 h-auto"
+                    className="text-xs px-2 py-1 h-auto bg-card hover:bg-muted"
                     aria-label={`Add weight ${weightValue} to left pan`}
                 >
                     To Left
@@ -34,7 +34,7 @@ export default function WeightPalette({ weights, onAddWeight }: WeightPalettePro
                     variant="outline"
                     size="sm"
                     onClick={() => onAddWeight('right', weightValue)}
-                    className="text-xs px-2 py-1 h-auto"
+                    className="text-xs px-2 py-1 h-auto bg-card hover:bg-muted"
                     aria-label={`Add weight ${weightValue} to right pan`}
                 >
                     To Right
@@ -46,3 +46,4 @@ export default function WeightPalette({ weights, onAddWeight }: WeightPalettePro
     </div>
   );
 }
+
