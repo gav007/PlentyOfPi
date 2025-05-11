@@ -1,169 +1,158 @@
-
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import RockGrid from './RockGrid';
-import DivisorToolbar from './DivisorToolbar';
-import ExplanationPanelPrime from './ExplanationPanelPrime'; // New component
+import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle, RefreshCw, Unplug, Lightbulb } from 'lucide-react';
+import { Binary, TreeDeciduous, AlertCircle } from 'lucide-react'; // Using TreeDeciduous for tree icon
+import PrimeFactorizationTreeDisplay, { type TreeNode } from './PrimeFactorizationTreeDisplay';
 
-const INITIAL_MAX_NUMBER = 50; // Max number for rocks
-const MAX_POSSIBLE_DIVISOR = 10; // For the toolbar
+const MAX_FACTORIZATION_INPUT = 10000; // Max number for factorization to keep it performant and displayable
+const MIN_FACTORIZATION_INPUT = 2;
+
+// Helper function to check if a number is prime
+const isNumberPrime = (num: number): boolean => {
+  if (num <= 1) return false;
+  if (num <= 3) return true;
+  if (num % 2 === 0 || num % 3 === 0) return false;
+  for (let i = 5; i * i <= num; i = i + 6) {
+    if (num % i === 0 || num % (i + 2) === 0) return false;
+  }
+  return true;
+};
+
+// Helper function to build the factorization tree
+const buildFactorizationTreeRecursive = (num: number): TreeNode | null => {
+  if (num < MIN_FACTORIZATION_INPUT) return null;
+
+  if (isNumberPrime(num)) {
+    return { value: num, isPrime: true };
+  }
+
+  for (let i = 2; i * i <= num; i++) {
+    if (num % i === 0) {
+      // 'i' is the smallest prime factor or a small factor
+      const child1 = buildFactorizationTreeRecursive(i);
+      const child2 = buildFactorizationTreeRecursive(num / i);
+      
+      // Ensure children are not null if they are expected for composite numbers
+      if (child1 && child2) {
+         return {
+            value: num,
+            isPrime: false,
+            children: [child1, child2],
+          };
+      } else {
+        // This case might occur if i or num/i is < MIN_FACTORIZATION_INPUT after division
+        // For simplicity, if a child branch is too small to factor, treat current num as "leaf" in a sense for display.
+        // Or, the problem is if `i` or `num/i` is 1.
+        // Let's refine: factors should be >= MIN_FACTORIZATION_INPUT
+         if (i >= MIN_FACTORIZATION_INPUT && (num/i) >= MIN_FACTORIZATION_INPUT) {
+            // This path was taken above
+         } else if (i >= MIN_FACTORIZATION_INPUT) { // num/i is too small
+            return { value: num, isPrime: false, children: [buildFactorizationTreeRecursive(i)! , {value: num/i, isPrime: isNumberPrime(num/i)}]};
+         } else if ((num/i) >= MIN_FACTORIZATION_INPUT) { // i is too small
+             return { value: num, isPrime: false, children: [{value: i, isPrime: isNumberPrime(i)}, buildFactorizationTreeRecursive(num/i)! ]};
+         }
+         // If both are too small, but num itself is not prime, means it's a product of small primes
+         // e.g. 4 -> 2,2. The loop i*i <= num will catch this.
+      }
+    }
+  }
+  // If loop finishes, num must be prime (this should ideally be caught by the first isNumberPrime check)
+  return { value: num, isPrime: true };
+};
+
 
 export default function PrimeQuarryCard() {
-  const [maxNumber, setMaxNumber] = useState(INITIAL_MAX_NUMBER);
-  const [tiles, setTiles] = useState<number[]>([]);
-  const [chipped, setChipped] = useState<Set<number>>(new Set());
-  const [selectedDivisor, setSelectedDivisor] = useState<number | null>(null);
-  const [primesChecked, setPrimesChecked] = useState(false);
-  const [revealedPrimes, setRevealedPrimes] = useState<Set<number>>(new Set());
-  const [message, setMessage] = useState<string | null>(null);
-  const [showExplanation, setShowExplanation] = useState<boolean>(false);
+  const [inputValue, setInputValue] = React.useState<string>("");
+  const [numberToFactor, setNumberToFactor] = React.useState<number | null>(null);
+  const [factorTree, setFactorTree] = React.useState<TreeNode | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const generateTiles = useCallback((n: number) => {
-    return Array.from({ length: n - 1 }, (_, i) => i + 2);
-  }, []);
-
-  const resetGame = useCallback(() => {
-    setTiles(generateTiles(maxNumber));
-    setChipped(new Set());
-    setSelectedDivisor(null);
-    setPrimesChecked(false);
-    setRevealedPrimes(new Set());
-    setMessage(null);
-  }, [maxNumber, generateTiles]);
-
-  useEffect(() => {
-    resetGame();
-  }, [resetGame, showExplanation]); // Reset game when mode changes too
-
-  const handleDivisorSelect = (divisor: number) => {
-    setSelectedDivisor(divisor);
-    setPrimesChecked(false); 
-    setMessage(null);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    setError(null); // Clear error on new input
   };
 
-  const handleRockClick = (tile: number) => {
-    if (primesChecked || showExplanation) return; 
-
-    if (selectedDivisor !== null) {
-      if (tile % selectedDivisor === 0 && tile !== selectedDivisor) {
-        setChipped(prev => new Set(prev).add(tile));
-      } else if (tile % selectedDivisor !== 0) {
-        setMessage(`Rock ${tile} is not divisible by ${selectedDivisor}.`);
-        setTimeout(() => setMessage(null), 2000);
-      } else if (tile === selectedDivisor) {
-        setMessage(`You can't chip a rock with itself as the divisor.`);
-        setTimeout(() => setMessage(null), 2000);
-      }
-    } else {
-      setMessage('Please select a divisor first.');
-      setTimeout(() => setMessage(null), 2000);
+  const handleSubmit = () => {
+    const num = parseInt(inputValue, 10);
+    if (isNaN(num)) {
+      setError("Please enter a valid integer.");
+      setNumberToFactor(null);
+      setFactorTree(null);
+      return;
     }
-  };
-
-  const handleCheckPrimes = () => {
-    const actualPrimes = new Set<number>();
-    tiles.forEach(tile => {
-      if (isNumberPrime(tile)) {
-        actualPrimes.add(tile);
-      }
-    });
-    setRevealedPrimes(actualPrimes);
-    setPrimesChecked(true);
-
-    const correctlyIdentifiedNonPrimes = tiles.filter(t => !actualPrimes.has(t) && chipped.has(t)).length;
-    const missedNonPrimes = tiles.filter(t => !actualPrimes.has(t) && !chipped.has(t)).length;
-    const totalNonPrimes = tiles.length - actualPrimes.size;
-    
-    let scoreMessage = "";
-    if (missedNonPrimes === 0 && correctlyIdentifiedNonPrimes === totalNonPrimes) {
-      scoreMessage = "Excellent! You've correctly identified all primes and chipped all composites.";
-    } else if (missedNonPrimes > 0) {
-      scoreMessage = `Good effort! You missed ${missedNonPrimes} composite number(s). True primes are now highlighted.`;
-    } else {
-      scoreMessage = `Well done! True primes are now highlighted.`;
+    if (num < MIN_FACTORIZATION_INPUT) {
+      setError(`Please enter a number greater than or equal to ${MIN_FACTORIZATION_INPUT}.`);
+      setNumberToFactor(null);
+      setFactorTree(null);
+      return;
     }
-    setMessage(scoreMessage);
+    if (num > MAX_FACTORIZATION_INPUT) {
+      setError(`Please enter a number less than or equal to ${MAX_FACTORIZATION_INPUT} for optimal display.`);
+      // Allow factorization for slightly larger numbers if user insists, but tree might be big
+      // For now, let's enforce the max strictly for display reasons
+      setNumberToFactor(null);
+      setFactorTree(null);
+      return;
+    }
+    setError(null);
+    setNumberToFactor(num);
+    setFactorTree(buildFactorizationTreeRecursive(num));
   };
   
-  const isNumberPrime = (num: number): boolean => {
-    if (num <= 1) return false;
-    for (let i = 2; i * i <= num; i++) {
-      if (num % i === 0) return false;
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleSubmit();
     }
-    return true;
-  };
-
-  const possibleDivisors = Array.from({ length: Math.min(MAX_POSSIBLE_DIVISOR, Math.floor(Math.sqrt(maxNumber))) -1  }, (_, i) => i + 2);
-
-  const handleModeToggle = (checked: boolean) => {
-    setShowExplanation(checked);
-    // resetGame will be called by useEffect due to showExplanation dependency
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-xl">
+    <Card className="w-full max-w-xl mx-auto shadow-xl">
       <CardHeader className="text-center pb-4">
         <CardTitle className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
-          <Unplug className="w-8 h-8" /> Prime Quarry
+          <TreeDeciduous className="w-8 h-8" /> Prime Factorization Tree
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          {showExplanation 
-            ? "Learn about prime numbers and how to find them using divisors."
-            : "Select a divisor, then click on rocks to chip away composite numbers. Unchipped rocks are your prime candidates!"}
+          Enter an integer (e.g., 36, 120) to see its prime factorization tree.
         </CardDescription>
-        <div className="flex justify-end items-center pt-3">
-            <Label htmlFor="mode-toggle-prime" className="mr-2 text-sm flex items-center gap-1">
-                <Lightbulb className="w-4 h-4 text-yellow-500" /> How It Works
-            </Label>
-            <Switch id="mode-toggle-prime" checked={showExplanation} onCheckedChange={handleModeToggle} />
-          </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {showExplanation ? (
-          <ExplanationPanelPrime />
-        ) : (
-          <>
-            <DivisorToolbar
-              divisors={possibleDivisors}
-              selectedDivisor={selectedDivisor}
-              onSelectDivisor={handleDivisorSelect}
-              disabled={primesChecked}
-            />
-            
-            {message && (
-              <Alert className={primesChecked && message.includes("Excellent") ? "border-green-500 bg-green-500/10 text-green-700" : ""}>
-                <AlertTitle>{primesChecked ? "Results" : "Hint"}</AlertTitle>
-                <AlertDescription>{message}</AlertDescription>
-              </Alert>
-            )}
+        <div className="flex flex-col sm:flex-row items-center gap-3 justify-center">
+          <Input
+            type="number"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleInputKeyDown}
+            placeholder={`Enter number (${MIN_FACTORIZATION_INPUT}-${MAX_FACTORIZATION_INPUT})`}
+            className="max-w-xs text-base"
+            aria-label="Number to factorize"
+          />
+          <Button onClick={handleSubmit} className="w-full sm:w-auto">
+            <Binary className="mr-2 h-5 w-5" /> Factorize
+          </Button>
+        </div>
 
-            <RockGrid
-              tiles={tiles}
-              chipped={chipped}
-              onRockClick={handleRockClick}
-              selectedDivisor={selectedDivisor}
-              primesChecked={primesChecked}
-              revealedPrimes={revealedPrimes}
-            />
-            <div className="flex justify-center space-x-4 mt-6">
-              <Button onClick={handleCheckPrimes} disabled={primesChecked} variant="secondary">
-                <CheckCircle className="mr-2 h-5 w-5" /> Check My Primes
-              </Button>
-              <Button onClick={resetGame} variant="outline">
-                <RefreshCw className="mr-2 h-5 w-5" /> Reset Quarry
-              </Button>
-            </div>
-          </>
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Input Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
+
+        <div className="mt-6 p-4 border border-muted rounded-lg bg-muted/20 min-h-[200px] flex justify-center items-start overflow-x-auto">
+          {factorTree ? (
+            <PrimeFactorizationTreeDisplay rootNode={factorTree} />
+          ) : (
+            <p className="text-muted-foreground text-center py-10">
+              Enter a number and click "Factorize" to see its prime factorization tree.
+            </p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
 }
-

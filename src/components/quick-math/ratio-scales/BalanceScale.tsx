@@ -1,9 +1,8 @@
-
 'use client';
 
 import type { Weight } from './RatioScalesCard';
 import { Button } from '@/components/ui/button';
-import { XCircle, MinusCircle } from 'lucide-react';
+import { MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BalanceScaleProps {
@@ -38,7 +37,6 @@ export default function BalanceScale({ leftWeights, rightWeights, onRemoveWeight
     rotation = Math.min(tiltFactor, (sumRight - sumLeft) / Math.max(1,sumLeft) * tiltFactor / 2); // Tilt right
   }
   
-  // Base height of the pan container for empty state
   const basePanHeight = "min-h-[120px]"; 
 
   return (
@@ -53,7 +51,7 @@ export default function BalanceScale({ leftWeights, rightWeights, onRemoveWeight
       <div className="w-0 h-0 
         border-l-[20px] border-l-transparent
         border-r-[20px] border-r-transparent
-        border-b-[30px] border-b-muted-foreground shadow-md">
+        border-b-[30px] border-b-primary shadow-md"> {/* Changed border-b-muted-foreground to border-b-primary */}
       </div>
 
       <div className="flex justify-around w-full max-w-lg mt-2">

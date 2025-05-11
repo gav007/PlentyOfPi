@@ -1,6 +1,5 @@
-
 import type { NavItem, FeatureCardItem } from '@/types';
-import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon, Orbit, SigmaSquare, Scale, Binary, Unplug } from 'lucide-react'; // Added SigmaSquare for Calculus, Scale, Binary, Unplug
+import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon, Orbit, SigmaSquare, Scale, Binary, Unplug, TreeDeciduous } from 'lucide-react'; // Added TreeDeciduous
 
 export const siteConfig = {
   name: "Plenty of π",
@@ -19,7 +18,7 @@ export const navItems: NavItem[] = [
     href: "#", // Non-clickable parent for dropdown
     icon: Brain, // Icon for the "Practice" category
     subItems: [
-      { title: "Binary Game", href: "/binary-game", icon: Binary }, // Changed icon
+      { title: "Binary Game", href: "/binary-game", icon: Binary }, 
       { title: "Unit Circle", href: "/unit-circle", icon: Orbit },
       { title: "Hex Boxes", href: "/hex-boxes", icon: Puzzle },
       { title: "Calculus Playground", href: "/calculus-playground", icon: SigmaSquare },
@@ -30,8 +29,8 @@ export const navItems: NavItem[] = [
     href: "#",
     icon: Zap,
     subItems: [
-      { title: "Prime Quarry", href: "/quick-math/prime-quarry", icon: Unplug }, // Placeholder icon
-      { title: "Fraction Blocks", href: "/quick-math/fraction-blocks", icon: Puzzle }, // Placeholder icon
+      { title: "Prime Factorization", href: "/quick-math/prime-quarry", icon: TreeDeciduous }, 
+      { title: "Fraction Blocks", href: "/quick-math/fraction-blocks", icon: Puzzle }, 
       { title: "Ratio Scales", href: "/quick-math/ratio-scales", icon: Scale },
     ]
   },
@@ -45,7 +44,7 @@ export const featureCards: FeatureCardItem[] = [
     title: "8-Bit & 16-Bit Binary Game",
     description: "Test your binary skills! Convert numbers to decimal and hex in this interactive game. Supports 8-bit and 16-bit modes.",
     href: "/binary-game",
-    icon: Binary, // Changed icon
+    icon: Binary, 
     imageSrc: "https://picsum.photos/seed/binarygame/600/400",
     imageAlt: "Abstract representation of binary code",
     dataAiHint: "binary code",
@@ -82,20 +81,20 @@ export const featureCards: FeatureCardItem[] = [
     ctaLabel: "Explore Calculus",
   },
   {
-    title: "Prime Quarry",
-    description: "Identify prime numbers by 'chipping away' composites. Test your knowledge of divisibility and prime factorization.",
+    title: "Prime Factorization Tree",
+    description: "Enter a number and see its prime factors visualized as a tree. Understand how numbers break down into primes.",
     href: "/quick-math/prime-quarry",
-    icon: Unplug, // Placeholder icon
-    imageSrc: "https://picsum.photos/seed/primequarry/600/400",
-    imageAlt: "Grid of numbers with some highlighted as prime",
-    dataAiHint: "prime numbers",
-    ctaLabel: "Play Now",
+    icon: TreeDeciduous, 
+    imageSrc: "https://picsum.photos/seed/primefactorization/600/400",
+    imageAlt: "A tree structure showing prime factors",
+    dataAiHint: "prime numbers tree",
+    ctaLabel: "Factorize Now",
   },
   {
     title: "Fraction Blocks",
     description: "Combine and simplify fractions visually. Understand common denominators and fraction arithmetic step-by-step.",
     href: "/quick-math/fraction-blocks",
-    icon: Puzzle, // Placeholder icon
+    icon: Puzzle, 
     imageSrc: "https://picsum.photos/seed/fractionblocks/600/400",
     imageAlt: "Visual blocks representing fractions being combined",
     dataAiHint: "fractions math",
