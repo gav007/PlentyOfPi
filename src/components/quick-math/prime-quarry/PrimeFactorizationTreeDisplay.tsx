@@ -1,6 +1,6 @@
 'use client';
 
-import *_React from 'react'; // _React to avoid conflict if React is not directly used in this file's logic but needed for JSX
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 export interface TreeNode {

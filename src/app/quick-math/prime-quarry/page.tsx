@@ -3,8 +3,8 @@ import PrimeQuarryCard from '@/components/quick-math/prime-quarry/PrimeQuarryCar
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Prime Quarry | Quick Math | Plenty of π',
-  description: 'Test your prime number knowledge. Chip away at composite numbers to find the primes!',
+  title: 'Prime Factorization Tree | Quick Math | Plenty of π',
+  description: 'Visualize the prime factorization of numbers as an interactive tree. Enter a number to see how it breaks down into its prime components.',
 };
 
 export default function PrimeQuarryPage() {
