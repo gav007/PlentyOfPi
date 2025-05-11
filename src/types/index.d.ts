@@ -8,6 +8,7 @@ export type NavItem = {
   external?: boolean;
   icon?: LucideIcon; // Allow any LucideIcon
   label?: string;
+  description?: string; // Optional description for dropdown items
   subItems?: NavItem[]; 
 };
 

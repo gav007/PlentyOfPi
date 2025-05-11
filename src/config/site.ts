@@ -1,146 +1,208 @@
-import type { NavItem, FeatureCardItem } from '@/types';
-import { Brain, Calculator, BookOpen, Archive, Zap, Puzzle, HomeIcon, Orbit, SigmaSquare, Scale, Binary, Unplug, TreeDeciduous } from 'lucide-react'; // Added TreeDeciduous
 
-export const siteConfig = {
-  name: "Plenty of π",
-  description: "Learn and explore with Plenty of π - interactive math and CS tools.",
-  url: "https://example.com", // Replace with your actual URL
-  ogImage: "https://example.com/og.jpg", // Replace with your actual OG image
-  links: {
-    github: "https://github.com/your-repo", // Replace with your GitHub repo
-  },
-};
+import type { NavItem, FeatureCardItem } from '@/types';
+import {
+  Home,
+  Gamepad2,
+  Brain,
+  Orbit,
+  Puzzle,
+  Sigma,
+  Calculator,
+  DivideSquare,
+  TreeDeciduous,
+  Scale,
+  BookOpen,
+  Lightbulb,
+  BarChart3,
+  FileJson,
+  Github,
+  Settings
+} from 'lucide-react';
 
 export const navItems: NavItem[] = [
-  { title: "Home", href: "/", icon: HomeIcon },
   {
-    title: "Practice",
-    href: "#", // Non-clickable parent for dropdown
-    icon: Brain, // Icon for the "Practice" category
-    subItems: [
-      { title: "Binary Game", href: "/binary-game", icon: Binary }, 
-      { title: "Unit Circle", href: "/unit-circle", icon: Orbit },
-      { title: "Hex Boxes", href: "/hex-boxes", icon: Puzzle },
-      { title: "Calculus Playground", href: "/calculus-playground", icon: SigmaSquare },
-    ]
+    title: 'Home',
+    href: '/',
+    icon: Home,
   },
   {
-    title: "Quick Math",
-    href: "#",
-    icon: Zap,
+    title: 'Games',
+    href: '#',
+    icon: Gamepad2,
     subItems: [
-      { title: "Prime Factorization", href: "/quick-math/prime-quarry", icon: TreeDeciduous }, 
-      { title: "Fraction Blocks", href: "/quick-math/fraction-blocks", icon: Puzzle }, 
-      { title: "Ratio Scales", href: "/quick-math/ratio-scales", icon: Scale },
-    ]
+      {
+        title: 'Binary Converter',
+        href: '/binary-game',
+        icon: Brain,
+        description: 'Learn binary with an 8/16-bit interactive game.',
+      },
+      {
+        title: 'Unit Circle Explorer',
+        href: '/unit-circle',
+        icon: Orbit,
+        description: 'Explore angles, radians, and trig functions.',
+      },
+      {
+        title: 'Hex Boxes Challenge',
+        href: '/hex-boxes',
+        icon: Puzzle,
+        description: 'Convert decimal to two-digit hex values.',
+      },
+    ],
   },
-  { title: "Lessons", href: "/lessons", icon: BookOpen, disabled: false },
-  { title: "Calculators", href: "/calculators", icon: Calculator, disabled: true },
-  { title: "Flashcards", href: "/flashcards", icon: Archive, disabled: true },
+  {
+    title: 'Tools',
+    href: '#',
+    icon: Settings, // Using Settings as a generic "Tools" icon
+    subItems: [
+       {
+        title: 'Calculus Playground',
+        href: '/calculus-playground',
+        icon: Sigma,
+        description: 'Visualize functions, derivatives, and integrals.',
+      },
+    ],
+  },
+  {
+    title: 'Quick Math',
+    href: '#',
+    icon: Calculator,
+    subItems: [
+      {
+        title: 'Fraction Blocks',
+        href: '/quick-math/fraction-blocks',
+        icon: DivideSquare,
+        description: 'Combine and simplify fractions visually.',
+      },
+      {
+        title: 'Prime Factorization Tree',
+        href: '/quick-math/prime-quarry',
+        icon: TreeDeciduous,
+        description: 'Visualize prime factorization as a tree.',
+      },
+      {
+        title: 'Ratio Scales',
+        href: '/quick-math/ratio-scales',
+        icon: Scale,
+        description: 'Balance weights to understand ratios.',
+      },
+    ],
+  },
+  {
+    title: 'Lessons',
+    href: '/lessons',
+    icon: BookOpen,
+    disabled: true, // Assuming lessons page is not yet ready
+  },
 ];
 
 export const featureCards: FeatureCardItem[] = [
   {
-    title: "8-Bit & 16-Bit Binary Game",
-    description: "Test your binary skills! Convert numbers to decimal and hex in this interactive game. Supports 8-bit and 16-bit modes.",
-    href: "/binary-game",
-    icon: Binary, 
-    imageSrc: "https://picsum.photos/seed/binarygame/600/400",
-    imageAlt: "Abstract representation of binary code",
-    dataAiHint: "binary code",
-    ctaLabel: "Play Now",
+    title: 'Binary Converter Game',
+    description: 'Master binary numbers with our interactive 8-bit and 16-bit converter game. Toggle bits, see instant decimal and hex conversions, and test your skills in game mode!',
+    href: '/binary-game',
+    icon: Brain,
+    imageSrc: 'https://picsum.photos/seed/binary/600/400',
+    imageAlt: 'Binary game interface with toggles and lights',
+    dataAiHint: 'binary code',
+    ctaLabel: 'Play Now',
   },
   {
-    title: "Interactive Unit Circle",
-    description: "Explore the relationship between angles, trigonometric functions (sin, cos, tan), and the sine wave in real-time.",
-    href: "/unit-circle",
+    title: 'Interactive Unit Circle',
+    description: 'Explore the unit circle dynamically. Drag the angle, see radians, degrees, and trigonometric values (sin, cos, tan) update in real-time. Visualize the linked sine wave.',
+    href: '/unit-circle',
     icon: Orbit,
-    imageSrc: "https://picsum.photos/seed/unitcircle/600/400",
-    imageAlt: "Unit circle diagram with sine wave",
-    dataAiHint: "math trigonometry",
-    ctaLabel: "Explore Now",
+    imageSrc: 'https://picsum.photos/seed/unitcircle/600/400',
+    imageAlt: 'Unit circle diagram with sine wave',
+    dataAiHint: 'math diagram',
+    ctaLabel: 'Explore Circle',
   },
   {
-    title: "Hex Boxes Game",
-    description: "Convert decimal numbers (0-255) to two-digit hexadecimal values using interactive digit selection.",
-    href: "/hex-boxes",
+    title: 'Calculus Playground',
+    description: 'Visualize calculus concepts. Input functions, explore graphs, derivatives (as tangent lines), and integrals (area under curve) with an interactive slider and customizable graph bounds.',
+    href: '/calculus-playground',
+    icon: Sigma,
+    imageSrc: 'https://picsum.photos/seed/calculus/600/400',
+    imageAlt: 'Graph of a function with tangent line and shaded area',
+    dataAiHint: 'calculus graph',
+    ctaLabel: 'Start Plotting',
+  },
+  {
+    title: 'Hex Boxes Challenge',
+    description: 'Learn hexadecimal conversion by converting decimal numbers (0-255) to two-digit hex values. Select digits from a grid and test your understanding in challenge or learn mode.',
+    href: '/hex-boxes',
     icon: Puzzle,
-    imageSrc: "https://picsum.photos/seed/hexboxes/600/400",
-    imageAlt: "Grid of hexadecimal digits",
-    dataAiHint: "hexadecimal conversion",
-    ctaLabel: "Play Game",
-  },
-   {
-    title: "Calculus Playground",
-    description: "Visualize functions, derivatives, and integrals. Input a function and see its graph, tangent, and area under the curve interactively.",
-    href: "/calculus-playground",
-    icon: SigmaSquare, 
-    imageSrc: "https://picsum.photos/seed/calculus/600/400",
-    imageAlt: "Graph of a function with its derivative and integral highlighted",
-    dataAiHint: "calculus graph",
-    ctaLabel: "Explore Calculus",
+    imageSrc: 'https://picsum.photos/seed/hexbox/600/400',
+    imageAlt: 'Hexadecimal digit selection grid',
+    dataAiHint: 'hexadecimal code',
+    ctaLabel: 'Play Hex Game',
   },
   {
-    title: "Prime Factorization Tree",
-    description: "Enter a number and see its prime factors visualized as a tree. Understand how numbers break down into primes.",
-    href: "/quick-math/prime-quarry",
-    icon: TreeDeciduous, 
-    imageSrc: "https://picsum.photos/seed/primefactorization/600/400",
-    imageAlt: "A tree structure showing prime factors",
-    dataAiHint: "prime numbers tree",
-    ctaLabel: "Factorize Now",
+    title: 'Fraction Blocks',
+    description: 'Understand fraction arithmetic visually. Add fraction blocks to a workspace, find common denominators, and compute their sum with step-by-step insights.',
+    href: '/quick-math/fraction-blocks',
+    icon: DivideSquare,
+    imageSrc: 'https://picsum.photos/seed/fractions/600/400',
+    imageAlt: 'Visual representation of fraction blocks',
+    dataAiHint: 'math blocks',
+    ctaLabel: 'Learn Fractions',
   },
   {
-    title: "Fraction Blocks",
-    description: "Combine and simplify fractions visually. Understand common denominators and fraction arithmetic step-by-step.",
-    href: "/quick-math/fraction-blocks",
-    icon: Puzzle, 
-    imageSrc: "https://picsum.photos/seed/fractionblocks/600/400",
-    imageAlt: "Visual blocks representing fractions being combined",
-    dataAiHint: "fractions math",
-    ctaLabel: "Learn Fractions",
+    title: 'Prime Factorization Tree',
+    description: 'Enter a number and see its prime factors break down into an interactive tree structure. A great way to visualize how composite numbers are formed from primes.',
+    href: '/quick-math/prime-quarry',
+    icon: TreeDeciduous,
+    imageSrc: 'https://picsum.photos/seed/primetree/600/400',
+    imageAlt: 'Prime factorization tree diagram',
+    dataAiHint: 'math tree',
+    ctaLabel: 'Factorize Numbers',
   },
   {
-    title: "Ratio Scales",
-    description: "Balance weights on scales to understand ratios and proportions. An interactive way to learn about equivalent ratios.",
-    href: "/quick-math/ratio-scales",
+    title: 'Ratio Scales',
+    description: 'Balance weights on virtual scales to intuitively understand ratios and proportions. Experiment with different weights and see how equivalent ratios are formed.',
+    href: '/quick-math/ratio-scales',
     icon: Scale,
-    imageSrc: "https://picsum.photos/seed/ratioscales/600/400",
-    imageAlt: "A balance scale with weights on both sides",
-    dataAiHint: "ratio balance",
-    ctaLabel: "Explore Ratios",
+    imageSrc: 'https://picsum.photos/seed/ratios/600/400',
+    imageAlt: 'Balance scale with weights',
+    dataAiHint: 'balance scale',
+    ctaLabel: 'Explore Ratios',
   },
   {
-    title: "Interactive Lessons",
-    description: "Dive into curated lessons on computer science fundamentals, mathematical concepts, and more. Learn at your own pace with engaging content.",
-    href: "/lessons",
-    icon: BookOpen,
-    imageSrc: "https://picsum.photos/seed/lessons/600/400",
-    imageAlt: "Open book with glowing pages",
-    dataAiHint: "education learning",
-    ctaLabel: "Explore Lessons",
-    isComingSoon: false,
-  },
-  {
-    title: "Math Calculators",
-    description: "A suite of useful calculators for various mathematical problems. From algebra to calculus, find the tools you need. (Coming Soon)",
-    href: "/calculators",
-    icon: Calculator,
-    imageSrc: "https://picsum.photos/seed/calculators/600/400",
-    imageAlt: "Stylized calculator interface",
-    dataAiHint: "math tools",
-    ctaLabel: "Use Calculators",
+    title: 'Data Structures Visualizer',
+    description: 'Coming soon! Interactive visualizations of common data structures like arrays, linked lists, trees, and graphs. Understand their operations and complexities.',
+    href: '#',
+    icon: FileJson,
+    imageSrc: 'https://picsum.photos/seed/datastructures/600/400',
+    imageAlt: 'Abstract representation of data structures',
+    dataAiHint: 'data structure',
     isComingSoon: true,
+    ctaLabel: 'Coming Soon',
   },
   {
-    title: "Digital Flashcards",
-    description: "Memorize key concepts with our digital flashcard system. Create your own decks or use pre-made ones. (Coming Soon)",
-    href: "/flashcards",
-    icon: Archive,
-    imageSrc: "https://picsum.photos/seed/flashcards/600/400",
-    imageAlt: "Stack of digital flashcards",
-    dataAiHint: "study memory",
-    ctaLabel: "Study Flashcards",
+    title: 'Algorithm Arena',
+    description: 'Coming soon! Step through popular algorithms like sorting, searching, and pathfinding. See how they work with animated examples and explanations.',
+    href: '#',
+    icon: BarChart3,
+    imageSrc: 'https://picsum.photos/seed/algorithms/600/400',
+    imageAlt: 'Flowchart representing an algorithm',
+    dataAiHint: 'algorithm flowchart',
     isComingSoon: true,
+    ctaLabel: 'Coming Soon',
   },
 ];
+
+// Example of a more complex NavItem structure for the Header component
+export const siteConfig = {
+  name: "Plenty of π",
+  description: "Interactive tools and engaging lessons to make learning math and computer science fun and accessible.",
+  url: "https://example.com", // Replace with your actual domain
+  ogImage: "https://example.com/og.jpg", // Replace
+  links: {
+    twitter: "https://twitter.com/example", // Replace
+    github: "https://github.com/example/plenty-of-pi", // Replace
+  },
+  navItems, // from above
+  featureCards, // from above
+};
+
+export type SiteConfig = typeof siteConfig;

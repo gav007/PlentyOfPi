@@ -7,7 +7,7 @@ import { Menu, X, ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
-import { navItems } from "@/config/site";
+import { navItems } from "@/config/site"; // Corrected import path
 import type { NavItem } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
@@ -46,16 +46,20 @@ export default function Header() {
       (pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/")) && !item.disabled && !item.subItems ? "text-primary font-semibold" : "text-foreground/70",
       item.disabled && "cursor-not-allowed opacity-50 hover:text-foreground/70",
       mobile ? "block w-full justify-start py-3 text-lg" : "text-sm font-medium",
-      isSubItem && mobile ? "pl-8" : mobile ? "px-3" : "px-3 py-2" // Indent sub-items on mobile
+      isSubItem && mobile ? "pl-8" : mobile ? "px-3" : "px-3 py-2"
     );
   
+    // For mobile, if it has subItems, render them directly below the parent, not as a nested interactive element
     if (item.subItems && mobile) {
       return (
         <div className="flex flex-col">
-          <span className={cn(commonClasses, "font-semibold text-foreground/90 flex items-center", mobile ? "px-3" : "")}>
+          {/* Parent item - not a link itself if it has subItems on mobile */}
+          <span className={cn(commonClasses, "font-semibold text-foreground/90 flex items-center", mobile ? "px-3 py-2" : "")}>
              <NavLinkContent item={item} mobile={mobile} />
+             {item.subItems && <ChevronDown className="ml-auto h-5 w-5 transform transition-transform group-data-[state=open]:rotate-180" />}
           </span>
-          <div className="flex flex-col">
+          {/* Sub-items rendered as links */}
+          <div className="flex flex-col pl-4 border-l border-muted ml-3">
             {item.subItems.map((subItem) => (
               <NavLink key={subItem.href} item={subItem} mobile={mobile} isSubItem={true} />
             ))}
@@ -64,20 +68,22 @@ export default function Header() {
       );
     }
   
+    // For desktop dropdowns or non-dropdown links on mobile
     return (
       <Button
         asChild
         variant="link"
-        className={cn(commonClasses, mobile ? "" : "px-0")} // remove default button padding for desktop links
+        className={cn(commonClasses, mobile ? "" : "px-0")}
         disabled={item.disabled}
         onClick={() => {
-          if (!item.disabled && mobile && !item.subItems) { // Close only if not a dropdown parent on mobile
+          // Close mobile menu if it's a direct link (not a parent of subItems handled above)
+          if (!item.disabled && mobile && !item.subItems) { 
             setMobileMenuOpen(false);
           }
         }}
         aria-current={pathname === item.href && !item.disabled && !item.subItems ? "page" : undefined}
       >
-        <Link href={item.disabled || item.subItems ? "#" : item.href}>
+        <Link href={item.disabled || (item.subItems && !mobile) ? "#" : item.href}>
            <NavLinkContent item={item} mobile={mobile} />
         </Link>
       </Button>
@@ -103,6 +109,7 @@ export default function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="link" className={cn(
                      "transition-colors hover:text-primary text-sm font-medium px-3 py-2 flex items-center",
+                     // Check if current path starts with any of the subItems' href
                      item.subItems.some(sub => pathname.startsWith(sub.href) && sub.href !== "/") ? "text-primary font-semibold" : "text-foreground/70",
                      item.disabled && "cursor-not-allowed opacity-50"
                   )} disabled={item.disabled}>
@@ -138,9 +145,8 @@ export default function Header() {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full max-w-xs p-6 bg-background">
-              <div className="flex flex-col h-full">
-                <div className="flex items-center justify-between mb-8">
+            <SheetContent side="right" className="w-full max-w-xs p-0 bg-background flex flex-col">
+              <div className="flex items-center justify-between mb-2 p-4 border-b">
                   <Logo />
                   <SheetClose asChild>
                      <Button variant="ghost" size="icon" aria-label="Close navigation menu">
@@ -148,14 +154,13 @@ export default function Header() {
                      </Button>
                   </SheetClose>
                 </div>
-                <nav className="flex flex-col space-y-1">
-                  {navItems.map((item) => (
-                     <NavLink key={item.title} item={item} mobile />
-                  ))}
-                </nav>
-                <div className="mt-auto pt-6">
-                    <p className="text-center text-sm text-muted-foreground">© {new Date().getFullYear()} Plenty of π</p>
-                </div>
+              <nav className="flex-grow flex flex-col space-y-1 p-4 overflow-y-auto">
+                {navItems.map((item) => (
+                    <NavLink key={item.title} item={item} mobile />
+                ))}
+              </nav>
+              <div className="p-4 border-t mt-auto">
+                  <p className="text-center text-xs text-muted-foreground">© {new Date().getFullYear()} Plenty of π</p>
               </div>
             </SheetContent>
           </Sheet>
