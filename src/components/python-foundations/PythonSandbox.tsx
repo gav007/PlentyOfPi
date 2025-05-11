@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -27,7 +28,7 @@ export default function PythonSandbox() {
   const [isPyodideLoading, setIsPyodideLoading] = useState<boolean>(true);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const pyodideRef = useRef<any>(null);
-  const outputRef = useRef<HTMLTextAreaElement>(null);
+  const outputRef = useRef<HTMLPreElement>(null); // Changed from HTMLTextAreaElement
 
 
   useEffect(() => {
@@ -47,9 +48,8 @@ export default function PythonSandbox() {
           });
         }
         
-        // Wait for loadPyodide to be available
         let attempts = 0;
-        while (!window.loadPyodide && attempts < 50) { // Max 5 seconds wait
+        while (!window.loadPyodide && attempts < 50) { 
           await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
         }
@@ -72,7 +72,7 @@ export default function PythonSandbox() {
         const errorMsg = err instanceof Error ? err.message : String(err);
         if (isMounted) {
           setPyodideLoadingError(errorMsg);
-          setOutput('');
+          setOutput(''); // Clear output on loading error
         }
       } finally {
         if (isMounted) {
@@ -89,7 +89,6 @@ export default function PythonSandbox() {
   }, []);
 
   useEffect(() => {
-    // Auto-scroll output
     if (outputRef.current) {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
@@ -111,28 +110,38 @@ export default function PythonSandbox() {
       let capturedError = '';
 
       pyodideRef.current.setStdout({
-        isPty: false, // to ensure batched is used or direct call for simple cases
-        batched: (msg: string) => { capturedOutput += msg + '\\n'; }
+        isPty: false, 
+        batched: (msg: string) => { capturedOutput += msg; } // Collect raw message
       });
       pyodideRef.current.setStderr({
         isPty: false,
-        batched: (msg: string) => { capturedError += msg + '\\n'; }
+        batched: (msg: string) => { capturedError += msg; } // Collect raw message
       });
 
       await pyodideRef.current.runPythonAsync(code);
       
       let finalOutput = '';
-      if (capturedOutput) finalOutput += capturedOutput;
+      if (capturedOutput) finalOutput += capturedOutput.trimEnd();
       if (capturedError) {
-        finalOutput += (finalOutput ? '\\n--- Python Errors ---\\n' : '--- Python Errors ---\\n') + capturedError;
+        if (finalOutput) finalOutput += '\n'; // Separator if stdout also exists
+        finalOutput += '--- Python Errors ---\n' + capturedError.trimEnd();
         setExecutionError('Execution finished with Python errors. See console for details.'); 
       }
-      setOutput(finalOutput.trim() || 'Execution finished with no output.');
+      // Handle case where only "Executing code..." was set and nothing else was captured
+      const executionMessageOnly = output === 'Executing code...\n';
+      if (finalOutput.trim()) {
+        setOutput(finalOutput.trim());
+      } else if (executionMessageOnly && !finalOutput.trim()) {
+         setOutput('Execution finished with no output.');
+      } else if (!finalOutput.trim()) {
+         setOutput('Execution finished with no output.');
+      }
+
 
     } catch (err) {
       console.error('Error executing Python code with Pyodide:', err);
       const errorMsg = err instanceof Error ? err.message : String(err);
-      setExecutionError(errorMsg); // Set specific execution error
+      setExecutionError(errorMsg); 
       setOutput(`Runtime Error: ${errorMsg}`);
     } finally {
       setIsExecuting(false);
@@ -141,21 +150,34 @@ export default function PythonSandbox() {
 
   const handleResetCode = () => {
     setCode(STARTER_CODE);
-    setOutput(pyodideRef.current ? 'Pyodide Loaded. Ready to execute Python code.' : pyodideLoadingError ? `Pyodide loading failed: ${pyodideLoadingError}` : 'Pyodide is loading...');
     setExecutionError(null);
-    setPyodideLoadingError(null); // Clear loading error on reset attempt too, if user wants to retry
+    // Keep Pyodide loading errors visible if they occurred, otherwise set ready message
+    if (pyodideLoadingError) {
+        setOutput(''); // Clear any previous execution output
+    } else if (pyodideRef.current) {
+        setOutput('Pyodide Loaded. Ready to execute Python code.');
+    } else {
+        setOutput('Pyodide is loading...');
+    }
+
+    // Attempt to reload Pyodide if it failed and user clicks reset
     if (!pyodideRef.current && !isPyodideLoading && pyodideLoadingError) {
-      // Attempt to reload Pyodide if it failed and user clicks reset
       setIsPyodideLoading(true);
-      // Re-trigger load (simplified for this example, more robust logic might be needed)
+      setPyodideLoadingError(null); // Clear the error message to allow re-attempt
       const loadEffect = async () => {
         try {
-          const pyodide = await window.loadPyodide({indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/'});
-          pyodideRef.current = pyodide;
-          setOutput('Pyodide Loaded. Ready to execute Python code.');
-          setPyodideLoadingError(null);
+          // Ensure window.loadPyodide exists before calling
+          if (window.loadPyodide) {
+            const pyodide = await window.loadPyodide({indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/'});
+            pyodideRef.current = pyodide;
+            setOutput('Pyodide Loaded. Ready to execute Python code.');
+          } else {
+            throw new Error("loadPyodide function not available on window.");
+          }
         } catch (e) {
-          setPyodideLoadingError(e instanceof Error ? e.message : String(e));
+          const errorMsg = e instanceof Error ? e.message : String(e);
+          setPyodideLoadingError(errorMsg);
+          setOutput(''); // Clear output on new loading error
         } finally {
           setIsPyodideLoading(false);
         }
@@ -164,6 +186,7 @@ export default function PythonSandbox() {
     }
   };
   
+  const displayPlaceholder = isPyodideLoading ? "Pyodide is loading, please wait..." : "Output will appear here...";
 
   return (
     <div className="space-y-4">
@@ -205,20 +228,24 @@ export default function PythonSandbox() {
           <div className="mb-2 p-3 text-sm text-destructive-foreground bg-destructive rounded-md flex items-start shadow">
             <AlertTriangle className="mr-2 h-5 w-5 flex-shrink-0 mt-0.5" />
             <pre className="whitespace-pre-wrap break-all font-mono text-xs">
-              {pyodideLoadingError ? `Pyodide Loading Error: ${pyodideLoadingError}` : `Execution Error: ${executionError}`}
+              {pyodideLoadingError ? `Pyodide Loading Error: ${pyodideLoadingError}` : ``}
+              {executionError && !pyodideLoadingError ? `Execution Error: ${executionError}` : ''}
             </pre>
           </div>
         )}
-        <Textarea
-          ref={outputRef}
-          id="python-output-console"
-          value={output}
-          readOnly
-          placeholder={isPyodideLoading ? "Pyodide is loading, please wait..." : "Output will appear here..."}
-          className="min-h-[150px] font-mono text-xs bg-gray-900 text-green-300 border-gray-700 rounded-md shadow-inner whitespace-pre-wrap break-words"
-          aria-label="Python code output console"
-          rows={8}
-        />
+        <div 
+            id="python-output-console-wrapper"
+            className="min-h-[150px] font-mono text-xs bg-gray-900 text-green-300 border border-gray-700 rounded-md shadow-inner overflow-auto p-2"
+            aria-label="Python code output console"
+            role="log"
+        >
+            <pre
+              ref={outputRef}
+              className="whitespace-pre-wrap break-words h-full"
+            >
+              {output || (!pyodideLoadingError && !executionError) ? output : displayPlaceholder}
+            </pre>
+        </div>
       </div>
        <p className="text-xs text-muted-foreground mt-2">
           Python execution is powered by Pyodide, running directly in your browser.
