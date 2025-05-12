@@ -29,5 +29,35 @@
     "description": "Accessing list elements uses square brackets, not parentheses. This should print the first element of the list.",
     "expectedOutput": "1",
     "solution": "my_list = [1, 2, 3, 4]\nprint(my_list[0])"
+  },
+  {
+    "initialCode": "age = 25\nprint(\"My age is \" + age)",
+    "description": "This code tries to print a string and a number. Remember how to combine them correctly. The expected output is a string like 'My age is 25'.",
+    "expectedOutput": "My age is 25",
+    "solution": "age = 25\nprint(\"My age is \" + str(age))"
+  },
+  {
+    "initialCode": "items = [\"apple\", \"banana\", \"cherry\"]\nfor i in range(4): # Intentionally one too many\n  print(items[i])",
+    "description": "This code attempts to print all items in a list, but there's an issue with the loop range causing an error. It should print each fruit on a new line.",
+    "expectedOutput": "apple\nbanana\ncherry",
+    "solution": "items = [\"apple\", \"banana\", \"cherry\"]\nfor i in range(len(items)):\n  print(items[i])"
+  },
+  {
+    "initialCode": "x = 5\nif x = 10:\n  print(\"x is 10\")\nelse:\n  print(\"x is not 10\")",
+    "description": "This code uses the wrong operator in the `if` condition. It should compare `x` to 10, not assign it. The expected output reflects the correct comparison.",
+    "expectedOutput": "x is not 10",
+    "solution": "x = 5\nif x == 10:\n  print(\"x is 10\")\nelse:\n  print(\"x is not 10\")"
+  },
+  {
+    "initialCode": "city = New York\nprint(city)",
+    "description": "A string value is missing its quotes. The variable 'city' should hold the string 'New York'.",
+    "expectedOutput": "New York",
+    "solution": "city = \"New York\"\nprint(city)"
+  },
+  {
+    "initialCode": "def multiply(a, b):\n  return a * b\n\n# Fix the call below to make it work\nresult = multiply(5)\nprint(result)",
+    "description": "The `multiply` function expects two arguments. Fix the call to `multiply` by providing a second argument (e.g., 3) so it prints their product.",
+    "expectedOutput": "15",
+    "solution": "def multiply(a, b):\n  return a * b\n\n# Fix the call below to make it work\nresult = multiply(5, 3)\nprint(result)"
   }
 ]
