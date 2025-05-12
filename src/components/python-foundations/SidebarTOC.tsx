@@ -3,15 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { LessonModule, LessonItem, LabItem, QuizItem } from '@/types/lessons';
+import type { LessonModule } from '@/types/lessons';
 import { cn } from '@/lib/utils';
 import { BookOpen, FlaskConical, HelpCircle, CheckCircle2 } from 'lucide-react';
 
 interface SidebarTOCProps {
   module: LessonModule;
   currentModuleSlug: string;
-  // To be implemented: progress data
-  // completedItems: Record<string, boolean>; 
 }
 
 // Placeholder for progress checking - replace with actual localStorage logic
@@ -31,28 +29,30 @@ export default function SidebarTOC({ module, currentModuleSlug }: SidebarTOCProp
       pathname === href
         ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
         : 'text-muted-foreground',
-      isCompleted && pathname !== href ? 'text-green-600 dark:text-green-400 line-through' : ''
+      isCompleted && pathname !== href ? 'text-green-600 dark:text-green-400' : '' // Removed line-through for completed items
     );
 
   return (
     <nav className="space-y-3">
-      <div>
-        <h3 className="text-xs font-semibold uppercase text-muted-foreground/70 mb-1 pl-3">Lessons</h3>
-        <ul className="space-y-0.5">
-          {module.content.map((lesson) => {
-            const href = `/lessons/python-foundations/${currentModuleSlug}/lesson/${lesson.slug}`;
-            const completed = isItemCompleted('lesson', lesson.slug);
-            return (
-              <li key={lesson.slug}>
-                <Link href={href} className={linkClass(href, completed)}>
-                  {completed ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <BookOpen className="w-4 h-4" />}
-                  <span>{lesson.subTitle}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+      {module.content && module.content.length > 0 && (
+        <div>
+          <h3 className="text-xs font-semibold uppercase text-muted-foreground/70 mb-1 pl-3">Lessons</h3>
+          <ul className="space-y-0.5">
+            {module.content.map((lesson) => {
+              const href = `/lessons/python-foundations/${currentModuleSlug}/lesson/${lesson.slug}`;
+              const completed = isItemCompleted('lesson', lesson.slug);
+              return (
+                <li key={lesson.slug}>
+                  <Link href={href} className={linkClass(href, completed)}>
+                    {completed ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <BookOpen className="w-4 h-4" />}
+                    <span>{lesson.subTitle}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       {module.labs && module.labs.length > 0 && (
         <div>

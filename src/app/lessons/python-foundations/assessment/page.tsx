@@ -16,8 +16,8 @@ export default function AssessmentPage() {
         Python Foundations Final Assessment
       </h1>
       <p className="text-xl text-muted-foreground mb-6">
-        This assessment will test your understanding of the core Python concepts covered in this module.
-        It will consist of 10 multiple-choice questions, and a score of 70% or higher is needed to pass.
+        This assessment will test your understanding of the core Python concepts covered in this course.
+        It will consist of multiple-choice questions designed to challenge your grasp of Python fundamentals.
       </p>
       <p className="text-xl text-muted-foreground mb-12">
         The assessment is currently under development and will be available soon!

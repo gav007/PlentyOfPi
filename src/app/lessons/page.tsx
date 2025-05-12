@@ -15,7 +15,7 @@ export default function LessonsPage() {
   const lessons = [
     {
       title: 'Python Foundations',
-      description: 'Learn the fundamentals of Python programming, tailored for beginners and those preparing for PCEP certification. Covers syntax, control flow, data structures, and more.',
+      description: 'Learn the fundamentals of Python programming, tailored for beginners. Covers syntax, control flow, data structures, and more.',
       href: '/lessons/python-foundations',
       icon: FileCode,
       imageSrc: 'https://picsum.photos/seed/pythonlessons/600/400',

@@ -5,6 +5,7 @@ const pythonFoundationsModules: LessonModule[] = [
   {
     slug: 'module-1-introduction',
     title: 'Module 1: Introduction to Python and Computer Programming',
+    description: 'Learn what Python is, how programming languages work, and write your first program.',
     content: [
       {
         slug: 'python-as-tool',
@@ -32,7 +33,7 @@ const pythonFoundationsModules: LessonModule[] = [
         slug: 'lab-1-1-hello-world',
         title: 'Lab 1.1: Hello World',
         description: 'Write your first Python program using `print()`. Print "Hello, Plenty of π!". Then, on new lines, print your name and your favorite number.',
-        starterCode: 'print("Hello, Plenty of π!")\n# Your code here',
+        starterCode: 'print("Hello, Plenty of π!")\n# Your code here\n# Print your name on a new line\n# Print your favorite number on another new line',
         tasks: [
           'Use the `print()` function to display "Hello, Plenty of π!" on the console.',
           'On a new line, use `print()` to display your name.',
@@ -42,6 +43,8 @@ const pythonFoundationsModules: LessonModule[] = [
           'The `print()` function takes a string (text in quotes) or a number as an argument.',
           'Each `print()` statement usually creates a new line of output.',
         ],
+        solutionCode: 'print("Hello, Plenty of π!")\nprint("My Name") # Replace "My Name" with your actual name\nprint(7) # Replace 7 with your favorite number',
+        solutionExplanation: 'This solution uses three `print()` statements. The first prints the greeting. The second prints a placeholder for a name (you should customize this). The third prints a number (customize this too!). Each `print()` automatically moves to a new line.',
       },
     ],
     quizzes: [
@@ -112,6 +115,7 @@ const pythonFoundationsModules: LessonModule[] = [
   {
     slug: 'module-2-python-basics',
     title: 'Module 2: Python Basics - Data Types, Variables, I/O, and Operators',
+    description: 'Explore fundamental data types, learn how to store information in variables, interact with users, and perform calculations.',
     content: [
       {
         slug: 'first-program-print',
@@ -146,10 +150,10 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
     labs: [
       {
-        slug: 'lab-2-1-simple-calculator',
-        title: 'Lab 2.1: Simple Calculator',
+        slug: 'lab-2-1-variable-play', // Updated slug to match convention
+        title: 'Lab 2.1: Variable Play & Simple Calculator',
         description: 'Create a program that asks the user for two numbers and then prints their sum, difference, product, and quotient.',
-        starterCode: 'num1_str = input("Enter first number: ")\nnum2_str = input("Enter second number: ")\n\n# Convert inputs to numbers (integers or floats)\n# Your code here\n\n# Perform calculations\n# Your code here\n\n# Print results\n# Your code here',
+        starterCode: 'num1_str = input("Enter first number: ")\nnum2_str = input("Enter second number: ")\n\n# Convert inputs to numbers (integers or floats)\n# Example: num1 = float(num1_str)\n# Your code here for num1 and num2\n\n# Perform calculations\n# sum_result = num1 + num2\n# Your code here for difference, product, quotient\n\n# Print results\n# print("Sum:", sum_result)\n# Your code here to print other results',
         tasks: [
           'Get two numbers as input from the user.',
           'Convert these inputs to numerical types (e.g., `float` to handle decimals).',
@@ -159,8 +163,10 @@ const pythonFoundationsModules: LessonModule[] = [
         hints: [
           'Remember `input()` returns strings. Use `float()` or `int()` to convert.',
           'Use the arithmetic operators: `+`, `-`, `*`, `/`.',
-          'Be careful with division by zero if you allow the user to enter 0 as the second number for division (though not required for this basic lab).',
+          'To prevent errors with division by zero, you might want to check if the second number is zero before dividing (optional for this lab).',
         ],
+        solutionCode: 'num1_str = input("Enter first number: ")\nnum2_str = input("Enter second number: ")\n\nnum1 = float(num1_str)\nnum2 = float(num2_str)\n\nsum_result = num1 + num2\ndifference_result = num1 - num2\nproduct_result = num1 * num2\n\n# Handle division by zero for quotient\nif num2 != 0:\n    quotient_result = num1 / num2\nelse:\n    quotient_result = "Cannot divide by zero"\n\nprint("Sum:", sum_result)\nprint("Difference:", difference_result)\nprint("Product:", product_result)\nprint("Quotient:", quotient_result)',
+        solutionExplanation: 'This solution first gets two inputs as strings. Then, it converts them to `float` to allow for decimal numbers. It calculates the sum, difference, and product. For the quotient, it includes a check to prevent division by zero, providing a message if `num2` is 0. Finally, it prints all results.',
       },
     ],
     quizzes: [
@@ -212,6 +218,7 @@ const pythonFoundationsModules: LessonModule[] = [
   {
     slug: 'module-3-control-flow',
     title: 'Module 3: Control Flow - Conditional Execution and Loops',
+    description: 'Learn how to make decisions in your code with `if` statements and repeat tasks using `while` and `for` loops.',
     content: [
       {
         slug: 'booleans-conditionals',
@@ -239,7 +246,7 @@ const pythonFoundationsModules: LessonModule[] = [
         slug: 'lab-3-1-loop-master',
         title: 'Lab 3.1: Loop Master - Number Printer',
         description: 'Write a loop that prints numbers from 1 to 10 (inclusive). Inside the loop, add logic to skip printing the number 5 and to stop the loop entirely if the number 9 is reached (so 9 should not be printed).',
-        starterCode: '# Your loop here\n# Remember range(start, stop) goes up to stop-1\nfor i in range(1, 11):\n    # Your logic for skipping 5 and breaking at 9 here\n    print(i)',
+        starterCode: '# Your loop here\n# Remember range(start, stop) goes up to stop-1\nfor i in range(1, 11):\n    # Your logic for skipping 5 and breaking at 9 here\n    # if i == 5: ...\n    # if i == 9: ...\n    print(i)',
         tasks: [
           'Create a `for` loop that iterates from 1 to 10.',
           'Inside the loop, use an `if` statement to check if the current number is 5. If it is, use `continue` to skip printing it.',
@@ -251,6 +258,8 @@ const pythonFoundationsModules: LessonModule[] = [
           'The `continue` statement skips the rest of the current iteration.',
           'The `break` statement exits the loop immediately.',
         ],
+        solutionCode: 'for i in range(1, 11):\n    if i == 9:\n        break  # Stop before printing 9\n    if i == 5:\n        continue  # Skip printing 5\n    print(i)',
+        solutionExplanation: 'This solution uses a `for` loop with `range(1, 11)`. The check for `i == 9` and `break` is placed *before* the check for `i == 5` and `continue`. This ensures that if `i` is 9, the loop breaks immediately, and 9 is not printed. If `i` is 5 (and not 9), the `continue` statement skips the `print(i)` for that iteration. All other numbers (1, 2, 3, 4, 6, 7, 8) are printed.',
       },
     ],
     quizzes: [
@@ -314,6 +323,7 @@ const pythonFoundationsModules: LessonModule[] = [
   {
     slug: 'module-4-data-collections-functions',
     title: 'Module 4: Data Collections and Functions',
+    description: 'Learn to group data using lists, tuples, and dictionaries, and write reusable code blocks with functions.',
     content: [
       {
         slug: 'lists',
@@ -343,10 +353,10 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
     labs: [
       {
-        slug: 'lab-4-1-function-adder',
+        slug: 'lab-4-1-function-fun',
         title: 'Lab 4.1: Function Fun - Simple Adder',
         description: 'Create a function `add_numbers(a, b)` that takes two numbers as parameters and returns their sum. Then, get two numbers from user input, call your function with these numbers, and print the returned result.',
-        starterCode: '# Define your function add_numbers(a, b) here\n# def ...\n\n# Get input from the user\n# num1_str = ...\n# num2_str = ...\n\n# Convert inputs to numbers\n# num1 = ...\n# num2 = ...\n\n# Call your function and store the result\n# sum_result = ...\n\n# Print the result\n# print(...)',
+        starterCode: '# Define your function add_numbers(a, b) here\n# def add_numbers(a, b):\n#     return ...\n\n# Get input from the user\n# num1_str = input("Enter first number: ")\n# num2_str = input("Enter second number: ")\n\n# Convert inputs to numbers\n# num1 = float(num1_str)\n# num2 = float(num2_str)\n\n# Call your function and store the result\n# sum_result = add_numbers(num1, num2)\n\n# Print the result\n# print("The sum is:", sum_result)',
         tasks: [
           'Define a function named `add_numbers` that accepts two parameters (e.g., `a` and `b`).',
           'Inside the function, calculate the sum of `a` and `b`.',
@@ -361,12 +371,14 @@ const pythonFoundationsModules: LessonModule[] = [
           'Use `return value` to send a value out of a function.',
           'Remember to convert `input()` results using `int()` or `float()` before performing math.',
         ],
+        solutionCode: 'def add_numbers(a, b):\n    return a + b\n\nnum1_str = input("Enter first number: ")\nnum2_str = input("Enter second number: ")\n\nnum1 = float(num1_str)\nnum2 = float(num2_str)\n\nsum_result = add_numbers(num1, num2)\n\nprint("The sum is:", sum_result)',
+        solutionExplanation: 'The `add_numbers` function takes two arguments `a` and `b` and simply returns their sum. Outside the function, we get two numbers from the user, convert them to `float`, call `add_numbers` with these values, and print the result.',
       },
       {
         slug: 'lab-4-2-student-grades',
         title: 'Lab 4.2: Data Structures Challenge - Student Grades',
         description: 'Create a dictionary called `grades` to store the grades of three students: Alice (85), Bob (92), and Charlie (78). Then, calculate and print the average grade of these students.',
-        starterCode: '# Create the grades dictionary\ngrades = {}\n\n# Calculate the sum of grades\n# total_grades = ...\n\n# Calculate the number of students\n# num_students = ...\n\n# Calculate the average\n# average_grade = ...\n\n# Print the average grade\n# print("Average grade:", average_grade)',
+        starterCode: '# Create the grades dictionary\ngrades = {"Alice": 85, "Bob": 92, "Charlie": 78}\n\n# Calculate the sum of grades\n# Hint: Use sum() and grades.values()\n# total_grades = ...\n\n# Calculate the number of students\n# Hint: Use len()\n# num_students = ...\n\n# Calculate the average\n# average_grade = ...\n\n# Print the average grade\n# print("Average grade:", average_grade)',
         tasks: [
           'Create a dictionary named `grades`.',
           'Add three entries: "Alice" with a value of 85, "Bob" with 92, and "Charlie" with 78.',
@@ -381,6 +393,8 @@ const pythonFoundationsModules: LessonModule[] = [
           'The `sum()` function can take an iterable (like a list of numbers) and return their total.',
           'The `len()` function returns the number of items in a collection.',
         ],
+        solutionCode: 'grades = {"Alice": 85, "Bob": 92, "Charlie": 78}\n\ntotal_grades = sum(grades.values())\nnum_students = len(grades)\n\naverage_grade = total_grades / num_students\n\nprint("Average grade:", average_grade)',
+        solutionExplanation: 'First, the `grades` dictionary is created. Then, `sum(grades.values())` calculates the total of all grade values. `len(grades)` gets the number of students (which is the number of key-value pairs). The average is computed by dividing the total by the number of students, and then printed.',
       },
     ],
     quizzes: [
@@ -456,21 +470,22 @@ const pythonFoundationsModules: LessonModule[] = [
   {
     slug: 'module-5-oop-introduction',
     title: "Module 5: Introduction to Object-Oriented Programming (OOP)",
+    description: 'Discover the basics of Object-Oriented Programming by creating classes and objects to model real-world things.',
     content: [
       {
         slug: 'what-is-oop',
         subTitle: "What is OOP? - Classes and Objects",
-        text: "Object-Oriented Programming (OOP) is a programming paradigm based on the concept of \"objects\", which can contain data in the form of fields (often known as attributes or properties) and code in the form of procedures (often known as methods).\n\n- **Class:** A blueprint or template for creating objects. It defines a set of attributes and methods that the created objects will have. Think of a class like a cookie cutter.\n- **Object (Instance):** An instance of a class. It's a concrete entity created from the class blueprint. Using the cookie cutter analogy, an object is an actual cookie made from the cutter.\n\nKey principles of OOP often include encapsulation, inheritance, and polymorphism (though these are more advanced topics beyond basic PCEP scope).",
+        text: "Object-Oriented Programming (OOP) is a programming paradigm based on the concept of \"objects\", which can contain data in the form of fields (often known as attributes or properties) and code in the form of procedures (often known as methods).\n\n- **Class:** A blueprint or template for creating objects. It defines a set of attributes and methods that the created objects will have. Think of a class like a cookie cutter.\n- **Object (Instance):** An instance of a class. It's a concrete entity created from the class blueprint. Using the cookie cutter analogy, an object is an actual cookie made from the cutter.\n\nKey principles of OOP often include encapsulation, inheritance, and polymorphism (though these are more advanced topics beyond the scope of an introductory module).",
       },
       {
         slug: 'creating-classes-init-self',
         subTitle: "Creating Classes: `class`, `__init__`, and `self`",
-        text: "- **`class` keyword:** Used to define a new class.\n  \`class Dog:\n    pass  # pass means 'do nothing', a placeholder\`\n\n- **`__init__` method (Constructor):** A special method that is automatically called when you create a new object (instance) of a class. It's used to initialize the object's attributes. The name `__init__` has double underscores before and after.\n\n- **`self` parameter:** The first parameter of any method within a class (including `__init__`) is conventionally named `self`. It refers to the instance of the class itself. Through `self`, methods can access the attributes and other methods of the same object.",
+        text: "- **`class` keyword:** Used to define a new class.\n  `class Dog:\n    pass  # pass means 'do nothing', a placeholder`\n\n- **`__init__` method (Constructor):** A special method that is automatically called when you create a new object (instance) of a class. It's used to initialize the object's attributes. The name `__init__` has double underscores before and after.\n\n- **`self` parameter:** The first parameter of any method within a class (including `__init__`) is conventionally named `self`. It refers to the instance of the class itself. Through `self`, methods can access the attributes and other methods of the same object.",
       },
       {
         slug: 'attributes-methods',
         subTitle: "Attributes and Methods",
-        text: "- **Attributes (Instance Variables):** Variables that belong to an object. They store the data or state of the object. Attributes are typically defined within the `__init__` method using `self.attribute_name = value`.\n  \`class Dog:\n    def __init__(self, name, age):\n      self.name = name  # Instance attribute\n      self.age = age    # Instance attribute\`\n\n- **Methods:** Functions that belong to a class. They define the behavior or actions that an object can perform. Methods always have `self` as their first parameter.\n  \`class Dog:\n    def __init__(self, name, age):\n      self.name = name\n      self.age = age\n\n    def bark(self):  # Instance method\n      print(f\"{self.name} says Woof!\")\`"
+        text: "- **Attributes (Instance Variables):** Variables that belong to an object. They store the data or state of the object. Attributes are typically defined within the `__init__` method using `self.attribute_name = value`.\n  \`\`\`python\n  class Dog:\n    def __init__(self, name, age):\n      self.name = name  # Instance attribute\n      self.age = age    # Instance attribute\n  \`\`\`\n\n- **Methods:** Functions that belong to a class. They define the behavior or actions that an object can perform. Methods always have `self` as their first parameter.\n  \`\`\`python\n  class Dog:\n    def __init__(self, name, age):\n      self.name = name\n      self.age = age\n\n    def bark(self):  # Instance method\n      print(f\"{self.name} says Woof!\")\n  \`\`\`"
       },
       {
         slug: 'using-objects-instantiation-methods',
@@ -480,7 +495,7 @@ const pythonFoundationsModules: LessonModule[] = [
       {
         slug: 'simple-inheritance-overview',
         subTitle: "Simple Inheritance (Brief Overview)",
-        text: "Inheritance is a way to form new classes using classes that have already been defined. The new classes, known as derived classes or child classes, inherit attributes and methods of the parent (or base/superclass) classes. This promotes code reuse.\nExample (very basic):\n\`class Animal:\n  def speak(self):\n    print(\"Animal speaks\")\n\nclass Cat(Animal):  # Cat inherits from Animal\n  def meow(self):\n    print(\"Meow\")\n\nmy_cat = Cat()\nmy_cat.speak()  # Inherited from Animal\nmy_cat.meow()\`\nPCEP focuses more on understanding the basics of classes and objects rather than deep inheritance concepts.",
+        text: "Inheritance is a way to form new classes using classes that have already been defined. The new classes, known as derived classes or child classes, inherit attributes and methods of the parent (or base/superclass) classes. This promotes code reuse.\nExample (very basic):\n\`\`\`python\nclass Animal:\n  def speak(self):\n    print(\"Animal speaks\")\n\nclass Cat(Animal):  # Cat inherits from Animal\n  def meow(self):\n    print(\"Meow\")\n\nmy_cat = Cat()\nmy_cat.speak()  # Inherited from Animal: Output: Animal speaks\nmy_cat.meow()   # Output: Meow\n\`\`\`\nThis module focuses on understanding the basics of classes and objects rather than deep inheritance concepts.",
       },
     ],
     labs: [
@@ -488,7 +503,7 @@ const pythonFoundationsModules: LessonModule[] = [
         slug: 'lab-5-1-class-builder',
         title: "Lab 5.1: Class Builder - My First Object",
         description: "Create a `Car` class. The constructor (`__init__`) should take `brand` and `year` as arguments and store them as attributes. Add a method called `display_info()` that prints a message like \"This is a 2020 Toyota.\". Create an instance of your Car class and call its `display_info()` method.",
-        starterCode: "class Car:\n    # Define __init__ method here\n    # It should take self, brand, and year as parameters\n    # Assign brand and year to self.brand and self.year\n\n    # Define display_info method here\n    # It should take self as a parameter\n    # It should print the car's information\n\n# Create an instance of Car (e.g., my_car = Car(\"Honda\", 2022))\n\n# Call the display_info method on your car instance",
+        starterCode: "class Car:\n    # Define __init__ method here\n    # It should take self, brand, and year as parameters\n    def __init__(self, brand, year):\n        # Assign brand and year to self.brand and self.year\n        self.brand = brand\n        self.year = year\n\n    # Define display_info method here\n    # It should take self as a parameter\n    def display_info(self):\n        # It should print the car's information, e.g., using an f-string\n        print(f\"This is a {self.year} {self.brand}.\")\n\n# Create an instance of Car (e.g., my_car = Car(\"Honda\", 2022))\n# your_car = ...\n\n# Call the display_info method on your car instance\n# your_car.display_info()",
         tasks: [
           "Define a class named `Car`.",
           "Inside the `Car` class, define the `__init__` method. It should accept `self`, `brand`, and `year` as parameters and assign `brand` and `year` to instance attributes (e.g., `self.brand = brand`).",
@@ -504,7 +519,10 @@ const pythonFoundationsModules: LessonModule[] = [
           "Instance methods: `def method_name(self):`",
           "Creating an object: `my_object = ClassName(arg1, arg2)`",
           "Calling a method: `my_object.method_name()`",
+          "Use an f-string for easy string formatting: `print(f\"Year: {self.year}\")`",
         ],
+        solutionCode: "class Car:\n    def __init__(self, brand, year):\n        self.brand = brand\n        self.year = year\n\n    def display_info(self):\n        print(f\"This is a {self.year} {self.brand}.\")\n\nmy_car = Car(\"Honda\", 2022)\nmy_car.display_info()\n\nanother_car = Car(\"Ford\", 2019)\nanother_car.display_info()",
+        solutionExplanation: "The `Car` class is defined with an `__init__` method to set the `brand` and `year` for each car object. The `display_info` method prints these attributes. Two instances, `my_car` and `another_car`, are created with different values, and their `display_info` methods are called, showing their respective details.",
       },
     ],
     quizzes: [

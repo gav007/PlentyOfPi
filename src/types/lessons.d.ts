@@ -12,6 +12,8 @@ export interface LabItem {
   starterCode?: string;
   tasks?: string[]; // List of tasks for the lab
   hints?: string[]; // Optional hints for the lab
+  solutionCode?: string; // Optional solution code
+  solutionExplanation?: string; // Optional explanation for the solution
 }
 
 export interface QuizQuestion {
@@ -31,6 +33,7 @@ export interface QuizItem {
 export interface LessonModule {
   slug: string; // Added for routing
   title: string;
+  description?: string; // Add description for module card
   content: LessonItem[];
   labs?: LabItem[];
   quizzes?: QuizItem[];

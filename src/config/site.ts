@@ -94,7 +94,7 @@ export const navItems: NavItem[] = [
         title: 'Python Foundations',
         href: '/lessons/python-foundations',
         icon: FileCode,
-        description: 'Learn core Python concepts for PCEP certification.',
+        description: 'Learn core Python concepts step by step.',
       }
       // Add other lesson modules here, e.g. Statistics when ready
     ]
@@ -114,7 +114,7 @@ export const featureCards: FeatureCardItem[] = [
   },
   {
     title: 'Python Foundations',
-    description: 'Embark on your Python journey! Learn the fundamentals needed for the PCEP certification with interactive lessons, a code sandbox, and gamified challenges.',
+    description: 'Embark on your Python journey! Learn the fundamentals with interactive lessons, a code sandbox, and gamified challenges.',
     href: '/lessons/python-foundations',
     icon: FileCode,
     imageSrc: 'https://picsum.photos/seed/pythondev/600/400',

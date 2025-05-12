@@ -1,7 +1,6 @@
 
 import type { Metadata } from 'next';
 import pythonFoundationsModules from '@/config/pythonFoundationsContent';
-import type { LessonModule, LessonItem } from '@/types/lessons';
 import LessonPageContent from '@/components/python-foundations/LessonPageContent';
 import { notFound } from 'next/navigation';
 
@@ -53,41 +52,55 @@ export default function PythonLessonPage({ params }: PythonLessonPageProps) {
   let prevLink: { href: string; title: string } | null = null;
   let nextLink: { href: string; title: string } | null = null;
 
+  // Previous link logic
   if (currentLessonIndex > 0) {
     const prevLesson = module.content[currentLessonIndex - 1];
     prevLink = { href: `/lessons/python-foundations/${module.slug}/lesson/${prevLesson.slug}`, title: prevLesson.subTitle };
-  } else if (moduleIndex > 0) {
-    const prevModule = pythonFoundationsModules[moduleIndex -1];
+  } else if (moduleIndex > 0) { // Link to last item of previous module
+    const prevModule = pythonFoundationsModules[moduleIndex - 1];
     if (prevModule) {
-        const lastQuiz = prevModule.quizzes?.[prevModule.quizzes.length -1];
-        if (lastQuiz) {
-           prevLink = { href: `/lessons/python-foundations/${prevModule.slug}/quiz/${lastQuiz.slug}`, title: `Quiz: ${lastQuiz.title}`};
+      const lastQuiz = prevModule.quizzes?.[prevModule.quizzes.length - 1];
+      if (lastQuiz) {
+        prevLink = { href: `/lessons/python-foundations/${prevModule.slug}/quiz/${lastQuiz.slug}`, title: `Quiz: ${lastQuiz.title}` };
+      } else {
+        const lastLab = prevModule.labs?.[prevModule.labs.length - 1];
+        if (lastLab) {
+          prevLink = { href: `/lessons/python-foundations/${prevModule.slug}/lab/${lastLab.slug}`, title: `Lab: ${lastLab.title}` };
         } else {
-            const lastLab = prevModule.labs?.[prevModule.labs.length -1];
-             if (lastLab) {
-                 prevLink = { href: `/lessons/python-foundations/${prevModule.slug}/lab/${lastLab.slug}`, title: `Lab: ${lastLab.title}`};
-             } else {
-                const lastLesson = prevModule.content?.[prevModule.content.length -1];
-                 if (lastLesson) {
-                    prevLink = { href: `/lessons/python-foundations/${prevModule.slug}/lesson/${lastLesson.slug}`, title: lastLesson.subTitle};
-                 }
-             }
+          const lastLessonPrevModule = prevModule.content?.[prevModule.content.length - 1];
+          if (lastLessonPrevModule) {
+            prevLink = { href: `/lessons/python-foundations/${prevModule.slug}/lesson/${lastLessonPrevModule.slug}`, title: lastLessonPrevModule.subTitle };
+          }
         }
-     }
+      }
+    }
   }
 
-
+  // Next link logic
   if (currentLessonIndex < module.content.length - 1) {
     const nextLesson = module.content[currentLessonIndex + 1];
     nextLink = { href: `/lessons/python-foundations/${module.slug}/lesson/${nextLesson.slug}`, title: nextLesson.subTitle };
-  } else if (module.labs && module.labs.length > 0) {
+  } else if (module.labs && module.labs.length > 0) { // Link to first lab of current module
     nextLink = { href: `/lessons/python-foundations/${module.slug}/lab/${module.labs[0].slug}`, title: `Lab: ${module.labs[0].title}`};
-  } else if (module.quizzes && module.quizzes.length > 0) {
+  } else if (module.quizzes && module.quizzes.length > 0) { // Link to first quiz of current module
      nextLink = { href: `/lessons/python-foundations/${module.slug}/quiz/${module.quizzes[0].slug}`, title: `Quiz: ${module.quizzes[0].title}`};
-  } else if (moduleIndex < pythonFoundationsModules.length -1) {
+  } else if (moduleIndex < pythonFoundationsModules.length - 1) { // Link to next module's first item
      const nextModule = pythonFoundationsModules[moduleIndex + 1];
-     if (nextModule && nextModule.content.length > 0) {
-         nextLink = { href: `/lessons/python-foundations/${nextModule.slug}/lesson/${nextModule.content[0].slug}`, title: `Next Module: ${nextModule.content[0].subTitle}`};
+     if (nextModule) {
+        const firstLessonNextModule = nextModule.content?.[0];
+        if (firstLessonNextModule) {
+            nextLink = { href: `/lessons/python-foundations/${nextModule.slug}/lesson/${firstLessonNextModule.slug}`, title: `Next Module: ${firstLessonNextModule.subTitle}`};
+        } else {
+            const firstLabNextModule = nextModule.labs?.[0];
+            if (firstLabNextModule) {
+                 nextLink = { href: `/lessons/python-foundations/${nextModule.slug}/lab/${firstLabNextModule.slug}`, title: `Next Module: Lab: ${firstLabNextModule.title}`};
+            } else {
+                const firstQuizNextModule = nextModule.quizzes?.[0];
+                 if (firstQuizNextModule) {
+                     nextLink = { href: `/lessons/python-foundations/${nextModule.slug}/quiz/${firstQuizNextModule.slug}`, title: `Next Module: Quiz: ${firstQuizNextModule.title}`};
+                 }
+            }
+        }
      }
   }
   
