@@ -49,3 +49,22 @@ lerna-debug.log*
 # Firebase
 .firebase
 firebase-debug.log
+
+# Runtime
+.next/
+out/
+build/
+dist/
+
+# Node
+node_modules/
+
+# IDE/editor junk
+.DS_Store
+.vscode/
+*.log
+
+# Env
+.env
+.env*.local
+

@@ -34,41 +34,46 @@ function bubbleSortSteps(arr: number[]): SortStep[] {
   const steps: SortStep[] = [];
   const n = arr.length;
   let localArr = [...arr];
-  steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [], explanation: "Initial array state." });
+  let sortedIndices: number[] = [];
+
+  steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [...sortedIndices], explanation: "Initial array state." });
 
   for (let i = 0; i < n - 1; i++) {
     let swappedInPass = false;
-    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: getSortedSuffix(n, i), explanation: `Starting pass ${i + 1}. Largest unsorted elements will "bubble" to the end.` });
-    for (let j = 0; j < n - i - 1; j++) {
-      steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [], sortedIndices: getSortedSuffix(n, i), explanation: `Comparing elements at index ${j} (${localArr[j]}) and ${j + 1} (${localArr[j+1]}).` });
+    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [...sortedIndices], explanation: `Starting pass ${i + 1}. Largest unsorted elements will "bubble" to the end.` });
+    
+    for (let j = 0; j < n - 1 - i; j++) {
+      steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [], sortedIndices: [...sortedIndices], explanation: `Comparing elements at index ${j} (${localArr[j]}) and ${j + 1} (${localArr[j+1]}).` });
       if (localArr[j] > localArr[j + 1]) {
-        steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [j,j+1], sortedIndices: getSortedSuffix(n, i), explanation: `${localArr[j]} > ${localArr[j+1]}. Swapping.` });
+        steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [j,j+1], sortedIndices: [...sortedIndices], explanation: `${localArr[j]} > ${localArr[j+1]}. Swapping.` });
         [localArr[j], localArr[j + 1]] = [localArr[j + 1], localArr[j]];
         swappedInPass = true;
-        steps.push({ array: [...localArr], comparing: [], swapping: [j,j+1], sortedIndices: getSortedSuffix(n, i), explanation: `Elements at indices ${j} and ${j+1} swapped. Array: [${localArr.join(', ')}]` });
+        steps.push({ array: [...localArr], comparing: [], swapping: [j,j+1], sortedIndices: [...sortedIndices], explanation: `Elements at indices ${j} and ${j+1} swapped. Array: [${localArr.join(', ')}]` });
       } else {
-         steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [], sortedIndices: getSortedSuffix(n, i), explanation: `${localArr[j]} <= ${localArr[j+1]}. No swap.` });
+         steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [], sortedIndices: [...sortedIndices], explanation: `${localArr[j]} <= ${localArr[j+1]}. No swap.` });
       }
     }
-    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: getSortedSuffix(n, i + 1), explanation: `End of pass ${i + 1}. Element ${localArr[n-i-1]} is now in its sorted position.` });
-    if (!swappedInPass && i < n -1) {
-        steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: Array.from({length: n}, (_, k) => k), explanation: "No swaps in the last pass. Array is sorted." });
-        break;
+    sortedIndices.unshift(n - 1 - i); // Add to the beginning as they are sorted from the end
+    sortedIndices.sort((a, b) => a - b); // Keep sortedIndices sorted for easier consumption
+
+    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [...sortedIndices], explanation: `End of pass ${i + 1}. Element ${localArr[n-1-i]} is now in its sorted position.` });
+    
+    if (!swappedInPass) {
+      // Mark all remaining elements as sorted
+      const remainingUnsortedIndices = Array.from({length: n - 1 - i}, (_, k) => k);
+      sortedIndices = [...new Set([...sortedIndices, ...remainingUnsortedIndices])].sort((a,b) => a-b);
+      steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [...sortedIndices], explanation: "No swaps in the last pass. Array is sorted." });
+      break; 
     }
   }
-  if (steps[steps.length - 1]?.explanation !== "No swaps in the last pass. Array is sorted.") {
-    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: Array.from({length: n}, (_, k) => k), explanation: "Array fully sorted." });
+  // Ensure all indices are marked sorted at the very end if loop completed fully
+  if (sortedIndices.length < n) {
+    sortedIndices = Array.from({length: n}, (_, k) => k);
   }
+  steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [...sortedIndices], explanation: "Array fully sorted." });
   return steps;
 }
 
-function getSortedSuffix(n: number, passesCompleted: number): number[] {
-    const sorted = [];
-    for (let k = 0; k < passesCompleted; k++) {
-        sorted.push(n - 1 - k);
-    }
-    return sorted;
-}
 
 function mergeSortSteps(arr: number[]): SortStep[] {
     const steps: SortStep[] = [{array: [...arr], comparing: [], swapping: [], sortedIndices: [], explanation: "Merge Sort not yet implemented. Initial array shown."}];
@@ -154,7 +159,8 @@ export default function SortVisualizer() {
 
   const handlePlay = () => {
     if (currentStepIndex >= sortSteps.length - 1 && sortSteps.length > 0) {
-      generateAndSetSteps();
+      // If at the end of a completed sort, reset steps and current index to replay
+      generateAndSetSteps(); 
     }
     setIsPlaying(true);
   };
@@ -167,15 +173,17 @@ export default function SortVisualizer() {
   };
   const handleReset = () => {
     setIsPlaying(false);
-    resetArrayAndSteps();
+    resetArrayAndSteps(); // This will regenerate array and then steps via useEffect
   };
 
   const handleAlgorithmChange = (value: string) => {
     setSelectedAlgorithm(value as SortAlgorithmType);
+    // Steps will be regenerated by the useEffect watching selectedAlgorithm
   };
 
   const handleSizeChange = (value: number[]) => {
     setArraySize(value[0]);
+    // Array and steps will be regenerated by useEffects watching arraySize
   };
 
   const handleSpeedChange = (value: number) => {
@@ -250,7 +258,7 @@ export default function SortVisualizer() {
                     barColorClass
                   )}
                   style={{
-                    height: `${Math.max(5, (value / 105) * 100)}%`,
+                    height: `${Math.max(5, (value / 105) * 100)}%`, // Ensure min height & scale relative to max possible val (100 + 5 buffer)
                     width: `${Math.max(1, 100 / currentArrayToDisplay.length - 1)}%`
                   }}
                   title={`Value: ${value}, Index: ${index}`}
