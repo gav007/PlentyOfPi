@@ -11,7 +11,7 @@ import ArenaCanvas from '@/components/algorithm-arena/shared/ArenaCanvas';
 import ArenaControls from '@/components/algorithm-arena/shared/ArenaControls';
 import StepByStepExplanation from '@/components/algorithm-arena/shared/StepByStepExplanation';
 import { Search as SearchIcon, RotateCcw, SlidersHorizontal } from 'lucide-react';
-import { Slider } from '@/components/ui/slider'; // Added import for Slider
+import { Slider } from '@/components/ui/slider';
 
 type SearchAlgorithmType = 'linear' | 'binary';
 const SEARCH_ALGORITHMS: { value: SearchAlgorithmType; label: string; description: string, complexity: string }[] = [
@@ -29,7 +29,7 @@ function generateSearchArray(size: number, forBinarySearch: boolean): number[] {
 
 export default function SearchVisualizer() {
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<SearchAlgorithmType>('linear');
-  const [arrayData, setArrayData] = useState<number[]>(generateSearchArray(INITIAL_SEARCH_ARRAY_SIZE, false));
+  const [arrayData, setArrayData] = useState<number[]>([]); // Initialize with empty array
   const [arraySize, setArraySize] = useState<number>(INITIAL_SEARCH_ARRAY_SIZE);
   const [targetValue, setTargetValue] = useState<string>('');
   const [parsedTarget, setParsedTarget] = useState<number | null>(null);
@@ -48,6 +48,7 @@ export default function SearchVisualizer() {
   }, [arraySize, selectedAlgorithm, algorithmDetails]);
 
   useEffect(() => {
+    // Generate initial array on client side to avoid hydration mismatch
     resetVisualization();
   }, [selectedAlgorithm, arraySize, resetVisualization]);
 
@@ -132,4 +133,3 @@ export default function SearchVisualizer() {
     </Card>
   );
 }
-
