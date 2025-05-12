@@ -30,9 +30,9 @@ const arenaTools: ArenaTool[] = [
     description: 'See how Linear Search and Binary Search efficiently find elements in datasets. Compare their performance visually.',
     href: '/tools/algorithm-arena/searching',
     icon: Search,
-    imageSrc: 'https://picsum.photos/seed/searchingalgo/600/400',
-    imageAlt: 'Magnifying glass over a data array',
-    dataAiHint: 'logic symbols',
+    imageSrc: 'https://picsum.photos/seed/newbinarysearch/600/400', // Updated image source
+    imageAlt: 'Abstract visualization of a search algorithm concept', // Updated alt text
+    dataAiHint: 'logic symbols', // data-ai-hint remains relevant
   },
   {
     title: 'Graph Traversal',
