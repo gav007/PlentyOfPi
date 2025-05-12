@@ -1,42 +1,69 @@
-
 'use client';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
+// Button removed as calculation is now live
+// import { Button } from '@/components/ui/button';
+import type { TriangleVertices, Point } from '@/lib/geometry/triangleUtils';
 
 interface ShapeFormProps {
   shapeType: 'triangle' | 'circle' | 'square' | 'trapezium';
-  // Add more props for initial values, onChange handlers etc.
+  triangleVertices?: TriangleVertices;
+  onTriangleVertexChange?: (vertexKey: keyof TriangleVertices, coord: 'x' | 'y', value: number) => void;
+  // Add more props for other shapes as needed
 }
 
-export default function ShapeForm({ shapeType }: ShapeFormProps) {
-  // Form state and handlers would go here
+export default function ShapeForm({
+  shapeType,
+  triangleVertices,
+  onTriangleVertexChange,
+}: ShapeFormProps) {
+
+  const handleTriangleInputChange = (
+    vertexKey: keyof TriangleVertices,
+    coord: 'x' | 'y',
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (onTriangleVertexChange) {
+      const value = parseFloat(e.target.value);
+      if (!isNaN(value)) {
+        onTriangleVertexChange(vertexKey, coord, value);
+      }
+    }
+  };
 
   const renderFormFields = () => {
     switch (shapeType) {
       case 'triangle':
+        if (!triangleVertices || !onTriangleVertexChange) return <p>Triangle data not available.</p>;
         return (
-          <>
-            <div>
-              <Label htmlFor="sideA">Side A</Label>
-              <Input id="sideA" type="number" placeholder="e.g., 5" />
-            </div>
-            <div>
-              <Label htmlFor="sideB">Side B</Label>
-              <Input id="sideB" type="number" placeholder="e.g., 7" />
-            </div>
-            <div>
-              <Label htmlFor="sideC">Side C</Label>
-              <Input id="sideC" type="number" placeholder="e.g., 9" />
-            </div>
-             <div>
-              <Label htmlFor="angleA">Angle A (degrees)</Label>
-              <Input id="angleA" type="number" placeholder="e.g., 60" />
-            </div>
-          </>
+          <div className="space-y-4">
+            {(['A', 'B', 'C'] as const).map(vertexKey => (
+              <div key={vertexKey} className="grid grid-cols-2 gap-3 items-center">
+                <Label className="font-semibold col-span-2">Vertex {vertexKey}</Label>
+                <div>
+                  <Label htmlFor={`${vertexKey}-x`} className="text-xs">X:</Label>
+                  <Input
+                    id={`${vertexKey}-x`}
+                    type="number"
+                    value={triangleVertices[vertexKey].x.toFixed(0)} // Show integer part for simplicity
+                    onChange={(e) => handleTriangleInputChange(vertexKey, 'x', e)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`${vertexKey}-y`} className="text-xs">Y:</Label>
+                  <Input
+                    id={`${vertexKey}-y`}
+                    type="number"
+                    value={triangleVertices[vertexKey].y.toFixed(0)} // Show integer part for simplicity
+                    onChange={(e) => handleTriangleInputChange(vertexKey, 'y', e)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         );
       case 'circle':
         return (
@@ -75,9 +102,10 @@ export default function ShapeForm({ shapeType }: ShapeFormProps) {
   };
 
   return (
-    <form className="space-y-4">
+    <form className="space-y-4" onSubmit={(e) => e.preventDefault()}> {/* Prevent default form submission */}
       {renderFormFields()}
-      <Button type="submit" className="w-full">Calculate</Button>
+      {/* Calculation is now live, so submit button might not be needed unless for explicit "calculate" action */}
+      {/* <Button type="submit" className="w-full">Calculate</Button> */}
     </form>
   );
 }
