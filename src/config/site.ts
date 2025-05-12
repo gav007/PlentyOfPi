@@ -22,6 +22,9 @@ import {
   LineChart,
   FunctionSquare,
   Code as CodeIcon, 
+  Binary, // Added for Prime Tester
+  Zap, // Added for Math Battle
+  AreaChart, // Placeholder for Graph Plotter
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -77,6 +80,24 @@ export const navItems: NavItem[] = [
         href: '/calculus-playground',
         icon: Sigma,
         description: 'Visualize functions, derivatives, and integrals.',
+      },
+      {
+        title: 'Prime Tester',
+        href: '/tools/prime-tester',
+        icon: Binary,
+        description: 'Test numbers for primality and find factors.',
+      },
+      {
+        title: 'Math Battle',
+        href: '/tools/math-battle',
+        icon: Zap,
+        description: 'Quick fire math problems against the clock.',
+      },
+      {
+        title: 'Graph Plotter',
+        href: '/tools/graph-plotter',
+        icon: AreaChart, 
+        description: 'Plot mathematical expressions (Coming Soon).',
       },
     ],
   },
@@ -152,6 +173,37 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Graph of a function with tangent line and shaded area',
     dataAiHint: 'calculus graph',
     ctaLabel: 'Start Plotting',
+  },
+  {
+    title: 'Prime Number Tester',
+    description: 'Test numbers for primality, find their factors, and explore sequences of prime numbers. A great tool for understanding number theory basics.',
+    href: '/tools/prime-tester',
+    icon: Binary,
+    imageSrc: 'https://picsum.photos/seed/primetester/600/400',
+    imageAlt: 'Abstract representation of prime numbers or number grid',
+    dataAiHint: 'prime numbers math',
+    ctaLabel: 'Test Primes',
+  },
+  {
+    title: 'Math Battle Game',
+    description: 'Challenge your mental math skills! Solve a variety of arithmetic and logic problems against the clock. Improve your speed and accuracy.',
+    href: '/tools/math-battle',
+    icon: Zap,
+    imageSrc: 'https://picsum.photos/seed/mathbattle/600/400',
+    imageAlt: 'Dynamic display of math problems and scores',
+    dataAiHint: 'math game quiz',
+    ctaLabel: 'Start Battle',
+  },
+  {
+    title: 'Graph Plotter',
+    description: 'Plot multiple mathematical functions on a dynamic graph. Customize appearance, explore intersections, and visualize complex equations. (Coming Soon!)',
+    href: '/tools/graph-plotter',
+    icon: AreaChart,
+    imageSrc: 'https://picsum.photos/seed/graphplotter/600/400',
+    imageAlt: 'Multiple functions plotted on a graph',
+    dataAiHint: 'graph functions math',
+    ctaLabel: 'Coming Soon',
+    isComingSoon: true,
   },
   {
     title: 'Hex Boxes Challenge',

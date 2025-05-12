@@ -1,0 +1,30 @@
+
+{
+  "problems": [
+    { "id": "mb_add_1", "question": "5 + 8", "answer": 13, "type": "arithmetic" },
+    { "id": "mb_sub_1", "question": "12 - 4", "answer": 8, "type": "arithmetic" },
+    { "id": "mb_mul_1", "question": "6 * 7", "answer": 42, "type": "arithmetic" },
+    { "id": "mb_div_1", "question": "20 / 5", "answer": 4, "type": "arithmetic" },
+    { "id": "mb_pemdas_1", "question": "3 + 4 * 2", "answer": 11, "type": "arithmetic" },
+    { "id": "mb_pemdas_2", "question": "(5 + 3) * 2", "answer": 16, "type": "arithmetic" },
+    { "id": "mb_add_2", "question": "17 + 23", "answer": 40, "type": "arithmetic" },
+    { "id": "mb_sub_2", "question": "35 - 18", "answer": 17, "type": "arithmetic" },
+    { "id": "mb_mul_2", "question": "9 * 6", "answer": 54, "type": "arithmetic" },
+    { "id": "mb_div_2", "question": "72 / 8", "answer": 9, "type": "arithmetic" },
+    { "id": "mb_pemdas_3", "question": "10 - 2 * 3 + 1", "answer": 5, "type": "arithmetic" },
+    { "id": "mb_pemdas_4", "question": "2 * (7 - 3) / 4", "answer": 2, "type": "arithmetic" },
+    { "id": "mb_gcd_1", "question": "GCD(12, 18)", "answer": 6, "type": "gcd" },
+    { "id": "mb_gcd_2", "question": "GCD(24, 36)", "answer": 12, "type": "gcd" },
+    { "id": "mb_gcd_3", "question": "GCD(15, 25)", "answer": 5, "type": "gcd" },
+    { "id": "mb_algebra_1", "question": "x + 5 = 12. x", "answer": 7, "type": "algebra_simple" },
+    { "id": "mb_algebra_2", "question": "3 * y = 21. y", "answer": 7, "type": "algebra_simple" },
+    { "id": "mb_algebra_3", "question": "z / 4 = 5. z", "answer": 20, "type": "algebra_simple" },
+    { "id": "mb_algebra_4", "question": "2a - 3 = 7. a", "answer": 5, "type": "algebra_simple" },
+    { "id": "mb_pemdas_5", "question": "15 / 3 + 2 * 4", "answer": 13, "type": "arithmetic" },
+    { "id": "mb_pemdas_6", "question": "50 - 10 / 2 + 3", "answer": 48, "type": "arithmetic" },
+    { "id": "mb_add_3", "question": "123 + 77", "answer": 200, "type": "arithmetic" },
+    { "id": "mb_sub_3", "question": "100 - 42", "answer": 58, "type": "arithmetic" },
+    { "id": "mb_mul_3", "question": "11 * 12", "answer": 132, "type": "arithmetic" },
+    { "id": "mb_div_3", "question": "144 / 12", "answer": 12, "type": "arithmetic" }
+  ]
+}
