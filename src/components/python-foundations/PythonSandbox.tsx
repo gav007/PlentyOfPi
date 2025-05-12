@@ -21,9 +21,10 @@ for i in range(5):
 
 interface PythonSandboxProps {
   initialCode?: string;
+  onRunComplete?: (stdout: string, stderr: string | null) => void; // New prop
 }
 
-export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: PythonSandboxProps) {
+export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE, onRunComplete }: PythonSandboxProps) {
   const [code, setCode] = useState<string>(initialCode);
   const [output, setOutput] = useState<string>('');
   const [executionError, setExecutionError] = useState<string | null>(null); // For Python execution errors
@@ -69,7 +70,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
         pyodideRef.current = pyodide;
         console.log("Pyodide runtime loaded successfully.");
         if (initialCode === DEFAULT_STARTER_CODE) { 
-            setOutput('Pyodide Loaded. Ready to execute Python code.');
+            setOutput('Pyodide Loaded. Ready to execute Python code.\n');
         } else {
             setOutput(''); 
         }
@@ -103,7 +104,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
 
   const handleRunCode = async () => {
     if (!pyodideRef.current) {
-      setOutput('Pyodide is not ready. Please wait or check for loading errors.');
+      setOutput('Pyodide is not ready. Please wait or check for loading errors.\n');
       return;
     }
     if (isExecuting) return;
@@ -112,46 +113,56 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
     setExecutionError(null);
     setOutput('Executing code...\n');
     
-    try {
-      let capturedOutput = '';
-      let capturedError = '';
+    let capturedStdout = '';
+    let capturedStderr = '';
 
+    try {
       pyodideRef.current.setStdout({
         isPty: false, 
-        batched: (msg: string) => { capturedOutput += msg; }
+        batched: (msg: string) => { capturedStdout += msg + '\n'; } // Append newline for each batched message
       });
       pyodideRef.current.setStderr({
         isPty: false,
-        batched: (msg: string) => { capturedError += msg; } 
+        batched: (msg: string) => { capturedStderr += msg + '\n'; } 
       });
       
       await pyodideRef.current.runPythonAsync(code);
       
-      let finalOutput = '';
-      if (capturedOutput) finalOutput += capturedOutput;
-      if (capturedError) {
-        if (finalOutput && !finalOutput.endsWith('\n')) finalOutput += '\n';
-        finalOutput += '--- Python Errors ---\n' + capturedError;
+      // Trim trailing newlines that might have been added by batching
+      capturedStdout = capturedStdout.trimEnd();
+      capturedStderr = capturedStderr.trimEnd();
+
+      let finalDisplayOutput = '';
+      if (capturedStdout) finalDisplayOutput += capturedStdout;
+      
+      if (capturedStderr) {
+        if (finalDisplayOutput && !finalDisplayOutput.endsWith('\n')) finalDisplayOutput += '\n';
+        finalDisplayOutput += '--- Python Errors ---\n' + capturedStderr;
         setExecutionError('Execution finished with Python errors. See console for details.'); 
       }
       
       const executionMessageOnly = output === 'Executing code...\n';
-      if (finalOutput.trim() || (!executionMessageOnly && finalOutput === '')) {
-        setOutput(finalOutput);
-      } else if (executionMessageOnly && !finalOutput.trim()) {
-         setOutput('Execution finished with no output.');
+      if (finalDisplayOutput.trim() || (!executionMessageOnly && finalDisplayOutput === '')) {
+        setOutput(finalDisplayOutput + '\n'); // Ensure output ends with a newline for display
+      } else if (executionMessageOnly && !finalDisplayOutput.trim()) {
+         setOutput('Execution finished with no output.\n');
       }
+
+      onRunComplete?.(capturedStdout, capturedStderr || null);
 
     } catch (err) {
       console.error('Error executing Python code with Pyodide:', err);
       const errorMsg = err instanceof Error ? err.message : String(err);
+      let userFriendlyError = errorMsg;
+
       if (errorMsg.includes("EOFError: EOF when reading a line")) {
-        setExecutionError("EOFError: The `input()` function was called, but no input was provided. In this sandbox, `input()` is not supported directly. Please define variables in your code instead of using `input()` for user prompts.");
-        setOutput("EOFError: `input()` is not supported in this sandbox. Define variables directly.");
+        userFriendlyError = "EOFError: The `input()` function was called, but no input was provided. In this sandbox, `input()` is not supported directly. Please define variables in your code instead of using `input()` for user prompts.";
+        setOutput("EOFError: `input()` is not supported in this sandbox. Define variables directly.\n");
       } else {
-        setExecutionError(errorMsg); 
-        setOutput(`Runtime Error: ${errorMsg}`);
+        setOutput(`Runtime Error: ${errorMsg}\n`);
       }
+      setExecutionError(userFriendlyError);
+      onRunComplete?.('', userFriendlyError); // Pass empty stdout and the error
     } finally {
       setIsExecuting(false);
     }
@@ -164,12 +175,12 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
         setOutput(''); 
     } else if (pyodideRef.current) {
         if (initialCode === DEFAULT_STARTER_CODE) {
-            setOutput('Pyodide Loaded. Ready to execute Python code.');
+            setOutput('Pyodide Loaded. Ready to execute Python code.\n');
         } else {
             setOutput(''); 
         }
     } else {
-        setOutput('Pyodide is loading...');
+        setOutput('Pyodide is loading...\n');
     }
 
     if (!pyodideRef.current && !isPyodideLoading && pyodideLoadingError) {
@@ -181,7 +192,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
             const pyodide = await window.loadPyodide({indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/'});
             pyodideRef.current = pyodide;
              if (initialCode === DEFAULT_STARTER_CODE) {
-                setOutput('Pyodide Loaded. Ready to execute Python code.');
+                setOutput('Pyodide Loaded. Ready to execute Python code.\n');
             } else {
                 setOutput('');
             }
@@ -200,7 +211,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
     }
   };
   
-  const displayPlaceholder = output || executionError || pyodideLoadingError ? '' : "Output will appear here...";
+  const displayPlaceholder = output || executionError || pyodideLoadingError ? '' : "Output will appear here...\n";
 
 
   return (
@@ -214,7 +225,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="Enter your Python code here..."
-          className="min-h-[200px] font-mono text-sm bg-background border-input shadow-sm focus-visible:ring-primary"
+          className="min-h-[200px] font-mono text-sm bg-background border-input shadow-sm focus-visible:ring-primary leading-relaxed"
           spellCheck="false"
           aria-label="Python code editor"
           rows={10}
@@ -243,8 +254,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
           <div className="mb-2 p-3 text-sm text-destructive-foreground bg-destructive rounded-md flex items-start shadow">
             <AlertTriangle className="mr-2 h-5 w-5 flex-shrink-0 mt-0.5" />
             <pre 
-              className="whitespace-pre-wrap break-all font-mono text-xs leading-relaxed" 
-              style={{ whiteSpace: "pre-wrap" }} // Explicit inline style
+              className="whitespace-pre-wrap break-all font-mono text-xs leading-relaxed"
             >
               {pyodideLoadingError ? `Pyodide Loading Error: ${pyodideLoadingError}` : ``}
               {executionError && !pyodideLoadingError ? `Execution Error: ${executionError}` : ''}
@@ -257,7 +267,6 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
           className="min-h-[150px] font-mono text-xs bg-gray-900 text-green-300 border border-gray-700 rounded-md shadow-inner overflow-auto p-3 whitespace-pre-wrap break-words h-full leading-relaxed"
           aria-label="Python code output console"
           role="log"
-          style={{ whiteSpace: "pre-wrap" }} // Explicit inline style for testing
         >
           {output || (!pyodideLoadingError && !executionError && displayPlaceholder) ? output : displayPlaceholder}
         </pre>

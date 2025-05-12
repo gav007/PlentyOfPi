@@ -59,5 +59,35 @@
     "options": ["1", "2", "0", "Error"],
     "correct": "0",
     "explanation": "The `get()` method for dictionaries returns the value for a key if it exists. If the key is not found, it returns the default value provided (in this case, 0). 'cherry' is not in the dictionary."
+  },
+  {
+    "code": "text = \"PYTHON\"\nprint(text.lower())",
+    "options": ["PYTHON", "python", "PyThOn", "Error"],
+    "correct": "python",
+    "explanation": "The `lower()` string method converts all uppercase characters in a string to lowercase."
+  },
+  {
+    "code": "my_set = {1, 2, 2, 3}\nprint(len(my_set))",
+    "options": ["3", "4", "2", "Error"],
+    "correct": "3",
+    "explanation": "Sets in Python store only unique elements. Duplicate values (like the second '2') are ignored. So, the set contains {1, 2, 3}, and its length is 3."
+  },
+  {
+    "code": "count = 0\nwhile count < 2:\n  print(count)\n  count += 1",
+    "options": ["0\n1", "0\n1\n2", "1\n2", "0"],
+    "correct": "0\n1",
+    "explanation": "The loop starts with count = 0. It prints 0, increments count to 1. Prints 1, increments count to 2. The condition count < 2 is now false, so the loop terminates."
+  },
+  {
+    "code": "fruits = [\"apple\", \"banana\"]\nfruits.append(\"cherry\")\nprint(fruits[2])",
+    "options": ["apple", "banana", "cherry", "Error"],
+    "correct": "cherry",
+    "explanation": "The `append()` method adds \"cherry\" to the end of the list. So, `fruits` becomes `[\"apple\", \"banana\", \"cherry\"]`. `fruits[2]` accesses the element at index 2, which is \"cherry\"."
+  },
+  {
+    "code": "print(10 % 4)",
+    "options": ["2.5", "2", "1", "0"],
+    "correct": "2",
+    "explanation": "The `%` (modulus) operator returns the remainder of a division. 10 divided by 4 is 2 with a remainder of 2."
   }
 ]

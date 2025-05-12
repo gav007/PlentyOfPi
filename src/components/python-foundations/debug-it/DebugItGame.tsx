@@ -4,29 +4,26 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import PythonSandbox from '@/components/python-foundations/PythonSandbox'; // Reusing PythonSandbox
+import PythonSandbox from '@/components/python-foundations/PythonSandbox';
 import ExpectedOutput from './ExpectedOutput';
-import Feedback from '@/components/python-foundations/output-match/Feedback'; // Reusing Feedback component
+import Feedback from '@/components/python-foundations/output-match/Feedback';
 import debugItChallenges from '@/data/python-foundations/debugItChallenges.json';
 import type { DebugItChallenge } from '@/types/python-games';
-import { Wrench, RefreshCcw, Check, X, Lightbulb } from 'lucide-react';
+import { Wrench, RefreshCcw, Check, X, Lightbulb, ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const TOTAL_CHALLENGES = Math.min(5, debugItChallenges.length); // Max 5 challenges
+const TOTAL_CHALLENGES = Math.min(5, debugItChallenges.length); 
 
 export default function DebugItGame() {
   const [challenges, setChallenges] = useState<DebugItChallenge[]>([]);
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
-  const [userCode, setUserCode] = useState(''); // Handled by PythonSandbox's internal state but we need to access it
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
-
-  // This key is used to force PythonSandbox to re-render with new initialCode
   const [sandboxKey, setSandboxKey] = useState(Date.now()); 
-  const [actualOutput, setActualOutput] = useState(''); // To store sandbox output
+  const [actualOutput, setActualOutput] = useState('');
 
   useEffect(() => {
     const shuffled = [...debugItChallenges].sort(() => 0.5 - Math.random());
@@ -34,10 +31,8 @@ export default function DebugItGame() {
   }, []);
   
   useEffect(() => {
-    // Update userCode and sandboxKey when challenge changes
     if (challenges.length > 0 && challenges[currentChallengeIndex]) {
-      setUserCode(challenges[currentChallengeIndex].initialCode);
-      setSandboxKey(Date.now()); // New key to remount PythonSandbox
+      setSandboxKey(Date.now()); 
       setIsSubmitted(false);
       setIsCorrect(null);
       setShowFeedback(false);
@@ -46,19 +41,19 @@ export default function DebugItGame() {
     }
   }, [currentChallengeIndex, challenges]);
 
-
   const currentChallenge = challenges[currentChallengeIndex];
 
-  // This function will be passed to PythonSandbox to capture its output
-  const handleSandboxOutput = (output: string, error: string | null) => {
-    setActualOutput(error ? `Error: ${error}` : output);
+  const handleSandboxOutputUpdate = (outputFromSandbox: string, error: string | null) => {
+    if (error) {
+      setActualOutput(`Error: ${error}`);
+    } else {
+      setActualOutput(outputFromSandbox);
+    }
   };
 
   const handleCompareOutput = () => {
     if (isSubmitted || !currentChallenge) return;
 
-    // For DebugIt, correctness is based on matching expected output
-    // Normalizing whitespace and newlines for comparison
     const normalize = (str: string) => str.replace(/\r\n/g, '\n').trim();
     const userOutputNormalized = normalize(actualOutput);
     const expectedOutputNormalized = normalize(currentChallenge.expectedOutput);
@@ -76,14 +71,13 @@ export default function DebugItGame() {
   const handleNextChallenge = () => {
     if (currentChallengeIndex < challenges.length - 1) {
       setCurrentChallengeIndex(prevIndex => prevIndex + 1);
-      // State reset for new challenge is handled by useEffect on currentChallengeIndex
     }
   };
   
   const handleRestartGame = () => {
     const shuffled = [...debugItChallenges].sort(() => 0.5 - Math.random());
     setChallenges(shuffled.slice(0, TOTAL_CHALLENGES));
-    setCurrentChallengeIndex(0); // This will trigger useEffect to load the first challenge
+    setCurrentChallengeIndex(0);
     setScore(0);
   };
 
@@ -123,30 +117,28 @@ export default function DebugItGame() {
         </Alert>
 
         <PythonSandbox
-          key={sandboxKey} // Force re-render with new initial code
+          key={sandboxKey}
           initialCode={currentChallenge.initialCode}
-          // Pass a callback to get output from sandbox, if PythonSandbox is modified to support it
-          // For now, we assume user runs code, then clicks "Compare Output"
+          onRunComplete={handleSandboxOutputUpdate}
         />
         <ExpectedOutput output={currentChallenge.expectedOutput} />
 
         {showFeedback && isSubmitted && (
           <Feedback
             isCorrect={!!isCorrect}
-            correctAnswer={`Match the expected output. ${isCorrect ? '' : 'Your output did not match.'}`}
-            explanation={isCorrect ? "Great job debugging!" : "Keep trying! Check for logical errors or syntax issues."}
+            correctAnswer={currentChallenge.expectedOutput} // Show expected output if wrong
+            explanation={isCorrect ? "Great job debugging!" : currentChallenge.description || "Keep trying! Check for logical errors or syntax issues."}
           />
         )}
         
         {isSubmitted && showSolution && (
             <div className="mt-4 p-4 border rounded-md bg-muted/30">
                 <h3 className="text-md font-semibold mb-2 text-primary">Example Solution:</h3>
-                <pre className="bg-gray-800 text-white p-3 rounded-md overflow-x-auto text-xs">
+                <pre className="bg-gray-800 text-white p-3 rounded-md overflow-x-auto text-xs leading-relaxed">
                     <code>{currentChallenge.solution}</code>
                 </pre>
             </div>
         )}
-
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-6 pt-6 border-t">
           {!isSubmitted && (
@@ -179,11 +171,3 @@ export default function DebugItGame() {
     </Card>
   );
 }
-
-// Helper to define an ArrowRight component if not available
-const ArrowRight = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "w-4 h-4"}>
-      <line x1="5" y1="12" x2="19" y2="12"></line>
-      <polyline points="12 5 19 12 12 19"></polyline>
-    </svg>
-  );

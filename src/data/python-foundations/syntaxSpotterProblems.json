@@ -59,5 +59,45 @@
     ],
     "errorLineIndex": 0,
     "explanation": "Syntax Error: The function definition `def calculate_area(length, width)` is missing a colon ':' at the end."
+  },
+  {
+    "lines": [
+      "user_input = input(Enter your age: )",
+      "print(\"You entered: \" + user_input)"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "Syntax Error: The string prompt for the `input()` function must be enclosed in quotes. It should be `input(\"Enter your age: \")`."
+  },
+  {
+    "lines": [
+      "value = 100",
+      "if value = 100:",
+      "  print(\"Value is 100\")"
+    ],
+    "errorLineIndex": 1,
+    "explanation": "Syntax Error (or logical error leading to unexpected behavior): The `if` statement uses an assignment operator `=` instead of a comparison operator `==`. It should be `if value == 100:`."
+  },
+  {
+    "lines": [
+      "my_dict = {'name': 'Bob', 'city': 'London'",
+      "print(my_dict['name'])"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "Syntax Error: Missing a closing curly brace `}` for the dictionary definition."
+  },
+  {
+    "lines": [
+      "for x in range(1.5):",
+      "  print(x)"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "TypeError (often caught as syntax by linters or at runtime immediately): The `range()` function expects integer arguments. Floats like `1.5` are not allowed directly. It should be `range(int(1.5))` or more typically `range(1)` or `range(2)`."
+  },
+  {
+    "lines": [
+      "print(\"The result is %d\" % \"twenty\")"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "TypeError (related to string formatting syntax): The `%d` format specifier expects an integer, but the string \"twenty\" is provided. It should be an integer, or use `%s` for string if that was the intent (though the message implies a number)."
   }
 ]
