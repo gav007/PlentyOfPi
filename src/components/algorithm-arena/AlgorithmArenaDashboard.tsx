@@ -30,9 +30,9 @@ const arenaTools: ArenaTool[] = [
     description: 'See how Linear Search and Binary Search efficiently find elements in datasets. Compare their performance visually.',
     href: '/tools/algorithm-arena/searching',
     icon: Search,
-    imageSrc: 'https://picsum.photos/seed/newbinarysearch/600/400', // Updated image source
-    imageAlt: 'Abstract visualization of a search algorithm concept', // Updated alt text
-    dataAiHint: 'logic symbols', // data-ai-hint remains relevant
+    imageSrc: 'https://picsum.photos/seed/newbinarysearch/600/400', 
+    imageAlt: 'Abstract visualization of a search algorithm concept', 
+    dataAiHint: 'logic symbols', 
   },
   {
     title: 'Graph Traversal',
@@ -51,15 +51,6 @@ const arenaTools: ArenaTool[] = [
     imageSrc: 'https://picsum.photos/seed/recursionalgo/600/400',
     imageAlt: 'Recursive pattern or fractal design',
     dataAiHint: 'logic symbols',
-  },
-  {
-    title: 'Game Theory Playground',
-    description: 'Simulate classic game theory scenarios like the Prisoner\'s Dilemma. Test strategies and visualize payoff matrices.',
-    href: '/tools/algorithm-arena/game-theory',
-    icon: Users,
-    imageSrc: 'https://picsum.photos/seed/gametheory/600/400',
-    imageAlt: 'Abstract representation of strategic decision-making',
-    dataAiHint: 'math logic',
   },
 ];
 

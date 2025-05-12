@@ -24,12 +24,12 @@ import {
   Code as CodeIcon, 
   Binary,
   Zap,
-  BrainCircuit, // Icon for Algorithm Arena
-  BarChartHorizontal, // Icon for Sorting
-  Search, // Icon for Searching
-  GitFork, // Icon for Graph Traversal
-  Repeat, // Icon for Recursion
-  Users, // Icon for Game Theory
+  BrainCircuit, 
+  BarChartHorizontal, 
+  Search, 
+  GitFork, 
+  Repeat, 
+  Users, 
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -108,7 +108,7 @@ export const navItems: NavItem[] = [
         title: 'Algorithm Arena',
         href: '/tools/algorithm-arena',
         icon: BrainCircuit,
-        description: 'Explore algorithms and game theory interactively.',
+        description: 'Explore algorithms interactively.',
         subItems: [ 
           {
             title: 'Sorting Visualizer',
@@ -133,12 +133,6 @@ export const navItems: NavItem[] = [
             href: '/tools/algorithm-arena/recursion',
             icon: Repeat,
             description: 'Understand Factorial, Fibonacci, Tower of Hanoi.',
-          },
-          {
-            title: 'Game Theory Playground',
-            href: '/tools/algorithm-arena/game-theory',
-            icon: Users,
-            description: 'Simulate Prisoner\'s Dilemma and other scenarios.',
           },
         ]
       },
@@ -199,7 +193,7 @@ export const featureCards: FeatureCardItem[] = [
   },
   {
     title: 'Algorithm Arena',
-    description: 'Explore sorting, searching, graph traversal, recursion, and game theory with interactive visualizations and simulations. Understand algorithms step-by-step.',
+    description: 'Explore sorting, searching, graph traversal, and recursion with interactive visualizations and simulations. Understand algorithms step-by-step.',
     href: '/tools/algorithm-arena',
     icon: BrainCircuit,
     imageSrc: 'https://picsum.photos/seed/algorithmmarena/600/400',
