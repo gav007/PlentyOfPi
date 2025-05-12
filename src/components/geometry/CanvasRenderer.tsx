@@ -1,7 +1,9 @@
+// src/components/geometry/CanvasRenderer.tsx
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import type { Point, TriangleVertices } from '@/lib/geometry/triangleUtils';
+import { cn } from '@/lib/utils';
 
 interface CanvasRendererProps {
   shapeType: 'triangle' | 'circle' | 'square' | 'trapezium';
@@ -9,7 +11,9 @@ interface CanvasRendererProps {
   onTriangleVertexMove?: (vertexKey: keyof TriangleVertices, newPosition: Point) => void;
   canvasWidth?: number;
   canvasHeight?: number;
-  // Add more props as needed for other shapes
+  gridSpacing?: number;
+  showAxes?: boolean;
+  showTicks?: boolean;
 }
 
 const DRAG_HANDLE_RADIUS = 8;
@@ -18,8 +22,11 @@ export default function CanvasRenderer({
   shapeType,
   triangleVertices,
   onTriangleVertexMove,
-  canvasWidth = 300, // Default canvas width
-  canvasHeight = 200, // Default canvas height
+  canvasWidth = 400,
+  canvasHeight = 300, // Adjusted default to better fit typical card aspect ratios
+  gridSpacing = 25,
+  showAxes = true,
+  showTicks = true,
 }: CanvasRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [draggingVertexKey, setDraggingVertexKey] = useState<keyof TriangleVertices | null>(null);
@@ -42,7 +49,7 @@ export default function CanvasRenderer({
       const vertexKey = key as keyof TriangleVertices;
       const vertex = triangleVertices[vertexKey];
       const distance = Math.sqrt(Math.pow(mousePos.x - vertex.x, 2) + Math.pow(mousePos.y - vertex.y, 2));
-      if (distance <= DRAG_HANDLE_RADIUS) {
+      if (distance <= DRAG_HANDLE_RADIUS + 5) { // Increased hit area slightly
         setDraggingVertexKey(vertexKey);
         return;
       }
@@ -50,9 +57,19 @@ export default function CanvasRenderer({
   };
 
   const handleMouseMove = (event: MouseEvent) => {
-    if (!draggingVertexKey || !onTriangleVertexMove) return;
-    const mousePos = getMousePos(event);
-    onTriangleVertexMove(draggingVertexKey, mousePos);
+    if (!draggingVertexKey || !onTriangleVertexMove || !triangleVertices) return;
+    
+    let mousePos = getMousePos(event);
+    
+    // Snap to grid
+    const snappedX = Math.round(mousePos.x / gridSpacing) * gridSpacing;
+    const snappedY = Math.round(mousePos.y / gridSpacing) * gridSpacing;
+
+    // Clamp to canvas bounds
+    const clampedX = Math.max(0 + DRAG_HANDLE_RADIUS, Math.min(snappedX, canvasWidth - DRAG_HANDLE_RADIUS));
+    const clampedY = Math.max(0 + DRAG_HANDLE_RADIUS, Math.min(snappedY, canvasHeight - DRAG_HANDLE_RADIUS));
+
+    onTriangleVertexMove(draggingVertexKey, { x: clampedX, y: clampedY });
   };
   
   const handleMouseUp = () => {
@@ -66,7 +83,7 @@ export default function CanvasRenderer({
     } else {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-    };
+    }
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -82,105 +99,156 @@ export default function CanvasRenderer({
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     
-    // Set common styles
-    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-    const mutedFgColor = getComputedStyle(document.documentElement).getPropertyValue('--muted-foreground').trim();
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || 'blue';
+    const mutedFgColor = getComputedStyle(document.documentElement).getPropertyValue('--muted-foreground').trim() || 'grey';
+    const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#e2e8f0';
+    const axisColor = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim() || 'black';
+
+    // Draw Grid
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x <= canvasWidth; x += gridSpacing) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvasHeight);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= canvasHeight; y += gridSpacing) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvasWidth, y);
+      ctx.stroke();
+    }
+
+    // Draw Axes (assuming 0,0 is top-left for coordinates, but visual axes can be centered or at edges)
+    if (showAxes) {
+      ctx.strokeStyle = axisColor;
+      ctx.lineWidth = 1.5;
+      // X-axis (e.g., at the bottom for positive Y up, or mid)
+      // For now, let's consider the canvas edges as implicit axes for labeling
+      // Or a main X-axis line (e.g. at y=0 if coordinate system was transformed)
+      // For simplicity with current coordinate system, we'll highlight the 0-lines if they fall on grid
+    }
+
+    // Draw Tick Marks and Labels
+    if (showTicks) {
+      ctx.fillStyle = mutedFgColor;
+      ctx.font = '10px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      for (let x = 0; x <= canvasWidth; x += gridSpacing * 2) { // Label every other grid line
+        if (x === 0 && gridSpacing * 2 > 20) continue; // Avoid 0 label if too close to Y axis labels
+        ctx.fillText(x.toString(), x, canvasHeight - 12);
+      }
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      for (let y = 0; y <= canvasHeight; y += gridSpacing * 2) {
+        if (y === 0 && gridSpacing * 2 > 15) continue; // Avoid 0 label if too close to X axis labels
+         ctx.fillText(y.toString(), 3, y);
+      }
+    }
 
     if (shapeType === 'triangle' && triangleVertices) {
       const { A, B, C } = triangleVertices;
-      // Draw triangle
       ctx.beginPath();
       ctx.moveTo(A.x, A.y);
       ctx.lineTo(B.x, B.y);
       ctx.lineTo(C.x, C.y);
       ctx.closePath();
-      ctx.strokeStyle = primaryColor || 'blue';
+      ctx.strokeStyle = primaryColor;
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Draw draggable handles and labels
       Object.entries(triangleVertices).forEach(([key, vertex]) => {
         ctx.beginPath();
         ctx.arc(vertex.x, vertex.y, DRAG_HANDLE_RADIUS, 0, 2 * Math.PI);
-        ctx.fillStyle = draggingVertexKey === key ? primaryColor : (primaryColor+'99'); // Highlight if dragging
+        ctx.fillStyle = draggingVertexKey === key ? primaryColor : (primaryColor+'BB'); // Highlight + slight transparency
         ctx.fill();
-        ctx.strokeStyle = primaryColor;
+        ctx.strokeStyle = primaryColor; // Border for handle
+        ctx.lineWidth = 1;
         ctx.stroke();
         
-        ctx.font = '12px Arial';
-        ctx.fillStyle = mutedFgColor || 'grey';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillStyle = axisColor; 
         ctx.textAlign = 'center';
-        // Position labels slightly offset from vertex
-        let labelX = vertex.x;
-        let labelY = vertex.y;
-        if (key === 'A') { labelX -= DRAG_HANDLE_RADIUS + 5; labelY += DRAG_HANDLE_RADIUS + 10;}
-        else if (key === 'B') { labelX += DRAG_HANDLE_RADIUS + 5; labelY += DRAG_HANDLE_RADIUS + 10;}
-        else if (key === 'C') { labelY -= DRAG_HANDLE_RADIUS + 5;}
-        ctx.fillText(key, labelX, labelY);
+        ctx.textBaseline = 'middle';
+        
+        // Smart label positioning (simple version)
+        let labelOffsetX = 0;
+        let labelOffsetY = - (DRAG_HANDLE_RADIUS + 8); // Default above
+        if (vertex.y < DRAG_HANDLE_RADIUS * 3) labelOffsetY = DRAG_HANDLE_RADIUS + 10; // If too close to top, move below
+        if (vertex.x < DRAG_HANDLE_RADIUS * 3) labelOffsetX = DRAG_HANDLE_RADIUS + 5; // If too close to left, move right
+        if (vertex.x > canvasWidth - DRAG_HANDLE_RADIUS * 3) labelOffsetX = -(DRAG_HANDLE_RADIUS + 5); // If too close to right, move left
+        
+        ctx.fillText(key, vertex.x + labelOffsetX, vertex.y + labelOffsetY);
       });
 
     } else if (shapeType === 'circle') {
+       // Simplified drawing, assuming centered for visual appeal.
+       const visualCenterX = canvasWidth / 2;
+       const visualCenterY = canvasHeight / 2;
+       const visualRadius = Math.min(canvasWidth, canvasHeight) / 3;
        ctx.beginPath();
-       ctx.arc(canvasWidth / 2, canvasHeight / 2, Math.min(canvasWidth, canvasHeight)/3 , 0, 2 * Math.PI);
-       ctx.strokeStyle = primaryColor || 'blue';
+       ctx.arc(visualCenterX, visualCenterY, visualRadius, 0, 2 * Math.PI);
+       ctx.strokeStyle = primaryColor;
        ctx.lineWidth = 2;
        ctx.stroke();
-       ctx.fillStyle = mutedFgColor || 'grey';
-       ctx.font = '16px Arial';
+       ctx.fillStyle = mutedFgColor;
+       ctx.font = '12px Arial';
        ctx.textAlign = 'center';
-       ctx.textBaseline = 'middle';
-       ctx.fillText(`Interactive Circle`, canvasWidth / 2, 30);
+       ctx.fillText(`Circle (Radius: ${visualRadius.toFixed(0)})`, visualCenterX, 20);
     } else if (shapeType === 'square') {
-        ctx.strokeStyle = primaryColor || 'blue';
-        ctx.lineWidth = 2;
-        const side = Math.min(canvasWidth, canvasHeight) * 0.6;
+        const side = Math.min(canvasWidth, canvasHeight) * 0.5; // Make it a bit smaller
         const x = (canvasWidth - side) / 2;
         const y = (canvasHeight - side) / 2;
-        ctx.strokeRect(x,y,side,side);
-        ctx.fillStyle = mutedFgColor || 'grey';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`Interactive Square`, canvasWidth / 2, 30);
-    } else if (shapeType === 'trapezium') {
-        ctx.strokeStyle = primaryColor || 'blue';
+        ctx.strokeStyle = primaryColor;
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        const base1 = canvasWidth * 0.4;
-        const base2 = canvasWidth * 0.7;
-        const height = canvasHeight * 0.5;
+        ctx.strokeRect(x,y,side,side);
+        ctx.fillStyle = mutedFgColor;
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Square (Side: ${side.toFixed(0)})`, canvasWidth / 2, 20);
+    } else if (shapeType === 'trapezium') {
+        const base1 = canvasWidth * 0.3;
+        const base2 = canvasWidth * 0.6;
+        const height = canvasHeight * 0.4;
         const yTop = (canvasHeight - height) / 2;
         const yBottom = yTop + height;
+        ctx.beginPath();
         ctx.moveTo((canvasWidth - base1) / 2, yTop);
         ctx.lineTo((canvasWidth + base1) / 2, yTop);
         ctx.lineTo((canvasWidth + base2) / 2, yBottom);
         ctx.lineTo((canvasWidth - base2) / 2, yBottom);
         ctx.closePath();
+        ctx.strokeStyle = primaryColor;
+        ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.fillStyle = mutedFgColor || 'grey';
-        ctx.font = '16px Arial';
+        ctx.fillStyle = mutedFgColor;
+        ctx.font = '12px Arial';
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`Interactive Trapezium`, canvasWidth / 2, 30);
+        ctx.fillText(`Trapezium`, canvasWidth / 2, 20);
     } else {
-        ctx.fillStyle = primaryColor || 'blue';
-        ctx.fillRect(canvasWidth/2 - 50, canvasHeight/2 - 25, 100, 50);
-        ctx.fillStyle = mutedFgColor || 'grey';
+        // Fallback for unhandled shapes
+        ctx.fillStyle = mutedFgColor;
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(`Drawing area for ${shapeType}`, canvasWidth / 2, canvasHeight / 2);
     }
-  }, [shapeType, triangleVertices, draggingVertexKey, canvasWidth, canvasHeight]); // Redraw when shapeType changes or other relevant props
+  }, [shapeType, triangleVertices, draggingVertexKey, canvasWidth, canvasHeight, gridSpacing, showAxes, showTicks]); 
 
   return (
     <canvas 
       ref={canvasRef} 
       width={canvasWidth}
       height={canvasHeight}
-      className="border border-input rounded-md bg-background cursor-grab active:cursor-grabbing"
+      className={cn(
+        "border border-input rounded-md bg-background",
+        shapeType === 'triangle' && !draggingVertexKey && "cursor-grab",
+        shapeType === 'triangle' && draggingVertexKey && "cursor-grabbing"
+      )}
       aria-label={`Interactive canvas for ${shapeType}`}
-      onMouseDown={handleMouseDown}
+      onMouseDown={shapeType === 'triangle' ? handleMouseDown : undefined} // Only enable drag for triangle
     >
       Canvas for {shapeType} (fallback text)
     </canvas>

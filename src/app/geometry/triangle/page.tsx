@@ -6,7 +6,7 @@ import { Triangle } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Interactive Triangle Calculator | Geometry Tools | Plenty of π',
-  description: 'Explore and calculate properties of triangles interactively. Find area, perimeter, angles, and more.',
+  description: 'Explore and calculate properties of triangles interactively. Drag vertices on a coordinate grid, or input values to see live updates for area, perimeter, angles, and more.',
 };
 
 export default function TriangleToolPage() {
@@ -20,7 +20,7 @@ export default function TriangleToolPage() {
           </CardTitle>
           <CardDescription className="text-muted-foreground">
             Dynamically calculate area, perimeter, and angles of a triangle.
-            Drag vertices or input values to see live updates.
+            Drag vertices on the coordinate grid or input values to see live updates.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -30,3 +30,4 @@ export default function TriangleToolPage() {
     </div>
   );
 }
+
