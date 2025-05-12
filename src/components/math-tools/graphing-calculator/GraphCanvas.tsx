@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ZoomIn, ZoomOut, Expand, RefreshCw } from 'lucide-react';
-import { Card } from '@/components/ui/card'; // Ensure Card is imported
+import { Card } from '@/components/ui/card'; 
 
 interface GraphCanvasProps {
   plotData: ExpressionPlotData[];
@@ -41,7 +41,7 @@ export default function GraphCanvas({
 }: GraphCanvasProps) {
   const [tempDomain, setTempDomain] = React.useState(domain);
   const [tempRange, setTempRange] = React.useState(range);
-  const chartRef = React.useRef<any>(null); // For accessing chart instance for potential direct interactions
+  const chartRef = React.useRef<any>(null); 
 
   React.useEffect(() => setTempDomain(domain), [domain]);
   React.useEffect(() => setTempRange(range), [range]);
@@ -63,7 +63,8 @@ export default function GraphCanvas({
     if (typeof processedYMax === 'number' && isNaN(processedYMax)) processedYMax = 'auto';
     
     if (typeof processedYMin === 'number' && typeof processedYMax === 'number' && processedYMin >= processedYMax) {
-      // Invalid range, perhaps revert or alert, for now just don't apply y change
+      // Invalid range, revert or alert
+      setTempRange(range); // Revert to last valid range
     } else {
       onRangeChange({ yMin: processedYMin, yMax: processedYMax });
     }
@@ -89,18 +90,17 @@ export default function GraphCanvas({
     if (typeof tempRange.yMin === 'number' && typeof tempRange.yMax === 'number') {
         newYMin = yCenter - (yCenter - tempRange.yMin) * factor;
         newYMax = yCenter + (tempRange.yMax - yCenter) * factor;
-    } // If 'auto', let Recharts handle it or implement smarter auto-scaling based on data
+    }
 
     setTempDomain({ xMin: newXMin, xMax: newXMax });
     setTempRange({ yMin: newYMin, yMax: newYMax });
-    // Apply immediately for zoom/pan for responsiveness
     onDomainChange({ xMin: newXMin, xMax: newXMax });
     onRangeChange({yMin: newYMin, yMax: newYMax});
   };
 
   const handlePan = (dxPercent: number, dyPercent: number) => {
-    const xRange = tempDomain.xMax - tempDomain.xMin;
-    const dx = xRange * dxPercent;
+    const xRangeVal = tempDomain.xMax - tempDomain.xMin;
+    const dx = xRangeVal * dxPercent;
     
     const newXMin = tempDomain.xMin + dx;
     const newXMax = tempDomain.xMax + dx;
@@ -127,8 +127,8 @@ export default function GraphCanvas({
       return (
         <div className="bg-background/90 backdrop-blur-sm p-2 border border-border rounded-md shadow-lg text-xs">
           <p className="font-semibold mb-1">x: {Number(label).toFixed(3)}</p>
-          {payload.map((entry: any) => (
-            <div key={entry.dataKey} style={{ color: entry.stroke }} className="flex items-center gap-1.5">
+          {payload.map((entry: any, index: number) => ( // Added index for unique key
+            <div key={`${entry.name || entry.dataKey}-${index}`} style={{ color: entry.stroke }} className="flex items-center gap-1.5">
                <span className="w-2 h-2 rounded-full inline-block" style={{backgroundColor: entry.stroke}}></span>
               {`${entry.name || entry.dataKey}: ${Number(entry.value).toFixed(3)}`}
             </div>
@@ -139,30 +139,29 @@ export default function GraphCanvas({
     return null;
   };
   
-  // Drag to pan logic
   const dragStartRef = React.useRef<{x: number, y: number} | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (chartRef.current) {
-        const { chartX, chartY } = chartRef.current.getInternalState().offset; // Approx
-        dragStartRef.current = { x: e.clientX - chartX, y: e.clientY - chartY};
+    if (chartRef.current && chartRef.current.container) {
+        const chartRect = chartRef.current.container.getBoundingClientRect();
+        dragStartRef.current = { x: e.clientX - chartRect.left, y: e.clientY - chartRect.top };
     }
   };
-
+  
   const handleMouseMove = (e: React.MouseEvent) => {
-      if (dragStartRef.current && chartRef.current) {
-        const { chartX, chartY, width, height } = chartRef.current.getInternalState().offset;
-        const currentX = e.clientX - chartX;
-        // const currentY = e.clientY - chartY; // Y-axis pan not fully implemented this way
-
+      if (dragStartRef.current && chartRef.current && chartRef.current.container) {
+        const chartRect = chartRef.current.container.getBoundingClientRect();
+        const currentX = e.clientX - chartRect.left;
+        const currentY = e.clientY - chartRect.top;
+  
         const dx = currentX - dragStartRef.current.x;
-        // const dy = currentY - dragStartRef.current.y;
+        const dy = currentY - dragStartRef.current.y;
         
-        if (width && height) { // Ensure width and height are available
-            handlePan(-dx / width, 0); // Pan only X for now: dy / height
+        if (chartRect.width && chartRect.height) {
+            handlePan(-dx / chartRect.width, dy / chartRect.height); // Pan X and Y
         }
-
-        dragStartRef.current = { x: currentX, y: e.clientY - chartY};
+  
+        dragStartRef.current = { x: currentX, y: currentY };
       }
   };
   
@@ -172,10 +171,9 @@ export default function GraphCanvas({
   
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    const zoomFactor = e.deltaY < 0 ? 0.9 : 1.1; // Zoom in if deltaY is negative
+    const zoomFactor = e.deltaY < 0 ? 0.9 : 1.1;
     handleZoom(zoomFactor);
   };
-
 
   return (
     <div className="space-y-4">
@@ -211,7 +209,7 @@ export default function GraphCanvas({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp} // Stop panning if mouse leaves chart
+        onMouseLeave={handleMouseUp} 
         onWheel={handleWheel}
       >
         <ResponsiveContainer width="100%" height="100%">
@@ -219,7 +217,7 @@ export default function GraphCanvas({
             ref={chartRef}
             margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <CartesianGrid strokeDasharray="1 3" stroke="hsl(var(--border))" />
             <XAxis
               type="number"
               dataKey="x"
@@ -245,13 +243,13 @@ export default function GraphCanvas({
               <Line
                 key={series.id}
                 type="monotone"
-                dataKey="y"
+                dataKey="y" // This is the source of "y" key, name prop below makes it unique for tooltip
                 data={series.points}
                 stroke={series.color}
                 strokeWidth={2}
                 dot={false}
-                name={series.value || `f${plotData.findIndex(p => p.id === series.id) + 1}(x)`}
-                connectNulls={false} // Important for functions with discontinuities
+                name={series.value || `f${plotData.findIndex(p => p.id === series.id) + 1}(x)`} // Unique name for each line
+                connectNulls={false}
                 isAnimationActive={false}
               />
             ))}
@@ -261,3 +259,4 @@ export default function GraphCanvas({
     </div>
   );
 }
+
