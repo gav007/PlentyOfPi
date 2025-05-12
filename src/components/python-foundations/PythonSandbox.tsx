@@ -94,7 +94,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
     return () => {
       isMounted = false;
     };
-  }, [initialCode]); // Add initialCode to dependency array
+  }, [initialCode]); 
 
   useEffect(() => {
     if (outputRef.current) {
@@ -125,8 +125,21 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
         isPty: false,
         batched: (msg: string) => { capturedError += msg; } 
       });
+      
+      // Fix for EOFError when input() is called with no input available in Pyodide.
+      // This is a common issue when scripts expect terminal input.
+      // For sandbox, we don't provide stdin directly, so input() will raise EOFError.
+      // We'll catch it specifically if the code attempts to use input().
+      let pythonCodeToRun = code;
+      if (code.includes('input(')) {
+        // A simple way to provide a dummy input or inform the user.
+        // This doesn't fully replicate interactive input but prevents EOFError.
+        // More sophisticated solutions might involve a custom input prompt mechanism.
+        // For now, we'll just let Pyodide handle it, but be aware this is a source of EOFError.
+        // A better approach for labs would be to pre-define variables instead of using input().
+      }
 
-      await pyodideRef.current.runPythonAsync(code);
+      await pyodideRef.current.runPythonAsync(pythonCodeToRun);
       
       let finalOutput = '';
       if (capturedOutput) finalOutput += capturedOutput;
@@ -146,15 +159,21 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
     } catch (err) {
       console.error('Error executing Python code with Pyodide:', err);
       const errorMsg = err instanceof Error ? err.message : String(err);
-      setExecutionError(errorMsg); 
-      setOutput(`Runtime Error: ${errorMsg}`);
+      // Specifically check for EOFError related to input()
+      if (errorMsg.includes("EOFError: EOF when reading a line")) {
+        setExecutionError("EOFError: The `input()` function was called, but no input was provided. In this sandbox, `input()` is not supported directly. Please define variables in your code instead of using `input()` for user prompts.");
+        setOutput("EOFError: `input()` is not supported in this sandbox. Define variables directly.");
+      } else {
+        setExecutionError(errorMsg); 
+        setOutput(`Runtime Error: ${errorMsg}`);
+      }
     } finally {
       setIsExecuting(false);
     }
   };
 
   const handleResetCode = () => {
-    setCode(initialCode); // Reset to the initialCode prop
+    setCode(initialCode); 
     setExecutionError(null);
     if (pyodideLoadingError) {
         setOutput(''); 
@@ -162,7 +181,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
         if (initialCode === DEFAULT_STARTER_CODE) {
             setOutput('Pyodide Loaded. Ready to execute Python code.');
         } else {
-            setOutput(''); // For specific starter code, reset to blank output
+            setOutput(''); 
         }
     } else {
         setOutput('Pyodide is loading...');
@@ -238,7 +257,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
         {(pyodideLoadingError || executionError) && (
           <div className="mb-2 p-3 text-sm text-destructive-foreground bg-destructive rounded-md flex items-start shadow">
             <AlertTriangle className="mr-2 h-5 w-5 flex-shrink-0 mt-0.5" />
-            <pre className="whitespace-pre-wrap break-all font-mono text-xs">
+            <pre className="whitespace-pre-wrap break-all font-mono text-xs leading-relaxed">
               {pyodideLoadingError ? `Pyodide Loading Error: ${pyodideLoadingError}` : ``}
               {executionError && !pyodideLoadingError ? `Execution Error: ${executionError}` : ''}
             </pre>
@@ -247,7 +266,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
         <pre
           ref={outputRef}
           id="python-output-console"
-          className="min-h-[150px] font-mono text-xs bg-gray-900 text-green-300 border border-gray-700 rounded-md shadow-inner overflow-auto p-2 whitespace-pre-wrap break-words h-full"
+          className="min-h-[150px] font-mono text-xs bg-gray-900 text-green-300 border border-gray-700 rounded-md shadow-inner overflow-auto p-3 whitespace-pre-wrap break-words h-full leading-relaxed"
           aria-label="Python code output console"
           role="log"
         >
@@ -256,6 +275,7 @@ export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: Py
       </div>
        <p className="text-xs text-muted-foreground mt-2">
           Python execution is powered by Pyodide, running directly in your browser.
+          The `input()` function is not supported in this sandbox; please define variables directly in your code.
         </p>
     </div>
   );
