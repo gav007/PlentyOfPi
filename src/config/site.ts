@@ -30,6 +30,7 @@ import {
   GitFork, 
   Repeat, 
   Users, 
+  DraftingCompass, // For Geometry
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -46,7 +47,7 @@ export const navItems: NavItem[] = [
       {
         title: 'Binary Converter',
         href: '/binary-game',
-        icon: Brain,
+        icon: Binary, // Changed from Brain for consistency
         description: 'Learn binary with an 8/16-bit interactive game.',
       },
       {
@@ -89,7 +90,7 @@ export const navItems: NavItem[] = [
       {
         title: 'Prime Tester',
         href: '/tools/prime-tester',
-        icon: Binary,
+        icon: Search, // More fitting than Binary for "testing"
         description: 'Test numbers for primality and find factors.',
       },
       {
@@ -147,13 +148,13 @@ export const navItems: NavItem[] = [
       {
         title: 'Python Foundations',
         href: '/lessons/python-foundations',
-        icon: FileCode,
+        icon: FileCode, // Python logo often uses a file/code icon
         description: 'Learn core Python concepts step by step.',
       },
       {
         title: 'JavaScript Essentials',
         href: '/lessons/javascript-essentials',
-        icon: CodeIcon, 
+        icon: CodeIcon, // Generic code icon for JS
         description: 'Master fundamental JavaScript concepts.',
       }
     ]
@@ -165,10 +166,7 @@ export const featureCards: FeatureCardItem[] = [
     title: 'Binary Converter Game',
     description: 'Master binary numbers with our interactive 8-bit and 16-bit converter game. Toggle bits, see instant decimal and hex conversions, and test your skills in game mode!',
     href: '/binary-game',
-    icon: Brain,
-    imageSrc: 'https://picsum.photos/seed/binarygame/600/400',
-    imageAlt: 'Binary game interface with toggles and lights',
-    dataAiHint: 'code symbols',
+    icon: Binary, // Changed from Brain
     ctaLabel: 'Play Now',
   },
   {
@@ -176,9 +174,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Embark on your Python journey! Learn the fundamentals with interactive lessons, a code sandbox, and gamified challenges.',
     href: '/lessons/python-foundations',
     icon: FileCode,
-    imageSrc: 'https://picsum.photos/seed/pythoncourse/600/400',
-    imageAlt: 'Python code on a screen',
-    dataAiHint: 'code',
     ctaLabel: 'Start Learning',
   },
    {
@@ -186,9 +181,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Dive into JavaScript! Interactive lessons, a live code sandbox, and practical exercises to build your web development skills.',
     href: '/lessons/javascript-essentials',
     icon: CodeIcon,
-    imageSrc: 'https://picsum.photos/seed/javascriptcourse/600/400',
-    imageAlt: 'JavaScript code on a screen',
-    dataAiHint: 'code',
     ctaLabel: 'Learn JS',
   },
   {
@@ -196,9 +188,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Explore sorting, searching, graph traversal, and recursion with interactive visualizations and simulations. Understand algorithms step-by-step.',
     href: '/tools/algorithm-arena',
     icon: BrainCircuit,
-    imageSrc: 'https://picsum.photos/seed/algorithmmarena/600/400',
-    imageAlt: 'Abstract representation of algorithms and logic flows',
-    dataAiHint: 'logic symbols',
     ctaLabel: 'Explore Arena',
   },
   {
@@ -206,9 +195,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Discover how complex periodic functions can be represented as a sum of simple sine waves. Adjust the number of terms and see the approximation change in real-time with animated epicycles.',
     href: '/tools/fourier-series',
     icon: FunctionSquare,
-    imageSrc: 'https://picsum.photos/seed/fourier/600/400',
-    imageAlt: 'Animated epicycles forming a square wave',
-    dataAiHint: 'math physics',
     ctaLabel: 'Visualize Series',
   },
   {
@@ -216,9 +202,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Explore the unit circle dynamically. Drag the angle, see radians, degrees, and trigonometric values (sin, cos, tan) update in real-time. Visualize the linked sine wave.',
     href: '/unit-circle',
     icon: Orbit,
-    imageSrc: 'https://picsum.photos/seed/unitcircletool/600/400',
-    imageAlt: 'Unit circle diagram with sine wave',
-    dataAiHint: 'math symbols',
     ctaLabel: 'Explore Circle',
   },
   {
@@ -226,19 +209,13 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Visualize calculus concepts. Input functions, explore graphs, derivatives (as tangent lines), and integrals (area under curve) with an interactive slider and customizable graph bounds.',
     href: '/calculus-playground',
     icon: Sigma,
-    imageSrc: 'https://picsum.photos/seed/calculustool/600/400',
-    imageAlt: 'Graph of a function with tangent line and shaded area',
-    dataAiHint: 'math symbols',
     ctaLabel: 'Start Plotting',
   },
   {
     title: 'Prime Tester',
     description: 'Test numbers for primality, find their factors, and explore sequences of prime numbers. A great tool for understanding number theory basics.',
     href: '/tools/prime-tester',
-    icon: Binary,
-    imageSrc: 'https://picsum.photos/seed/primetester/600/400',
-    imageAlt: 'Abstract representation of prime numbers or number grid',
-    dataAiHint: 'math symbols',
+    icon: Search, // Using search icon
     ctaLabel: 'Test Primes',
   },
   {
@@ -246,9 +223,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Challenge your mental math skills! Solve a variety of arithmetic and logic problems against the clock. Improve your speed and accuracy.',
     href: '/tools/math-battle',
     icon: Zap,
-    imageSrc: 'https://picsum.photos/seed/mathbattle/600/400',
-    imageAlt: 'Dynamic display of math problems and scores',
-    dataAiHint: 'math',
     ctaLabel: 'Start Battle',
   },
   {
@@ -256,9 +230,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Learn hexadecimal conversion by converting decimal numbers (0-255) to two-digit hex values. Select digits from a grid and test your understanding in challenge or learn mode.',
     href: '/hex-boxes',
     icon: Puzzle,
-    imageSrc: 'https://picsum.photos/seed/hexgame/600/400',
-    imageAlt: 'Hexadecimal digit selection grid',
-    dataAiHint: 'code symbols',
     ctaLabel: 'Play Hex Game',
   },
   {
@@ -266,9 +237,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Challenge your fraction arithmetic! Solve expressions by choosing the correct simplified answer from multiple choices. Difficulty increases with each turn.',
     href: '/quick-math/fraction-duel',
     icon: TestTubeDiagonal,
-    imageSrc: 'https://picsum.photos/seed/fractiongame/600/400',
-    imageAlt: 'Fraction expression with multiple choice answers',
-    dataAiHint: 'math symbols',
     ctaLabel: 'Start Duel',
   },
   {
@@ -276,9 +244,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Balance weights on virtual scales to intuitively understand ratios and proportions. Experiment with different weights and see how equivalent ratios are formed.',
     href: '/quick-math/ratio-scales',
     icon: Scale,
-    imageSrc: 'https://picsum.photos/seed/ratiogame/600/400',
-    imageAlt: 'Balance scale with weights',
-    dataAiHint: 'math symbols',
     ctaLabel: 'Explore Ratios',
   },
   {
@@ -286,9 +251,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Match Python code snippets to their correct output. A fun way to test your understanding of Python execution.',
     href: '/lessons/python-foundations/output-match',
     icon: Target,
-    imageSrc: 'https://picsum.photos/seed/pyoutputchallenge/600/400',
-    imageAlt: 'Python code and output comparison',
-    dataAiHint: 'code',
     isComingSoon: false, 
     ctaLabel: 'Try Challenge',
   },
@@ -297,9 +259,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Can you spot the syntax errors? Sharpen your Python debugging skills by identifying mistakes in code.',
     href: '/lessons/python-foundations/syntax-spotter',
     icon: SearchCode,
-    imageSrc: 'https://picsum.photos/seed/pysyntaxchallenge/600/400',
-    imageAlt: 'Python code with highlighted errors',
-    dataAiHint: 'code',
     isComingSoon: false, 
     ctaLabel: 'Spot Errors',
   },
@@ -308,9 +267,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Fix broken Python code! Apply your knowledge to debug real-world-like scenarios and make the code run.',
     href: '/lessons/python-foundations/debug-it',
     icon: Wrench,
-    imageSrc: 'https://picsum.photos/seed/pydebugchallenge/600/400',
-    imageAlt: 'Python code with debugging tools',
-    dataAiHint: 'code',
     isComingSoon: false, 
     ctaLabel: 'Debug Code',
   },
@@ -319,9 +275,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Match JavaScript code snippets to their correct console output. Test your JS execution knowledge.',
     href: '/lessons/javascript-essentials/output-match',
     icon: Target, 
-    imageSrc: 'https://picsum.photos/seed/jsoutputchallenge/600/400',
-    imageAlt: 'JavaScript code and console output comparison',
-    dataAiHint: 'code',
     isComingSoon: false,
     ctaLabel: 'Try JS Challenge',
   },
@@ -330,9 +283,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Spot syntax errors in JavaScript code. A great way to improve your attention to detail.',
     href: '/lessons/javascript-essentials/syntax-spotter',
     icon: SearchCode,
-    imageSrc: 'https://picsum.photos/seed/jssyntaxchallenge/600/400',
-    imageAlt: 'JavaScript code with error highlighting',
-    dataAiHint: 'code',
     isComingSoon: false,
     ctaLabel: 'Spot JS Errors',
   },
@@ -341,9 +291,6 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Fix buggy JavaScript code! Use the in-browser sandbox to test and correct the snippets.',
     href: '/lessons/javascript-essentials/debug-it',
     icon: Wrench,
-    imageSrc: 'https://picsum.photos/seed/jsdebugchallenge/600/400',
-    imageAlt: 'JavaScript code in a debugger interface',
-    dataAiHint: 'code',
     isComingSoon: false,
     ctaLabel: 'Debug JS Code',
   },
@@ -352,11 +299,11 @@ export const featureCards: FeatureCardItem[] = [
 export const siteConfig = {
   name: "Plenty of π",
   description: "Interactive tools and engaging lessons to make learning math and computer science fun and accessible.",
-  url: "https://example.com", 
-  ogImage: "https://example.com/og.jpg", 
+  url: "https://example.com", // Replace with your actual domain
+  ogImage: "https://example.com/og.jpg", // Replace with your actual OG image URL
   links: {
-    twitter: "https://twitter.com/example", 
-    github: "https://github.com/example/plenty-of-pi", 
+    twitter: "https://twitter.com/example", // Replace with your Twitter if any
+    github: "https://github.com/example/plenty-of-pi", // Replace with your GitHub if any
   },
   navItems, 
   featureCards, 

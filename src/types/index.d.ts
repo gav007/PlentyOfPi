@@ -7,6 +7,7 @@ export type { OutputMatchQuestionJS, SyntaxSpotterProblemJS, DebugItChallengeJS 
 export type { Expression, ExpressionPlotData, GraphDomain, GraphRange } from './graphing'; // Re-export graphing types
 export type { SortAlgorithmType, SortStep } from './sort-algorithms'; // Added for sorting visualizer
 export type { SearchAlgorithmType, SearchStep } from './search-algorithms';
+export type { RecursionStep, CallStackFrame, HanoiPegsState, HanoiMove } from './recursion-visualizer';
 
 
 export type NavItem = {
@@ -20,17 +21,15 @@ export type NavItem = {
   subItems?: NavItem[]; 
 };
 
-export type FeatureCardItem = {
+export interface FeatureCardItem {
   title: string;
   description: string;
   href: string;
-  icon?: LucideIcon; // Allow any LucideIcon
-  imageSrc?: string;
-  imageAlt?: string;
-  dataAiHint?: string;
-  ctaLabel?: string;
+  icon?: LucideIcon;
   isComingSoon?: boolean;
-};
+  ctaLabel?: string;
+}
+
 
 // Types for Fraction Duel Game (kept for other parts of the app)
 export interface FractionValue {
@@ -60,4 +59,3 @@ export interface GameState {
 }
 
     
-
