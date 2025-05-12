@@ -14,14 +14,18 @@ declare global {
   }
 }
 
-const STARTER_CODE = `print("Hello, Plenty of π!")
+const DEFAULT_STARTER_CODE = `print("Hello, Plenty of π!")
 
 # Try your Python code here
 for i in range(5):
   print(f"Count: {i}")`;
 
-export default function PythonSandbox() {
-  const [code, setCode] = useState<string>(STARTER_CODE);
+interface PythonSandboxProps {
+  initialCode?: string;
+}
+
+export default function PythonSandbox({ initialCode = DEFAULT_STARTER_CODE }: PythonSandboxProps) {
+  const [code, setCode] = useState<string>(initialCode);
   const [output, setOutput] = useState<string>('');
   const [executionError, setExecutionError] = useState<string | null>(null); // For Python execution errors
   const [pyodideLoadingError, setPyodideLoadingError] = useState<string | null>(null); // For Pyodide loading errors
@@ -38,7 +42,6 @@ export default function PythonSandbox() {
         if (!document.getElementById('pyodide-script')) {
           const script = document.createElement('script');
           script.id = 'pyodide-script';
-          // Use specified Pyodide version
           script.src = 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js';
           script.async = true;
           document.head.appendChild(script);
@@ -61,13 +64,16 @@ export default function PythonSandbox() {
         if (!isMounted) return;
         console.log("Loading Pyodide runtime...");
         const pyodide = await window.loadPyodide({
-          // Use specified Pyodide version indexURL
           indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/',
         });
         if (!isMounted) return;
         pyodideRef.current = pyodide;
         console.log("Pyodide runtime loaded successfully.");
-        setOutput('Pyodide Loaded. Ready to execute Python code.');
+        if (initialCode === DEFAULT_STARTER_CODE) { // Only set default output if default code is used
+            setOutput('Pyodide Loaded. Ready to execute Python code.');
+        } else {
+            setOutput(''); // For specific starter code, start with blank output
+        }
         setPyodideLoadingError(null);
       } catch (err) {
         console.error('Failed to load Pyodide:', err);
@@ -88,7 +94,7 @@ export default function PythonSandbox() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialCode]); // Add initialCode to dependency array
 
   useEffect(() => {
     if (outputRef.current) {
@@ -123,21 +129,19 @@ export default function PythonSandbox() {
       await pyodideRef.current.runPythonAsync(code);
       
       let finalOutput = '';
-      // Ensure \n results in newlines by directly using the captured string
-      if (capturedOutput) finalOutput += capturedOutput; // Use raw output
+      if (capturedOutput) finalOutput += capturedOutput;
       if (capturedError) {
-        if (finalOutput && !finalOutput.endsWith('\n')) finalOutput += '\n'; // Add newline if stdout exists
-        finalOutput += '--- Python Errors ---\n' + capturedError; // Use raw error
+        if (finalOutput && !finalOutput.endsWith('\n')) finalOutput += '\n';
+        finalOutput += '--- Python Errors ---\n' + capturedError;
         setExecutionError('Execution finished with Python errors. See console for details.'); 
       }
       
       const executionMessageOnly = output === 'Executing code...\n';
-      if (finalOutput.trim() || (!executionMessageOnly && finalOutput === '')) { // if there's any output, or if it was not just "executing" and output is truly empty
+      if (finalOutput.trim() || (!executionMessageOnly && finalOutput === '')) {
         setOutput(finalOutput);
       } else if (executionMessageOnly && !finalOutput.trim()) {
          setOutput('Execution finished with no output.');
       }
-
 
     } catch (err) {
       console.error('Error executing Python code with Pyodide:', err);
@@ -150,12 +154,16 @@ export default function PythonSandbox() {
   };
 
   const handleResetCode = () => {
-    setCode(STARTER_CODE);
+    setCode(initialCode); // Reset to the initialCode prop
     setExecutionError(null);
     if (pyodideLoadingError) {
         setOutput(''); 
     } else if (pyodideRef.current) {
-        setOutput('Pyodide Loaded. Ready to execute Python code.');
+        if (initialCode === DEFAULT_STARTER_CODE) {
+            setOutput('Pyodide Loaded. Ready to execute Python code.');
+        } else {
+            setOutput(''); // For specific starter code, reset to blank output
+        }
     } else {
         setOutput('Pyodide is loading...');
     }
@@ -168,7 +176,11 @@ export default function PythonSandbox() {
           if (window.loadPyodide) {
             const pyodide = await window.loadPyodide({indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/'});
             pyodideRef.current = pyodide;
-            setOutput('Pyodide Loaded. Ready to execute Python code.');
+             if (initialCode === DEFAULT_STARTER_CODE) {
+                setOutput('Pyodide Loaded. Ready to execute Python code.');
+            } else {
+                setOutput('');
+            }
           } else {
             throw new Error("loadPyodide function not available on window.");
           }
@@ -184,7 +196,8 @@ export default function PythonSandbox() {
     }
   };
   
-  const displayPlaceholder = isPyodideLoading ? "Pyodide is loading, please wait..." : pyodideLoadingError ? "" : "Output will appear here...";
+  const displayPlaceholder = output || executionError || pyodideLoadingError ? '' : "Output will appear here...";
+
 
   return (
     <div className="space-y-4">
@@ -231,7 +244,6 @@ export default function PythonSandbox() {
             </pre>
           </div>
         )}
-        {/* Ensure <pre> tag with whitespace-pre-wrap for correct newline rendering */}
         <pre
           ref={outputRef}
           id="python-output-console"
@@ -239,7 +251,7 @@ export default function PythonSandbox() {
           aria-label="Python code output console"
           role="log"
         >
-          {output || (!pyodideLoadingError && !executionError) ? output : displayPlaceholder}
+          {output || (!pyodideLoadingError && !executionError && displayPlaceholder) ? output : displayPlaceholder}
         </pre>
       </div>
        <p className="text-xs text-muted-foreground mt-2">
@@ -248,3 +260,4 @@ export default function PythonSandbox() {
     </div>
   );
 }
+

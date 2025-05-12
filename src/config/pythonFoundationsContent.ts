@@ -150,7 +150,7 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
     labs: [
       {
-        slug: 'lab-2-1-variable-play', // Updated slug to match convention
+        slug: 'lab-2-1-variable-play',
         title: 'Lab 2.1: Variable Play & Simple Calculator',
         description: 'Create a program that asks the user for two numbers and then prints their sum, difference, product, and quotient.',
         starterCode: 'num1_str = input("Enter first number: ")\nnum2_str = input("Enter second number: ")\n\n# Convert inputs to numbers (integers or floats)\n# Example: num1 = float(num1_str)\n# Your code here for num1 and num2\n\n# Perform calculations\n# sum_result = num1 + num2\n# Your code here for difference, product, quotient\n\n# Print results\n# print("Sum:", sum_result)\n# Your code here to print other results',
@@ -485,17 +485,17 @@ const pythonFoundationsModules: LessonModule[] = [
       {
         slug: 'attributes-methods',
         subTitle: "Attributes and Methods",
-        text: "- **Attributes (Instance Variables):** Variables that belong to an object. They store the data or state of the object. Attributes are typically defined within the `__init__` method using `self.attribute_name = value`.\n  \`\`\`python\n  class Dog:\n    def __init__(self, name, age):\n      self.name = name  # Instance attribute\n      self.age = age    # Instance attribute\n  \`\`\`\n\n- **Methods:** Functions that belong to a class. They define the behavior or actions that an object can perform. Methods always have `self` as their first parameter.\n  \`\`\`python\n  class Dog:\n    def __init__(self, name, age):\n      self.name = name\n      self.age = age\n\n    def bark(self):  # Instance method\n      print(f\"{self.name} says Woof!\")\n  \`\`\`"
+        text: "- **Attributes (Instance Variables):** Variables that belong to an object. They store the data or state of the object. Attributes are typically defined within the `__init__` method using `self.attribute_name = value`.\n  ```python\n  class Dog:\n    def __init__(self, name, age):\n      self.name = name  # Instance attribute\n      self.age = age    # Instance attribute\n  ```\n\n- **Methods:** Functions that belong to a class. They define the behavior or actions that an object can perform. Methods always have `self` as their first parameter.\n  ```python\n  class Dog:\n    def __init__(self, name, age):\n      self.name = name\n      self.age = age\n\n    def bark(self):  # Instance method\n      print(f\"{self.name} says Woof!\")\n  ```"
       },
       {
         slug: 'using-objects-instantiation-methods',
         subTitle: "Using Objects: Instantiation and Calling Methods",
-        text: "- **Instantiation (Creating an Object):** You create an object by calling the class name as if it were a function, passing any arguments required by the `__init__` method (excluding `self`).\n  \`my_dog = Dog(\"Buddy\", 3)\`  # Creates an instance of the Dog class\n\n- **Accessing Attributes:** Use the dot notation: `object_name.attribute_name`.\n  \`print(my_dog.name)\`  # Output: Buddy\n\n- **Calling Methods:** Use the dot notation: `object_name.method_name()`.\n  \`my_dog.bark()\`  # Output: Buddy says Woof!"
+        text: "- **Instantiation (Creating an Object):** You create an object by calling the class name as if it were a function, passing any arguments required by the `__init__` method (excluding `self`).\n  `my_dog = Dog(\"Buddy\", 3)`  # Creates an instance of the Dog class\n\n- **Accessing Attributes:** Use the dot notation: `object_name.attribute_name`.\n  `print(my_dog.name)`  # Output: Buddy\n\n- **Calling Methods:** Use the dot notation: `object_name.method_name()`.\n  `my_dog.bark()`  # Output: Buddy says Woof!"
       },
       {
         slug: 'simple-inheritance-overview',
         subTitle: "Simple Inheritance (Brief Overview)",
-        text: "Inheritance is a way to form new classes using classes that have already been defined. The new classes, known as derived classes or child classes, inherit attributes and methods of the parent (or base/superclass) classes. This promotes code reuse.\nExample (very basic):\n\`\`\`python\nclass Animal:\n  def speak(self):\n    print(\"Animal speaks\")\n\nclass Cat(Animal):  # Cat inherits from Animal\n  def meow(self):\n    print(\"Meow\")\n\nmy_cat = Cat()\nmy_cat.speak()  # Inherited from Animal: Output: Animal speaks\nmy_cat.meow()   # Output: Meow\n\`\`\`\nThis module focuses on understanding the basics of classes and objects rather than deep inheritance concepts.",
+        text: "Inheritance is a way to form new classes using classes that have already been defined. The new classes, known as derived classes or child classes, inherit attributes and methods of the parent (or base/superclass) classes. This promotes code reuse.\nExample (very basic):\n```python\nclass Animal:\n  def speak(self):\n    print(\"Animal speaks\")\n\nclass Cat(Animal):  # Cat inherits from Animal\n  def meow(self):\n    print(\"Meow\")\n\nmy_cat = Cat()\nmy_cat.speak()  # Inherited from Animal: Output: Animal speaks\nmy_cat.meow()   # Output: Meow\n```\nThis module focuses on understanding the basics of classes and objects rather than deep inheritance concepts.",
       },
     ],
     labs: [

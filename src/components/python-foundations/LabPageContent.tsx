@@ -104,7 +104,7 @@ export default function LabPageContent({ lab, moduleTitle, prevLink, nextLink }:
 
         <div>
           <h3 className="text-xl font-semibold mb-3 mt-6 text-primary">Python Sandbox</h3>
-          <PythonSandbox />
+          <PythonSandbox initialCode={lab.starterCode ?? ''} />
         </div>
 
         <div className="mt-8 pt-6 border-t flex justify-between items-center">
