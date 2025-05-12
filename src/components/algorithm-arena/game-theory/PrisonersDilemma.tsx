@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import StrategySelector from './StrategySelector';
 import ArenaFeedback from '@/components/algorithm-arena/shared/ArenaFeedback';
-import ArenaControls from '@/components/algorithm-arena/shared/ArenaControls'; // Added
-import StepByStepExplanation from '@/components/algorithm-arena/shared/StepByStepExplanation'; // Added
+import ArenaControls from '@/components/algorithm-arena/shared/ArenaControls';
+import StepByStepExplanation from '@/components/algorithm-arena/shared/StepByStepExplanation';
 import { DilemmaChoice, RoundResult, PlayerStrategy, prisonersDilemmaPayoffs, GameRound } from './GameTheoryEngine';
 import { Users, Check, X, RotateCcw, Play } from 'lucide-react';
 
@@ -132,7 +132,7 @@ export default function PrisonersDilemma() {
                 <CardTitle className="text-lg mb-2">Payoff Matrix</CardTitle>
                 <table className="w-full text-xs text-center border-collapse">
                     <thead>
-                        <tr><th/> <th colSpan={2} className="border p-1">Opponent's Choice</th></tr>
+                        <tr><th></th><th colSpan={2} className="border p-1">Opponent's Choice</th></tr>
                         <tr><th className="border p-1">Your Choice</th> <th className="border p-1">Cooperate</th> <th className="border p-1">Defect</th></tr>
                     </thead>
                     <tbody>
@@ -147,7 +147,7 @@ export default function PrisonersDilemma() {
                             <td className="border p-1">{prisonersDilemmaPayoffs.Defect.Defect.join(', ')}</td>
                         </tr>
                     </tbody>
-                </table>
+                 </table> {/* Added closing table tag, which was missing from previous provided context - this may be the cause */}
                  <p className="text-xs mt-1 text-muted-foreground">(Your Score, Opponent's Score)</p>
             </Card>
              <StrategySelector
