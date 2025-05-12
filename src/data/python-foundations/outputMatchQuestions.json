@@ -1,0 +1,63 @@
+
+[
+  {
+    "code": "print(2 ** 3)",
+    "options": ["6", "8", "9", "23"],
+    "correct": "8",
+    "explanation": "The `**` operator is for exponentiation. So, 2 raised to the power of 3 is 2 * 2 * 2 = 8."
+  },
+  {
+    "code": "x = 10\ny = 3\nprint(x // y)",
+    "options": ["3.33", "3", "1", "0"],
+    "correct": "3",
+    "explanation": "The `//` operator is for floor division. 10 divided by 3 is 3.33..., and the floor value (largest integer less than or equal to it) is 3."
+  },
+  {
+    "code": "print('Hello' + 'World')",
+    "options": ["HelloWorld", "Hello World", "'HelloWorld'", "Error"],
+    "correct": "HelloWorld",
+    "explanation": "The `+` operator concatenates strings. 'Hello' and 'World' are joined without a space."
+  },
+  {
+    "code": "my_list = [1, 2, 3, 4]\nprint(my_list[1:3])",
+    "options": ["[1, 2, 3]", "[2, 3]", "[1, 2]", "[2, 3, 4]"],
+    "correct": "[2, 3]",
+    "explanation": "List slicing `my_list[start:end]` extracts elements from index `start` up to (but not including) index `end`. So, `my_list[1:3]` gets elements at index 1 and 2."
+  },
+  {
+    "code": "a = True\nb = False\nprint(a and not b)",
+    "options": ["True", "False", "Error", "None"],
+    "correct": "True",
+    "explanation": "`not b` evaluates to `not False`, which is `True`. Then, `a and True` (since `a` is `True`) evaluates to `True and True`, which is `True`."
+  },
+  {
+    "code": "for i in range(3):\n  print(i)",
+    "options": ["0\n1\n2", "1\n2\n3", "0\n1\n2\n3", "1\n2"],
+    "correct": "0\n1\n2",
+    "explanation": "`range(3)` generates numbers 0, 1, and 2. The loop prints each of these on a new line."
+  },
+  {
+    "code": "def greet(name):\n  return f\"Hi, {name}!\"\nprint(greet(\"AI\"))",
+    "options": ["Hi, AI!", "greet(\"AI\")", "Hi, {name}!", "Error"],
+    "correct": "Hi, AI!",
+    "explanation": "The function `greet` is called with the argument \"AI\". It returns an f-string 'Hi, AI!', which is then printed."
+  },
+  {
+    "code": "s = \"Python\"\nprint(s[-1])",
+    "options": ["P", "n", "s", "Error"],
+    "correct": "n",
+    "explanation": "Negative indexing in Python strings counts from the end. `s[-1]` refers to the last character, which is 'n'."
+  },
+  {
+    "code": "numbers = [10, 20, 5, 15]\nnumbers.sort()\nprint(numbers[0])",
+    "options": ["10", "20", "5", "15"],
+    "correct": "5",
+    "explanation": "The `sort()` method sorts the list in place in ascending order. After sorting, `numbers` becomes `[5, 10, 15, 20]`. `numbers[0]` is the first element, which is 5."
+  },
+  {
+    "code": "d = {\"apple\": 1, \"banana\": 2}\nprint(d.get(\"cherry\", 0))",
+    "options": ["1", "2", "0", "Error"],
+    "correct": "0",
+    "explanation": "The `get()` method for dictionaries returns the value for a key if it exists. If the key is not found, it returns the default value provided (in this case, 0). 'cherry' is not in the dictionary."
+  }
+]

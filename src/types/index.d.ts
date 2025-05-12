@@ -1,6 +1,7 @@
 
 import type { LucideIcon } from 'lucide-react';
 export type { LessonModule, LabItem, QuizItem, QuizQuestion } from './lessons'; // Re-export lesson types
+export type { OutputMatchQuestion, SyntaxSpotterProblem, DebugItChallenge } from './python-games'; // Re-export python game types
 
 export type NavItem = {
   title: string;

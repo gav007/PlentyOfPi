@@ -1,0 +1,63 @@
+
+[
+  {
+    "lines": [
+      "def add(a, b):",
+      "return a + b"
+    ],
+    "errorLineIndex": 1,
+    "explanation": "Indentation Error: The 'return' statement must be indented to be part of the 'add' function body."
+  },
+  {
+    "lines": [
+      "name = \"Alice\"",
+      "age = 30",
+      "print(\"Name: \" + name + \" Age: \" age)"
+    ],
+    "errorLineIndex": 2,
+    "explanation": "Syntax Error: Missing '+' operator for string concatenation before 'age'. It should be `\" Age: \" + str(age)` or use an f-string `f\" Age: {age}\"`."
+  },
+  {
+    "lines": [
+      "x = 10",
+      "if x > 5",
+      "  print(\"Greater\")"
+    ],
+    "errorLineIndex": 1,
+    "explanation": "Syntax Error: An 'if' statement must end with a colon ':'."
+  },
+  {
+    "lines": [
+      "numbers = [1, 2, 3",
+      "print(numbers[0])"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "Syntax Error: Unmatched bracket. The list 'numbers' is missing a closing ']'."
+  },
+  {
+    "lines": [
+      "count = 0",
+      "while count < 5:",
+      "print(count)",
+      "count += 1"
+    ],
+    "errorLineIndex": 2,
+    "explanation": "Indentation Error: The 'print(count)' statement (and 'count += 1') needs to be indented to be part of the 'while' loop body."
+  },
+  {
+    "lines": [
+      "message = 'Hello'",
+      "print(mesage)"
+    ],
+    "errorLineIndex": 1,
+    "explanation": "NameError (often caught as a syntax error by linters or implies one if variable isn't defined): The variable 'mesage' is misspelled. It should be 'message'."
+  },
+  {
+    "lines": [
+      "def calculate_area(length, width)",
+      "  return length * width"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "Syntax Error: The function definition `def calculate_area(length, width)` is missing a colon ':' at the end."
+  }
+]
