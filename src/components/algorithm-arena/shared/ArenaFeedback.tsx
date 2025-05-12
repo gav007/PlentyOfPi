@@ -2,7 +2,7 @@
 'use client';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle, XCircle, Info }_from_lucide-react'; // Ensure Info is imported
+import { CheckCircle, XCircle, Info } from 'lucide-react'; // Ensure Info is imported
 import { cn } from '@/lib/utils';
 
 interface ArenaFeedbackProps {
@@ -61,3 +61,4 @@ export default function ArenaFeedback({ type, title, message, className }: Arena
     </Alert>
   );
 }
+
