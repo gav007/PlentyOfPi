@@ -21,11 +21,7 @@ import {
   FileJson,
   LineChart,
   FunctionSquare,
-  Shapes, // For Geometry Tools category
-  Triangle,
-  Circle,
-  Square,
-  LayoutPanelLeft, // For Trapezium
+  // Shapes, Triangle, Circle, Square, LayoutPanelLeft removed as they are no longer used here
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -81,38 +77,6 @@ export const navItems: NavItem[] = [
         href: '/calculus-playground',
         icon: Sigma,
         description: 'Visualize functions, derivatives, and integrals.',
-      },
-      // Geometry tools moved to their own top-level category for better visibility
-    ],
-  },
-  {
-    title: 'Geometry', // New top-level category for direct access
-    href: '#', // This will be a dropdown trigger
-    icon: Shapes,
-    subItems: [
-      {
-        title: 'Triangle Calculator',
-        href: '/geometry/triangle',
-        icon: Triangle,
-        description: 'Calculate properties of triangles.',
-      },
-      {
-        title: 'Circle Calculator',
-        href: '/geometry/circle',
-        icon: Circle,
-        description: 'Calculate properties of circles.',
-      },
-      {
-        title: 'Square Calculator',
-        href: '/geometry/square',
-        icon: Square,
-        description: 'Calculate properties of squares.',
-      },
-      {
-        title: 'Trapezium Calculator',
-        href: '/geometry/trapezium',
-        icon: LayoutPanelLeft, // Using LayoutPanelLeft for Trapezium
-        description: 'Calculate properties of trapeziums.',
       },
     ],
   },
@@ -172,50 +136,6 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Graph of a function with tangent line and shaded area',
     dataAiHint: 'calculus graph',
     ctaLabel: 'Start Plotting',
-  },
-  {
-    title: 'Triangle Calculator',
-    description: 'Interactively calculate area, perimeter, angles, and more for triangles. Drag vertices or input values.',
-    href: '/geometry/triangle',
-    icon: Triangle,
-    imageSrc: 'https://picsum.photos/seed/triangletool/600/400',
-    imageAlt: 'Interactive triangle diagram',
-    dataAiHint: 'triangle geometry',
-    ctaLabel: 'Explore Triangles',
-    isComingSoon: false,
-  },
-  {
-    title: 'Circle Calculator',
-    description: 'Explore circles. Calculate area, circumference, and diameter with interactive inputs and visuals.',
-    href: '/geometry/circle',
-    icon: Circle,
-    imageSrc: 'https://picsum.photos/seed/circletool/600/400',
-    imageAlt: 'Interactive circle diagram',
-    dataAiHint: 'circle geometry',
-    ctaLabel: 'Explore Circles',
-    isComingSoon: false, 
-  },
-  {
-    title: 'Square Calculator',
-    description: 'Calculate area, perimeter, and diagonal of squares. Interactive resizing and visual feedback.',
-    href: '/geometry/square',
-    icon: Square,
-    imageSrc: 'https://picsum.photos/seed/squaretool/600/400',
-    imageAlt: 'Interactive square diagram',
-    dataAiHint: 'square geometry',
-    ctaLabel: 'Explore Squares',
-    isComingSoon: false,
-  },
-  {
-    title: 'Trapezium Calculator',
-    description: 'Work with trapeziums. Calculate area and other properties with dynamic inputs for bases and height.',
-    href: '/geometry/trapezium',
-    icon: LayoutPanelLeft,
-    imageSrc: 'https://picsum.photos/seed/trapeziumtool/600/400',
-    imageAlt: 'Interactive trapezium diagram',
-    dataAiHint: 'trapezium geometry',
-    ctaLabel: 'Explore Trapeziums',
-    isComingSoon: false,
   },
   {
     title: 'Hex Boxes Challenge',
