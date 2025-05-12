@@ -11,6 +11,7 @@ import ArenaCanvas from '@/components/algorithm-arena/shared/ArenaCanvas';
 import ArenaControls from '@/components/algorithm-arena/shared/ArenaControls';
 import StepByStepExplanation from '@/components/algorithm-arena/shared/StepByStepExplanation';
 import { Search as SearchIcon, RotateCcw, SlidersHorizontal } from 'lucide-react';
+import { Slider } from '@/components/ui/slider'; // Added import for Slider
 
 type SearchAlgorithmType = 'linear' | 'binary';
 const SEARCH_ALGORITHMS: { value: SearchAlgorithmType; label: string; description: string, complexity: string }[] = [
@@ -131,3 +132,4 @@ export default function SearchVisualizer() {
     </Card>
   );
 }
+
