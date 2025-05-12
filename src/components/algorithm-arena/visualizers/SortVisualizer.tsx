@@ -10,49 +10,56 @@ import { Slider } from '@/components/ui/slider';
 import ArenaCanvas from '@/components/algorithm-arena/shared/ArenaCanvas';
 import ArenaControls from '@/components/algorithm-arena/shared/ArenaControls';
 import StepByStepExplanation from '@/components/algorithm-arena/shared/StepByStepExplanation';
+import ComplexityDisplay from '@/components/algorithm-arena/shared/ComplexityDisplay'; // Import new component
 import { BarChartHorizontal, RotateCcw } from 'lucide-react';
-import type { SortAlgorithmType, SortStep } from '@/types/sort-algorithms'; // Assuming this type will be created
+import type { SortAlgorithmType, SortStep } from '@/types/sort-algorithms'; 
+import { cn } from '@/lib/utils';
 
-const ALGORITHMS: { value: SortAlgorithmType; label: string; description: string, complexity: string }[] = [
-  { value: 'bubble', label: 'Bubble Sort', description: 'Compares adjacent elements and swaps them if they are in the wrong order. Repeats until sorted. Simple but inefficient for large datasets.', complexity: 'O(n²)' },
-  { value: 'merge', label: 'Merge Sort', description: 'A divide-and-conquer algorithm. Divides the array into halves, sorts them, and then merges them. Efficient and stable.', complexity: 'O(n log n)' },
-  { value: 'quick', label: 'Quick Sort', description: 'Also divide-and-conquer. Picks a pivot, partitions the array around it. Recursively sorts partitions. Generally very fast.', complexity: 'O(n log n) avg, O(n²) worst' },
+const ALGORITHMS: { value: SortAlgorithmType; label: string; description: string, timeComplexity: string, spaceComplexity: string }[] = [
+  { value: 'bubble', label: 'Bubble Sort', description: 'Compares adjacent elements and swaps them if they are in the wrong order. Repeats until sorted. Simple but inefficient for large datasets.', timeComplexity: 'O(n²)', spaceComplexity: 'O(1)' },
+  { value: 'merge', label: 'Merge Sort', description: 'A divide-and-conquer algorithm. Divides the array into halves, sorts them, and then merges them. Efficient and stable.', timeComplexity: 'O(n log n)', spaceComplexity: 'O(n)' },
+  { value: 'quick', label: 'Quick Sort', description: 'Also divide-and-conquer. Picks a pivot, partitions the array around it. Recursively sorts partitions. Generally very fast.', timeComplexity: 'O(n log n)', spaceComplexity: 'O(log n)' },
 ];
 
 const INITIAL_ARRAY_SIZE = 15;
-const MAX_ARRAY_SIZE = 30; // Reduced for better visualization performance on complex sorts
+const MAX_ARRAY_SIZE = 30; 
 const MIN_ARRAY_SIZE = 5;
-const BASE_ANIMATION_DELAY_MS = 500; // Base delay for speed 3
+const BASE_ANIMATION_DELAY_MS = 600; 
 
 function generateRandomArray(size: number): number[] {
-  return Array.from({ length: size }, () => Math.floor(Math.random() * 95) + 5); // Values 5-100
+  return Array.from({ length: size }, () => Math.floor(Math.random() * 95) + 5); 
 }
 
-// --- Sorting Algorithm Logic ---
 function bubbleSortSteps(arr: number[]): SortStep[] {
   const steps: SortStep[] = [];
   const n = arr.length;
   let localArr = [...arr];
-  steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [], explanation: "Initial array." });
+  steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [], explanation: "Initial array state." });
 
   for (let i = 0; i < n - 1; i++) {
     let swappedInPass = false;
+    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: getSortedSuffix(n, i), explanation: `Starting pass ${i + 1}. Largest unsorted elements will "bubble" to the end.` });
     for (let j = 0; j < n - i - 1; j++) {
       steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [], sortedIndices: getSortedSuffix(n, i), explanation: `Comparing elements at index ${j} (${localArr[j]}) and ${j + 1} (${localArr[j+1]}).` });
       if (localArr[j] > localArr[j + 1]) {
-        steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [j,j+1], sortedIndices: getSortedSuffix(n, i), explanation: `Swapping ${localArr[j]} and ${localArr[j+1]}.` });
+        steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [j,j+1], sortedIndices: getSortedSuffix(n, i), explanation: `${localArr[j]} > ${localArr[j+1]}. Swapping.` });
         [localArr[j], localArr[j + 1]] = [localArr[j + 1], localArr[j]];
         swappedInPass = true;
-        steps.push({ array: [...localArr], comparing: [], swapping: [j,j+1], sortedIndices: getSortedSuffix(n, i), explanation: "Elements swapped." });
+        steps.push({ array: [...localArr], comparing: [], swapping: [j,j+1], sortedIndices: getSortedSuffix(n, i), explanation: `Elements at indices ${j} and ${j+1} swapped. Array: [${localArr.join(', ')}]` });
+      } else {
+         steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [], sortedIndices: getSortedSuffix(n, i), explanation: `${localArr[j]} <= ${localArr[j+1]}. No swap.` });
       }
     }
-    if (!swappedInPass) {
-        steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: Array.from({length: n}, (_, k) => k), explanation: "Array is sorted (no swaps in last pass)." });
+    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: getSortedSuffix(n, i + 1), explanation: `End of pass ${i + 1}. Element ${localArr[n-i-1]} is now in its sorted position.` });
+    if (!swappedInPass && i < n -1) { // Check if still relevant to break
+        steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: Array.from({length: n}, (_, k) => k), explanation: "No swaps in the last pass. Array is sorted." });
         break; 
     }
-    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: getSortedSuffix(n, i + 1), explanation: `End of pass ${i + 1}. Element ${localArr[n-i-1]} is in sorted position.` });
   }
-  steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: Array.from({length: n}, (_, k) => k), explanation: "Array fully sorted." });
+  // Ensure final step always marks all as sorted if loop completes fully
+  if (steps[steps.length - 1]?.explanation !== "No swaps in the last pass. Array is sorted.") {
+    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: Array.from({length: n}, (_, k) => k), explanation: "Array fully sorted." });
+  }
   return steps;
 }
 
@@ -64,12 +71,8 @@ function getSortedSuffix(n: number, passesCompleted: number): number[] {
     return sorted;
 }
 
-// Placeholder for other sort algorithms - to be implemented
 function mergeSortSteps(arr: number[]): SortStep[] { 
     const steps: SortStep[] = [{array: [...arr], comparing: [], swapping: [], sortedIndices: [], explanation: "Merge Sort not yet implemented. Initial array shown."}];
-    // Basic merge sort logic generating steps
-    // This would involve recursive calls and merging steps visualization
-    // For now, just show the final sorted array as a placeholder
     const sortedArr = [...arr].sort((a,b) => a-b);
     steps.push({array: [...sortedArr], comparing: [], swapping: [], sortedIndices: Array.from({length: arr.length}, (_,k)=>k), explanation: "Merge Sort (Placeholder) - Array sorted."});
     return steps;
@@ -88,7 +91,7 @@ export default function SortVisualizer() {
   const [arraySize, setArraySize] = useState<number>(INITIAL_ARRAY_SIZE);
   
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [speed, setSpeed] = useState<number>(3); // 1-5 (1=fastest, 5=slowest in typical sliders, but we'll invert for delay)
+  const [speed, setSpeed] = useState<number>(3); 
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [sortSteps, setSortSteps] = useState<SortStep[]>([]);
   
@@ -98,16 +101,17 @@ export default function SortVisualizer() {
   const algorithmDetails = ALGORITHMS.find(algo => algo.value === selectedAlgorithm);
 
   const generateAndSetSteps = useCallback(() => {
+    if (!arrayData || arrayData.length === 0) return; // Guard against empty arrayData
     let steps: SortStep[];
     switch (selectedAlgorithm) {
       case 'bubble':
         steps = bubbleSortSteps([...arrayData]);
         break;
       case 'merge':
-        steps = mergeSortSteps([...arrayData]); // Placeholder
+        steps = mergeSortSteps([...arrayData]); 
         break;
       case 'quick':
-        steps = quickSortSteps([...arrayData]); // Placeholder
+        steps = quickSortSteps([...arrayData]); 
         break;
       default:
         steps = [{ array: [...arrayData], comparing: [], swapping: [], sortedIndices: [], explanation: "Select an algorithm." }];
@@ -119,15 +123,14 @@ export default function SortVisualizer() {
   const resetArrayAndSteps = useCallback(() => {
     const newArray = generateRandomArray(arraySize);
     setArrayData(newArray);
-    // Steps will be regenerated by useEffect watching arrayData and selectedAlgorithm
   }, [arraySize]);
 
   useEffect(() => {
     resetArrayAndSteps();
-  }, [selectedAlgorithm, arraySize, resetArrayAndSteps]);
+  }, [arraySize, resetArrayAndSteps]); // Removed selectedAlgorithm as direct dependency for array regeneration
 
   useEffect(() => {
-    if (arrayData.length > 0) {
+    if (arrayData.length > 0) { // Only generate steps if arrayData is populated
         generateAndSetSteps();
     }
   }, [arrayData, selectedAlgorithm, generateAndSetSteps]);
@@ -135,13 +138,12 @@ export default function SortVisualizer() {
 
   useEffect(() => {
     if (isPlaying && currentStepIndex < sortSteps.length - 1) {
-      // Speed 1 = fastest (short delay), Speed 5 = slowest (long delay)
       const delay = BASE_ANIMATION_DELAY_MS / speed; 
       animationTimeoutRef.current = setTimeout(() => {
         setCurrentStepIndex(prev => prev + 1);
       }, delay);
     } else if (isPlaying && currentStepIndex >= sortSteps.length - 1) {
-      setIsPlaying(false); // Stop playing at the end
+      setIsPlaying(false); 
     }
     return () => {
       if (animationTimeoutRef.current) {
@@ -152,8 +154,8 @@ export default function SortVisualizer() {
 
 
   const handlePlay = () => {
-    if (currentStepIndex >= sortSteps.length - 1) { // If at end, reset and play
-      setCurrentStepIndex(0);
+    if (currentStepIndex >= sortSteps.length - 1 && sortSteps.length > 0) { 
+      generateAndSetSteps(); // This will reset steps and currentStepIndex to 0
     }
     setIsPlaying(true);
   };
@@ -162,21 +164,20 @@ export default function SortVisualizer() {
     if (currentStepIndex < sortSteps.length - 1) {
       setCurrentStepIndex(prev => prev + 1);
     }
-     setIsPlaying(false); // Pause if stepping manually
+     setIsPlaying(false); 
   };
   const handleReset = () => {
     setIsPlaying(false);
-    resetArrayAndSteps(); // This will also set currentStepIndex to 0 via generateAndSetSteps
+    resetArrayAndSteps(); 
   };
   
   const handleAlgorithmChange = (value: string) => {
-    setSelectedAlgorithm(value as AlgorithmType);
-    // State reset will be handled by useEffects
+    setSelectedAlgorithm(value as SortAlgorithmType);
+    // Array and steps will be regenerated by respective useEffects
   };
 
   const handleSizeChange = (value: number[]) => {
     setArraySize(value[0]);
-     // State reset will be handled by useEffects
   };
   
   const handleSpeedChange = (value: number) => {
@@ -213,8 +214,8 @@ export default function SortVisualizer() {
           <div className='col-span-1 md:col-span-2'>
             <div className="flex justify-between items-center mb-1">
               <Label htmlFor="size-slider" className="text-sm font-medium">Array Size: {arraySize}</Label>
-               <Button onClick={handleReset} variant="outline" size="sm" disabled={isPlaying}>
-                <RotateCcw className="mr-2 h-4 w-4" /> Regenerate Array
+               <Button onClick={handleReset} variant="outline" size="sm" disabled={isPlaying} className="px-2 py-1 h-auto text-xs">
+                <RotateCcw className="mr-1 h-3 w-3" /> Regenerate Array
               </Button>
             </div>
             <Slider
@@ -225,29 +226,35 @@ export default function SortVisualizer() {
               value={[arraySize]}
               onValueChange={handleSizeChange}
               disabled={isPlaying}
+              className="w-full"
             />
           </div>
         </div>
 
-        <ArenaCanvas className="min-h-[300px] !bg-background"> {/* Ensure canvas background allows bar visibility */}
+        <ArenaCanvas className="min-h-[300px] !bg-background">
           <div className="flex items-end justify-center h-full gap-0.5 px-2 overflow-hidden" aria-label="Array visualization">
             {currentArrayToDisplay.map((value, index) => {
               const isComparing = currentDisplayStep.comparing?.includes(index);
               const isSwapping = currentDisplayStep.swapping?.includes(index);
               const isSorted = currentDisplayStep.sortedIndices?.includes(index);
               
-              let barColorClass = 'bg-primary'; // Default
-              if (isSorted) barColorClass = 'bg-green-500'; // Sorted
-              if (isSwapping) barColorClass = 'bg-red-500 animate-pulse'; // Swapping
-              else if (isComparing) barColorClass = 'bg-yellow-500'; // Comparing
+              let barColorClass = 'bg-primary/70'; 
+              if (isSorted) barColorClass = 'bg-green-500/80'; 
+              
+              // Swapping takes precedence for visual, then comparing
+              if (isSwapping) barColorClass = 'bg-red-500 animate-pulse'; 
+              else if (isComparing) barColorClass = 'bg-yellow-400'; 
 
               return (
                 <div
                   key={index}
-                  className={`transition-all duration-100 ease-in-out rounded-t-sm ${barColorClass}`}
+                  className={cn(
+                    "transition-all duration-150 ease-in-out rounded-t-sm",
+                    barColorClass
+                  )}
                   style={{ 
-                    height: `${(value / 105) * 100}%`, // Max value 100, allow slight overflow for 100 to show
-                    width: `${Math.max(1, 100 / currentArrayToDisplay.length - 1)}%` // Ensure some width even for many bars
+                    height: `${Math.max(5, (value / 105) * 100)}%`, // Ensure min height for visibility
+                    width: `${Math.max(1, 100 / currentArrayToDisplay.length - 1)}%` 
                   }}
                   title={`Value: ${value}, Index: ${index}`}
                 ></div>
@@ -264,7 +271,7 @@ export default function SortVisualizer() {
           isPlaying={isPlaying}
           speedValue={speed}
           onSpeedChange={handleSpeedChange}
-          canPlay={!isPlaying && (sortSteps.length > 0 && currentStepIndex < sortSteps.length -1)}
+          canPlay={!isPlaying && (sortSteps.length > 0 && (currentStepIndex < sortSteps.length -1 || sortSteps.length === 0))}
           canPause={isPlaying}
           canStep={!isPlaying && (sortSteps.length > 0 && currentStepIndex < sortSteps.length -1)}
           onToggleExplanation={() => setShowExplanationPanel(prev => !prev)}
@@ -272,14 +279,19 @@ export default function SortVisualizer() {
 
         <StepByStepExplanation
           isOpen={showExplanationPanel}
-          title={algorithmDetails?.label || "Algorithm Explanation"}
+          title={`${algorithmDetails?.label || "Algorithm"} Explanation`}
           currentStepExplanation={
             <>
               <div className="prose prose-sm dark:prose-invert max-w-none">
                 <p className="font-semibold">How it works:</p>
                 <p className="text-xs mb-2">{algorithmDetails?.description || 'Select an algorithm.'}</p>
-                <p className="font-semibold">Complexity:</p>
-                <p className="text-xs">{algorithmDetails?.complexity || '-'}</p>
+                
+                {algorithmDetails && (
+                  <div className="grid grid-cols-2 gap-2 my-2">
+                    <ComplexityDisplay complexity={algorithmDetails.timeComplexity} type="Time" />
+                    <ComplexityDisplay complexity={algorithmDetails.spaceComplexity} type="Space" />
+                  </div>
+                )}
               </div>
               {currentDisplayStep.explanation && (
                 <p className="mt-2 pt-2 border-t text-accent-foreground/80 text-xs">Current Action: {currentDisplayStep.explanation}</p>

@@ -18,6 +18,8 @@ const PLOT_POINTS = 200; // Number of points to plot for f(x)
 function numericalDerivative(fn: (x: number) => number, x: number, h: number = 0.0001): number {
   if (h === 0) return NaN;
   try {
+    // Ensure x is finite before attempting calculations
+    if (!isFinite(x)) return NaN;
     const f_x_plus_h = fn(x + h);
     const f_x_minus_h = fn(x - h);
     if (isNaN(f_x_plus_h) || isNaN(f_x_minus_h) || !isFinite(f_x_plus_h) || !isFinite(f_x_minus_h)) return NaN;
@@ -29,18 +31,16 @@ function numericalDerivative(fn: (x: number) => number, x: number, h: number = 0
 
 function trapezoidalRule(fn: (x: number) => number, a: number, b: number, n: number = 100): number {
   if (n <= 0) return NaN;
-  if (a === b) return 0; // No area if interval is zero width
+  // Ensure a and b are finite
+  if (!isFinite(a) || !isFinite(b)) return NaN;
+  if (a === b) return 0;
   const h = (b - a) / n;
   let sum = 0;
   try {
     const fa = fn(a);
     const fb = fn(b);
 
-    // Ensure start and end points are valid for integration
     if (isNaN(fa) || !isFinite(fa) || isNaN(fb) || !isFinite(fb)) {
-       // If the function is undefined at the boundaries, we can't integrate robustly with this simple method.
-       // One option is to return NaN, another is to try to find the closest valid points.
-       // For now, returning NaN for simplicity if boundaries are problematic.
        return NaN;
     }
 
@@ -50,9 +50,6 @@ function trapezoidalRule(fn: (x: number) => number, a: number, b: number, n: num
       const x_i = a + i * h;
       const f_x_i = fn(x_i);
       if (isNaN(f_x_i) || !isFinite(f_x_i)) {
-         // If any intermediate point is NaN, the integral is likely undefined or requires more advanced handling.
-         // Consider skipping the point or returning NaN. For now, skipping.
-         // A more robust solution might involve adaptive step sizes or handling discontinuities.
          continue;
       }
       sum += f_x_i;
@@ -109,11 +106,17 @@ export default function CalculusPlaygroundCard() {
 
   const compiledFunc = React.useMemo(() => {
     try {
-      const node = math.parse(functionStr);
+      // Pre-process function string for common mathjs compatibility
+      // e.g. arctan -> atan, ensure 'e' is math.e if not contextually available
+      let processedFuncStr = functionStr.replace(/\barctan\b/g, 'atan');
+      // math.js typically handles 'e' as Euler's number in its parser context
+      // No explicit replacement for 'e' or 'ln' (as log) needed if math.js standard functions are used.
+      // 'abs' is standard.
+      const node = math.parse(processedFuncStr);
       setErrorMessage(null);
       return node.compile();
     } catch (e) {
-      setErrorMessage(e instanceof Error ? `Invalid function: ${e.message}` : 'Invalid function input.');
+      setErrorMessage(e instanceof Error ? `Invalid function: ${e.message}. Ensure valid syntax (e.g., use 'atan' for arctan, '*' for multiplication).` : 'Invalid function input.');
       return null;
     }
   }, [functionStr]);
@@ -121,7 +124,12 @@ export default function CalculusPlaygroundCard() {
   const evaluateAt = React.useCallback((x: number): number => {
     if (!compiledFunc) return NaN;
     try {
-      const result = compiledFunc.evaluate({ x });
+       // Provide 'e' explicitly in scope if mathjs compile doesn't pick it up contextually for some expressions
+      const result = compiledFunc.evaluate({ x, e: Math.E });
+      // Check for complex numbers, which Recharts doesn't plot. Return NaN for them.
+      if (typeof result === 'object' && result.isComplex) {
+        return NaN;
+      }
       return (typeof result === 'number' && isFinite(result)) ? result : NaN;
     } catch { return NaN; }
   }, [compiledFunc]);
@@ -183,8 +191,13 @@ export default function CalculusPlaygroundCard() {
         yMaxResolved = mid + 5;
         if (yMinResolved === yMaxResolved) { yMinResolved -= 0.5; yMaxResolved += 0.5; }
     }
+    
+    // Ensure yMin and yMax are numbers for the plot display
+    const finalYMin = typeof yMinResolved === 'string' ? -10 : yMinResolved;
+    const finalYMax = typeof yMaxResolved === 'string' ? 10 : yMaxResolved;
 
-    return { xMin: parsedDomain.xMin, xMax: parsedDomain.xMax, yMin: yMinResolved, yMax: yMaxResolved };
+
+    return { xMin: parsedDomain.xMin, xMax: parsedDomain.xMax, yMin: finalYMin, yMax: finalYMax };
   }, [parsedDomain, plotData]);
 
 
@@ -200,13 +213,13 @@ export default function CalculusPlaygroundCard() {
     return points;
   }, [evaluateAt, compiledFunc, showFullDerivativeCurve, effectiveDomain.xMin, effectiveDomain.xMax]);
 
-  const areaData = React.useMemo(() => {
-    if (!plotData || plotData.length === 0) return [];
+  const areaDataForPlot = React.useMemo(() => {
+    if (!plotData || plotData.length === 0 || !showArea) return [];
     return plotData.map((p) => ({
       x: p.x,
       y: (p.y !== null && isFinite(p.y) && p.x >= Math.min(0, xValue) && p.x <= Math.max(0, xValue)) ? p.y : 0,
     }));
-  }, [plotData, xValue]);
+  }, [plotData, xValue, showArea]);
 
 
   const handleXValueChangeByClick = (newX: number) => {
@@ -239,7 +252,7 @@ export default function CalculusPlaygroundCard() {
         <PlotDisplay
           plotData={plotData}
           derivativePlotData={derivativePlotData}
-          areaData={areaData}
+          areaData={areaDataForPlot}
           xValue={xValue}
           fxValue={fx}
           fpxValue={fpx}
@@ -255,7 +268,7 @@ export default function CalculusPlaygroundCard() {
           onValueChange={setXValue}
           min={effectiveDomain.xMin}
           max={effectiveDomain.xMax}
-          step={(effectiveDomain.xMax - effectiveDomain.xMin) / PLOT_POINTS}
+          step={(effectiveDomain.xMax - effectiveDomain.xMin) / PLOT_POINTS || 0.01}
         />
 
         <ResultPanel xValue={xValue} fxValue={fx} fpxValue={fpx} integralValue={integralVal} />
