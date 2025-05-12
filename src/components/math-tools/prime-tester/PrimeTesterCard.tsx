@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Binary, CheckCircle, XCircle, AlertTriangle, ListNumbers, Forward } from 'lucide-react';
+import { Binary, CheckCircle, XCircle, AlertTriangle, List, Forward } from 'lucide-react'; // Changed ListNumbers to List
 import HowToUseToggle from '@/components/ui/HowToUseToggle';
 import { isPrime, getFactors, getNextPrimes } from '@/lib/primeUtils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -121,7 +121,7 @@ export default function PrimeTesterCard() {
 
             <div>
               <h4 className="font-semibold text-muted-foreground flex items-center gap-1 mb-1">
-                <ListNumbers className="w-4 h-4"/>Factors:
+                <List className="w-4 h-4"/>Factors:
               </h4>
               <p className="text-foreground pl-2">
                 {result.factors.length > 0 ? result.factors.join(', ') : 'None (except 1 and itself if prime, or it is 0 or 1)'}
