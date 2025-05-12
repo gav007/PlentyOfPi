@@ -8,50 +8,40 @@ import StrategySelector from './StrategySelector';
 import ArenaFeedback from '@/components/algorithm-arena/shared/ArenaFeedback';
 import ArenaControls from '@/components/algorithm-arena/shared/ArenaControls';
 import StepByStepExplanation from '@/components/algorithm-arena/shared/StepByStepExplanation';
-import { DilemmaChoice, RoundResult, PlayerStrategy, prisonersDilemmaPayoffs, GameRound } from './GameTheoryEngine';
+import { 
+    DilemmaChoice, 
+    RoundResult, 
+    PlayerStrategy, 
+    prisonersDilemmaPayoffs, 
+    GameRound,
+    AI_STRATEGIES_MAP 
+} from './GameTheoryEngine';
 import { Users, Check, X, RotateCcw, Play } from 'lucide-react';
 
-// Example AI Strategies (could be moved to GameTheoryEngine.ts)
-const ALWAYS_COOPERATE: PlayerStrategy = {
-  name: 'Always Cooperate',
-  choose: () => 'Cooperate',
-};
-const ALWAYS_DEFECT: PlayerStrategy = {
-  name: 'Always Defect',
-  choose: () => 'Defect',
-};
-const TIT_FOR_TAT: PlayerStrategy = {
-  name: 'Tit-for-Tat',
-  choose: (history) => (history.length === 0 ? 'Cooperate' : history[history.length - 1].playerAChoice), // Assumes player A is the user
-};
-
-const AI_STRATEGIES: Record<string, PlayerStrategy> = {
-  alwaysCooperate: ALWAYS_COOPERATE,
-  alwaysDefect: ALWAYS_DEFECT,
-  titForTat: TIT_FOR_TAT,
-};
-const DEFAULT_AI_STRATEGY = 'titForTat';
+const DEFAULT_AI_STRATEGY_ID = 'titForTat';
 const MAX_ROUNDS = 10;
-
 
 export default function PrisonersDilemma() {
   const [playerChoice, setPlayerChoice] = useState<DilemmaChoice | null>(null);
-  const [opponentStrategyId, setOpponentStrategyId] = useState<string>(DEFAULT_AI_STRATEGY);
+  const [opponentStrategyId, setOpponentStrategyId] = useState<string>(DEFAULT_AI_STRATEGY_ID);
   const [currentRound, setCurrentRound] = useState<number>(1);
-  const [history, setHistory] = useState<RoundResult[]>([]);
+  const [history, setHistory] = useState<RoundResult[]>([]); // History of Player B's choices vs Player A
+  const [playerAChoices, setPlayerAChoices] = useState<DilemmaChoice[]>([]); // History of Player A's choices
+
   const [playerScore, setPlayerScore] = useState<number>(0);
   const [opponentScore, setOpponentScore] = useState<number>(0);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'info'; title: string; message: string } | null>(null);
   const [showExplanationPanel, setShowExplanationPanel] = useState(true);
   const [gamePhase, setGamePhase] = useState<'playing' | 'results' | 'gameOver'>('playing');
 
-  const opponentStrategy = AI_STRATEGIES[opponentStrategyId];
+  const opponentStrategy = AI_STRATEGIES_MAP[opponentStrategyId];
 
   const playRound = useCallback(() => {
     if (!playerChoice || !opponentStrategy || gamePhase !== 'playing') return;
 
-    const opponentChoice = opponentStrategy.choose(history);
-    const game = new GameRound(playerChoice, opponentChoice);
+    // AI (Player B) makes a choice based on Player A's history
+    const opponentChoice = opponentStrategy.choose(history, playerAChoices);
+    const game = new GameRound(playerChoice, opponentChoice); // Player A's choice, Player B's choice
     const [playerPayoff, opponentPayoff] = game.getPayoffs();
 
     const newRoundResult: RoundResult = {
@@ -62,17 +52,19 @@ export default function PrisonersDilemma() {
     };
 
     setHistory(prev => [...prev, newRoundResult]);
+    setPlayerAChoices(prev => [...prev, playerChoice]); // Record Player A's choice for Tit-for-Tat
     setPlayerScore(prev => prev + playerPayoff);
     setOpponentScore(prev => prev + opponentPayoff);
+    
     setFeedback({
         type: 'info',
         title: `Round ${currentRound} Result`,
-        message: `You Chose: ${playerChoice}, Opponent Chose: ${opponentChoice}. Your Payoff: ${playerPayoff}, Opponent Payoff: ${opponentPayoff}.`
+        message: `You Chose: ${playerChoice} (Payoff: ${playerPayoff}). Opponent Chose: ${opponentChoice} (Payoff: ${opponentPayoff}).`
     });
     setGamePhase('results');
-  }, [playerChoice, opponentStrategy, history, currentRound, gamePhase]);
+  }, [playerChoice, opponentStrategy, history, currentRound, gamePhase, playerAChoices]);
   
-  const nextRound = () => {
+  const nextRound = useCallback(() => {
     if (currentRound < MAX_ROUNDS) {
       setCurrentRound(prev => prev + 1);
       setPlayerChoice(null);
@@ -81,22 +73,24 @@ export default function PrisonersDilemma() {
     } else {
       setGamePhase('gameOver');
       setFeedback({
-          type: 'success', // or 'info'
+          type: 'success',
           title: 'Game Over!',
-          message: `Final Score - You: ${playerScore + (history.length > 0 && history[history.length-1].playerAPayoff || 0) }, Opponent: ${opponentScore + (history.length > 0 && history[history.length-1].playerBPayoff || 0) }`
+          message: `Final Score - You: ${playerScore}, Opponent: ${opponentScore}. Thanks for playing!`
       });
     }
-  };
+  }, [currentRound, playerScore, opponentScore]);
 
-  const resetGame = () => {
+  const resetGame = useCallback(() => {
     setPlayerChoice(null);
+    setOpponentStrategyId(DEFAULT_AI_STRATEGY_ID);
     setCurrentRound(1);
     setHistory([]);
+    setPlayerAChoices([]);
     setPlayerScore(0);
     setOpponentScore(0);
     setFeedback(null);
     setGamePhase('playing');
-  };
+  }, []);
   
   const explanationContent = (
     <>
@@ -110,10 +104,18 @@ export default function PrisonersDilemma() {
             <li>If A remains silent but B betrays A, A will serve 3 years and B will be set free (Payoff: 0,5 for A).</li>
             <li>If A and B both remain silent, both of them will only serve 1 year in prison (on the lesser charge) (Payoff: 3,3).</li>
         </ul>
-         <p className="text-xs">Payoffs are reversed for prison years (higher payoff = better outcome / less years). Here: Cooperate = Remain Silent, Defect = Betray.</p>
+         <p className="text-xs">Payoffs are often thought of as utility or years not served. Higher payoff = better outcome. Here: Cooperate = Remain Silent, Defect = Betray.</p>
     </>
-);
+  );
 
+  let arenaControlsAction = () => {};
+  if (gamePhase === 'playing' && playerChoice) {
+    arenaControlsAction = playRound;
+  } else if (gamePhase === 'results') {
+    arenaControlsAction = nextRound;
+  } else if (gamePhase === 'gameOver') {
+    arenaControlsAction = resetGame;
+  }
 
   return (
     <Card className="w-full shadow-xl">
@@ -132,7 +134,7 @@ export default function PrisonersDilemma() {
                 <CardTitle className="text-lg mb-2">Payoff Matrix</CardTitle>
                 <table className="w-full text-xs text-center border-collapse">
                     <thead>
-                        <tr><th></th><th colSpan={2} className="border p-1">Opponent's Choice</th></tr>
+                        <tr><th></th><th colSpan={2} className="border p-1">Opponent's Choice (AI)</th></tr>
                         <tr><th className="border p-1">Your Choice</th> <th className="border p-1">Cooperate</th> <th className="border p-1">Defect</th></tr>
                     </thead>
                     <tbody>
@@ -147,7 +149,7 @@ export default function PrisonersDilemma() {
                             <td className="border p-1">{prisonersDilemmaPayoffs.Defect.Defect.join(', ')}</td>
                         </tr>
                     </tbody>
-                 </table> {/* Added closing table tag, which was missing from previous provided context - this may be the cause */}
+                 </table>
                  <p className="text-xs mt-1 text-muted-foreground">(Your Score, Opponent's Score)</p>
             </Card>
              <StrategySelector
@@ -166,6 +168,7 @@ export default function PrisonersDilemma() {
                         disabled={gamePhase !== 'playing'}
                         variant={playerChoice === 'Cooperate' ? 'default' : 'outline'}
                         className="w-full"
+                        aria-pressed={playerChoice === 'Cooperate'}
                     >
                         <Check className="mr-2 h-4 w-4"/> Cooperate
                     </Button>
@@ -174,6 +177,7 @@ export default function PrisonersDilemma() {
                         disabled={gamePhase !== 'playing'}
                         variant={playerChoice === 'Defect' ? 'destructive' : 'outline'}
                         className="w-full"
+                        aria-pressed={playerChoice === 'Defect'}
                     >
                          <X className="mr-2 h-4 w-4"/> Defect
                     </Button>
@@ -187,11 +191,11 @@ export default function PrisonersDilemma() {
         </div>
         
         <ArenaControls
-          onPlay={gamePhase === 'playing' && playerChoice ? playRound : gamePhase === 'results' ? nextRound : gamePhase === 'gameOver' ? resetGame : undefined}
+          onPlay={arenaControlsAction}
           onReset={resetGame}
-          isPlaying={gamePhase !== 'playing'} // "Play" button becomes "Next Round" or "Play Again"
+          isPlaying={gamePhase !== 'playing'}
           canPlay={gamePhase === 'playing' ? !!playerChoice : true}
-          canPause={false} // No pause functionality in this simple version
+          canPause={false} 
           onToggleExplanation={() => setShowExplanationPanel(prev => !prev)}
         />
         
