@@ -59,5 +59,35 @@
     "description": "The `multiply` function expects two arguments. Fix the call to `multiply` by providing a second argument (e.g., 3) so it prints their product.",
     "expectedOutput": "15",
     "solution": "def multiply(a, b):\n  return a * b\n\n# Fix the call below to make it work\nresult = multiply(5, 3)\nprint(result)"
+  },
+  {
+    "initialCode": "def greet(name):\n  print(f\"Hello, {name}\")\n\ngreet()",
+    "description": "The `greet` function expects a `name` argument, but it's called without one. Fix the call by providing a name.",
+    "expectedOutput": "Hello, World",
+    "solution": "def greet(name):\n  print(f\"Hello, {name}\")\n\ngreet(\"World\")"
+  },
+  {
+    "initialCode": "my_list = [10, 20, 30]\nprint(my_list[3])",
+    "description": "This code tries to access an element at index 3 in a list that only has elements up to index 2. Adjust the index to access an existing element.",
+    "expectedOutput": "30",
+    "solution": "my_list = [10, 20, 30]\nprint(my_list[2])"
+  },
+  {
+    "initialCode": "i = 0\nwhile i < 5:\n  print(\"Looping...\")\n  # Missing increment for i",
+    "description": "This `while` loop is missing a way to change the value of `i`, so `i < 5` will always be true, causing an infinite loop. Add `i += 1` inside the loop to fix it.",
+    "expectedOutput": "Looping...\nLooping...\nLooping...\nLooping...\nLooping...",
+    "solution": "i = 0\nwhile i < 5:\n  print(\"Looping...\")\n  i += 1"
+  },
+  {
+    "initialCode": "student = {\"name\": \"Alex\", \"age\": 22}\nprint(student[\"grade\"])",
+    "description": "The code tries to access the key 'grade' which doesn't exist in the `student` dictionary. Change the code to access an existing key like 'name' or 'age'.",
+    "expectedOutput": "Alex",
+    "solution": "student = {\"name\": \"Alex\", \"age\": 22}\nprint(student[\"name\"]) # Or student[\"age\"] to output 22"
+  },
+  {
+    "initialCode": "color = \"blue\"\nif color == \"Blue\":\n  print(\"The color is blue.\")\nelse:\n  print(\"The color is not blue.\")",
+    "description": "String comparison in Python is case-sensitive. 'blue' is not the same as 'Blue'. Fix the comparison to make the condition true.",
+    "expectedOutput": "The color is blue.",
+    "solution": "color = \"blue\"\nif color == \"blue\":\n  print(\"The color is blue.\")\nelse:\n  print(\"The color is not blue.\")"
   }
 ]
