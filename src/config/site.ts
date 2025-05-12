@@ -30,6 +30,7 @@ import {
   GitFork, // Icon for Graph Traversal
   Repeat, // Icon for Recursion
   Users, // Icon for Game Theory
+  Equation, // Icon for Fourier Series Visualizer
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -97,6 +98,12 @@ export const navItems: NavItem[] = [
         href: '/tools/math-battle',
         icon: Zap,
         description: 'Quick fire math problems against the clock.',
+      },
+      {
+        title: 'Fourier Series Visualizer',
+        href: '/tools/fourier-series',
+        icon: Equation,
+        description: 'Explore Fourier series and waveform synthesis.',
       },
       {
         title: 'Algorithm Arena',
@@ -200,6 +207,16 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Abstract representation of algorithms and logic flows',
     dataAiHint: 'logic symbols',
     ctaLabel: 'Explore Arena',
+  },
+  {
+    title: 'Fourier Series Visualizer',
+    description: 'Discover how complex periodic functions can be represented as a sum of simple sine waves. Adjust the number of terms and see the approximation change in real-time with animated epicycles.',
+    href: '/tools/fourier-series',
+    icon: Equation,
+    imageSrc: 'https://picsum.photos/seed/fourier/600/400',
+    imageAlt: 'Animated epicycles forming a square wave',
+    dataAiHint: 'math physics',
+    ctaLabel: 'Visualize Series',
   },
   {
     title: 'Interactive Unit Circle',
