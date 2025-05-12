@@ -1,10 +1,12 @@
 
 export interface LessonItem {
+  slug: string; // Added for routing
   subTitle: string;
   text: string; // Can contain markdown for formatting (newlines, bold, etc.)
 }
 
 export interface LabItem {
+  slug: string; // Added for routing
   title: string;
   description: string;
   starterCode?: string;
@@ -20,16 +22,16 @@ export interface QuizQuestion {
 }
 
 export interface QuizItem {
+  slug: string; // Added for routing
   title: string;
   questionsCount: number;
   questions: QuizQuestion[];
 }
 
 export interface LessonModule {
+  slug: string; // Added for routing
   title: string;
   content: LessonItem[];
   labs?: LabItem[];
   quizzes?: QuizItem[];
 }
-
-    

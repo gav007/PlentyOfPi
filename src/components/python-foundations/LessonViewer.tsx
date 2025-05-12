@@ -8,11 +8,16 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FlaskConical, HelpCircle, FileText, Code, ChevronRight, ListChecks, Brain } from "lucide-react"; // Icons
-import type { LessonModule, LabItem, QuizItem, QuizQuestion } from '@/types/lessons'; // Import refined types
-import ReactMarkdown from 'react-markdown'; // For rendering markdown content in lesson text
+import type { LessonModule, LabItem, QuizItem } from '@/types/lessons'; 
+import ReactMarkdown from 'react-markdown'; 
 
 interface LessonViewerProps {
-  lessons: LessonModule[];
+  // This component might be refactored to display a single lesson's content
+  // or a list of lessons within a module, rather than all modules.
+  // For now, let's assume it's used for a single module's content list if needed,
+  // or it's replaced by individual page components.
+  module?: LessonModule; // Make module optional or change prop structure
+  lessons?: LessonModule[]; // If it's still for multiple modules (less likely now)
 }
 
 // Simple component to render markdown, can be expanded later
@@ -41,111 +46,92 @@ const MarkdownRenderer: React.FC<{ text: string }> = ({ text }) => {
 };
 
 
-export default function LessonViewer({ lessons }: LessonViewerProps) {
-  if (!lessons || lessons.length === 0) {
-    return <p className="text-muted-foreground">No lesson content available yet.</p>;
+export default function LessonViewer({ module, lessons }: LessonViewerProps) {
+  // This component's role is changing due to the new page structure.
+  // It's unlikely to be used in the same way.
+  // For now, it can remain as a reference or be adapted later if needed
+  // for a specific view (e.g., listing items within a module if not using SidebarTOC for that).
+
+  if (!module && (!lessons || lessons.length === 0)) {
+    return <p className="text-muted-foreground">No lesson content specified for viewer.</p>;
   }
 
+  const modulesToDisplay = module ? [module] : lessons || [];
+
+
   // TODO: Implement actual quiz UI and logic later. For now, display questions.
-  const renderQuiz = (quiz: QuizItem) => (
+  const renderQuiz = (quiz: QuizItem, moduleSlug: string) => (
     <div className="mt-3 p-3 border border-blue-500/30 bg-blue-500/10 rounded-md">
       <h6 className="font-semibold text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-1.5">
         <ListChecks className="w-4 h-4"/> {quiz.title} ({quiz.questionsCount} questions)
       </h6>
-      <ul className="space-y-2 text-xs list-decimal list-inside pl-2">
-        {quiz.questions.map((q, idx) => (
-          <li key={idx} className="text-muted-foreground">
-            {q.question}
-            <ul className="list-disc list-inside pl-4 mt-1">
-              {Object.entries(q.options).map(([key, option]) => (
-                <li key={key} className={q.answer === key ? "font-medium text-primary/90" : ""}>({key}) {option}</li>
-              ))}
-            </ul>
-             <p className="text-xs text-primary/70 mt-0.5 italic">Correct Answer: {q.answer}. {q.feedback}</p>
-          </li>
-        ))}
-      </ul>
-      <Button variant="link" size="sm" className="px-0 h-auto text-xs mt-2 text-blue-600 hover:text-blue-700" disabled>
-        Take Interactive Quiz (Coming Soon) <ChevronRight className="w-3 h-3 ml-1"/>
+      {/* Link to the new quiz page */}
+      <Button asChild variant="link" size="sm" className="px-0 h-auto text-xs mt-2 text-blue-600 hover:text-blue-700">
+        <Link href={`/lessons/python-foundations/${moduleSlug}/quiz/${quiz.slug}`}>
+          Go to Quiz <ChevronRight className="w-3 h-3 ml-1"/>
+        </Link>
       </Button>
     </div>
   );
 
-  const renderLab = (lab: LabItem) => (
+  const renderLab = (lab: LabItem, moduleSlug: string) => (
     <div className="mt-3 p-3 border border-green-500/30 bg-green-500/10 rounded-md">
       <h6 className="font-semibold text-green-700 dark:text-green-400 mb-1 flex items-center gap-1.5">
         <FlaskConical className="w-4 h-4" /> Lab: {lab.title}
       </h6>
       <MarkdownRenderer text={lab.description} />
-      {lab.starterCode && (
-        <div className="mt-2">
-          <p className="text-xs font-medium text-muted-foreground mb-1">Starter Code:</p>
-          <pre className="bg-gray-800 text-white p-2 rounded-md overflow-x-auto text-xs"><code>{lab.starterCode}</code></pre>
-        </div>
-      )}
-      {lab.tasks && lab.tasks.length > 0 && (
-         <div className="mt-2">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Tasks:</p>
-            <ul className="list-disc list-inside pl-4 text-xs text-muted-foreground space-y-0.5">
-                {lab.tasks.map((task, i) => <li key={i}>{task}</li>)}
-            </ul>
-         </div>
-      )}
-      {lab.hints && lab.hints.length > 0 && (
-         <div className="mt-2">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Hints:</p>
-            <ul className="list-disc list-inside pl-4 text-xs text-muted-foreground/80 space-y-0.5">
-                {lab.hints.map((hint, i) => <li key={i}>{hint}</li>)}
-            </ul>
-         </div>
-      )}
-      <Button variant="link" size="sm" className="px-0 h-auto text-xs mt-2 text-green-600 hover:text-green-700" disabled>
-        Open in Sandbox (Coming Soon) <ChevronRight className="w-3 h-3 ml-1"/>
+      {/* Link to the new lab page */}
+      <Button asChild variant="link" size="sm" className="px-0 h-auto text-xs mt-2 text-green-600 hover:text-green-700">
+        <Link href={`/lessons/python-foundations/${moduleSlug}/lab/${lab.slug}`}>
+          Go to Lab <ChevronRight className="w-3 h-3 ml-1"/>
+        </Link>
       </Button>
     </div>
   );
 
   return (
     <Accordion type="single" collapsible className="w-full space-y-3">
-      {lessons.map((module, moduleIndex) => (
+      {modulesToDisplay.map((currentModule, moduleIndex) => (
         <AccordionItem value={`module-${moduleIndex}`} key={moduleIndex} className="border rounded-lg overflow-hidden shadow-sm bg-card">
           <AccordionTrigger className="text-lg font-semibold hover:no-underline px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors">
             <div className="flex items-center gap-2 text-primary/90">
               <FileText className="w-5 h-5" />
-              {module.title}
+              {currentModule.title}
             </div>
           </AccordionTrigger>
           <AccordionContent className="space-y-4 px-4 py-3 border-t bg-background">
-            {module.content.map((item, itemIndex) => (
+            {currentModule.content.map((item, itemIndex) => (
               <div key={itemIndex} className="pt-2 pb-3 border-b border-dashed last:border-b-0">
                 <h4 className="font-medium text-md text-primary mb-1 flex items-center gap-1.5">
-                   <Brain className="w-4 h-4" /> {/* Simple icon for subtitle */}
-                   {item.subTitle}
+                   <Brain className="w-4 h-4" /> 
+                   {/* Link to the new lesson page */}
+                   <Link href={`/lessons/python-foundations/${currentModule.slug}/lesson/${item.slug}`} className="hover:underline">
+                    {item.subTitle}
+                   </Link>
                 </h4>
-                <MarkdownRenderer text={item.text} />
+                <MarkdownRenderer text={item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '')} />
+                 <Button asChild variant="link" size="sm" className="px-0 h-auto text-xs mt-1">
+                    <Link href={`/lessons/python-foundations/${currentModule.slug}/lesson/${item.slug}`}>
+                        Read More <ChevronRight className="w-3 h-3 ml-1"/>
+                    </Link>
+                 </Button>
               </div>
             ))}
             
-            {module.labs && module.labs.length > 0 && (
+            {currentModule.labs && currentModule.labs.length > 0 && (
               <div className="mt-4 pt-3 border-t">
-                {module.labs.map((lab, labIndex) => (
-                  <div key={labIndex} className="mb-3 last:mb-0">{renderLab(lab)}</div>
+                {currentModule.labs.map((lab, labIndex) => (
+                  <div key={labIndex} className="mb-3 last:mb-0">{renderLab(lab, currentModule.slug)}</div>
                 ))}
               </div>
             )}
 
-            {module.quizzes && module.quizzes.length > 0 && (
+            {currentModule.quizzes && currentModule.quizzes.length > 0 && (
               <div className="mt-4 pt-3 border-t">
-                 {module.quizzes.map((quiz, quizIndex) => (
-                  <div key={quizIndex} className="mb-3 last:mb-0">{renderQuiz(quiz)}</div>
+                 {currentModule.quizzes.map((quiz, quizIndex) => (
+                  <div key={quizIndex} className="mb-3 last:mb-0">{renderQuiz(quiz, currentModule.slug)}</div>
                 ))}
               </div>
-            )}
-            
-             {( (!module.labs || module.labs.length === 0) && (!module.quizzes || module.quizzes.length === 0) ) && (
-                <div className="mt-4 p-3 bg-muted/20 rounded-md">
-                    <p className="text-xs text-muted-foreground text-center italic">No specific labs or quizzes for this lesson section yet. Check back soon!</p>
-                </div>
             )}
           </AccordionContent>
         </AccordionItem>
@@ -153,5 +139,3 @@ export default function LessonViewer({ lessons }: LessonViewerProps) {
     </Accordion>
   );
 }
-
-    

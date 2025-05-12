@@ -1,29 +1,35 @@
 
-import type { LessonModule, QuizQuestion } from '@/types/lessons';
+import type { LessonModule } from '@/types/lessons';
 
 const pythonFoundationsModules: LessonModule[] = [
   {
+    slug: 'module-1-introduction',
     title: 'Module 1: Introduction to Python and Computer Programming',
     content: [
       {
+        slug: 'python-as-tool',
         subTitle: 'Python - a tool, not a reptile',
         text: 'Python is a popular, versatile, and beginner-friendly programming language. Created by Guido van Rossum and first released in 1991, Python emphasizes readability and simplicity. Its name was inspired by the British comedy group Monty Python, not the snake!\n\nWhy Python is Great for Beginners:\n- **Easy to Read:** Python\'s syntax is designed to be clear and intuitive, almost like reading English.\n- **Large Community:** A vast and active community means plenty of resources, libraries, and support.\n- **Versatile:** Used in web development, data science, artificial intelligence, automation, and more.\n- **Interpreted:** Python code is executed line by line, making it easier to test and debug.',
       },
       {
+        slug: 'compilation-vs-interpretation',
         subTitle: 'Compilation vs. Interpretation',
         text: 'Computers don\'t understand human-readable programming languages directly. Code needs to be translated into machine code (binary instructions) that the computer\'s processor can execute. There are two main ways this translation happens:\n\n- **Compilation:** A compiler translates the entire program into machine code before it runs. This creates an executable file. Examples: C++, Java (compiles to bytecode, then interpreted by JVM).\n  - *Pros:* Often faster execution once compiled.\n  - *Cons:* Entire program needs to be recompiled after changes.\n\n- **Interpretation:** An interpreter reads and executes the code line by line. No separate executable file is created. Python is primarily an interpreted language.\n  - *Pros:* Easier to test and debug, more flexible.\n  - *Cons:* Can be slower than compiled languages for CPU-intensive tasks.',
       },
       {
+        slug: 'machine-vs-high-level',
         subTitle: 'Machine vs. High-Level Languages',
         text: 'Programming languages exist at different levels of abstraction:\n\n- **Machine Language (Low-Level):** This is the most basic language, consisting of binary (0s and 1s) or hexadecimal instructions that a computer\'s CPU can execute directly. It\'s very difficult for humans to read or write.\n\n- **Assembly Language (Low-Level):** A step above machine language, assembly uses mnemonic codes (like ADD, MOV) to represent machine instructions. It still requires a deep understanding of computer architecture.\n\n- **High-Level Languages:** These languages (like Python, Java, C#, JavaScript) are designed to be human-readable and easier to work with. They use English-like syntax and abstract away many of the complex details of the computer\'s hardware. High-level code must be translated (compiled or interpreted) into machine language to run.',
       },
       {
+        slug: 'syntax-semantics-lexis',
         subTitle: 'Syntax, Semantics, Lexis',
         text: 'Like human languages, programming languages have rules and components:\n\n- **Lexis:** The set of all valid words or symbols in a language. In Python, this includes keywords (like `if`, `for`, `def`), operators (`+`, `=`, `>`), and identifiers (variable names).\n\n- **Syntax:** The rules that govern how words and symbols can be combined to form valid statements or expressions. For example, in Python, an `if` statement must end with a colon (`:`), and the code block below it must be indented.\n  `if x > 5: print("Greater")` (Correct syntax)\n\n- **Semantics:** The meaning of syntactically correct statements. A program can be syntactically correct but semantically wrong if it doesn\'t do what the programmer intended. For example, using `+` to add two numbers has a clear semantic meaning. If you try to add a number and a string without proper conversion, it might be a syntax error or a semantic error (a TypeError in Python) depending on the language.',
       },
     ],
     labs: [
       {
+        slug: 'lab-1-1-hello-world',
         title: 'Lab 1.1: Hello World',
         description: 'Write your first Python program using `print()`. Print "Hello, Plenty of π!". Then, on new lines, print your name and your favorite number.',
         starterCode: 'print("Hello, Plenty of π!")\n# Your code here',
@@ -40,6 +46,7 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
     quizzes: [
       {
+        slug: 'quiz-1-intro-concepts',
         title: 'Quiz 1: Introduction to Programming Concepts',
         questionsCount: 5,
         questions: [
@@ -103,35 +110,43 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
   },
   {
+    slug: 'module-2-python-basics',
     title: 'Module 2: Python Basics - Data Types, Variables, I/O, and Operators',
     content: [
       {
+        slug: 'first-program-print',
         subTitle: 'Your first program: `print()`',
         text: 'The `print()` function is one of the first functions you\'ll encounter. It\'s used to display output to the console.\nExample: `print("Hello, Python!")` will show "Hello, Python!" on your screen.\nYou can print strings (text in quotes), numbers, variables, and even the results of expressions.',
       },
       {
+        slug: 'literals-data-types',
         subTitle: 'Literals and Data Types',
         text: 'A literal is a fixed value in code, like `5`, `"Hello"`, or `True`.\nPython has several built-in data types:\n- **Integer (`int`):** Whole numbers, e.g., `10`, `-3`, `0`.\n- **Float (`float`):** Numbers with a decimal point, e.g., `3.14`, `-0.5`, `2.0`.\n- **String (`str`):** Sequences of characters, enclosed in single (`\' \'`) or double (`" "`) quotes, e.g., `"Python"`, `\'world\'`.\n- **Boolean (`bool`):** Represents truth values, either `True` or `False` (capitalized).',
       },
       {
+        slug: 'variables',
         subTitle: 'Variables',
         text: 'Variables are like containers that store data values. You assign a value to a variable using the assignment operator (`=`).\nExample: `age = 30`, `name = "Alice"`\n\n**Naming Rules & Best Practices:**\n- Must start with a letter (a-z, A-Z) or an underscore (`_`).\n- Can be followed by letters, numbers, or underscores.\n- Case-sensitive (`age` is different from `Age`).\n- Cannot be a Python keyword (like `if`, `for`).\n- Use descriptive names (e.g., `user_age` instead of `x`). Snake case (`my_variable_name`) is common in Python.',
       },
       {
+        slug: 'basic-io',
         subTitle: 'Basic Input and Output (I/O)',
         text: '- **Output (`print()`):** We\'ve seen `print()` for displaying information.\n  `print("Name:", name, "Age:", age)`\n\n- **Input (`input()`):** Used to get data from the user. It always returns the input as a string.\n  `user_name = input("Enter your name: ")`\n  If you need a number, you must convert it: `user_age_str = input("Enter your age: "); user_age_int = int(user_age_str)`',
       },
       {
+        slug: 'operators',
         subTitle: 'Operators',
         text: 'Operators are special symbols that perform operations on values (operands).\n\n- **Arithmetic Operators:**\n  - `+` (addition), `-` (subtraction), `*` (multiplication)\n  - `/` (division - always results in a float, e.g., `10 / 4 = 2.5`)\n  - `//` (floor division - discards the fractional part, e.g., `10 // 4 = 2`)\n  - `%` (modulus - remainder of division, e.g., `10 % 3 = 1`)\n  - `**` (exponentiation - raise to the power, e.g., `2 ** 3 = 8`)\n\n- **Assignment Operators:** ` = ` (assign), `+=`, `-=`, `*=`, `/=` (e.g., `x += 1` is `x = x + 1`)\n\n- **Comparison (Relational) Operators:** Return `True` or `False`.\n  - `==` (equal to), `!=` (not equal to)\n  - `>` (greater than), `<` (less than)\n  - `>=` (greater than or equal to), `<=` (less than or equal to)\n\n- **Logical Operators:** Combine boolean expressions.\n  - `and`: `True` if both operands are true.\n  - `or`: `True` if at least one operand is true.\n  - `not`: Inverts the truth value (`not True` is `False`).',
       },
       {
+        slug: 'comments',
         subTitle: 'Comments',
         text: 'Comments are notes in your code that are ignored by the Python interpreter. They are used to explain code or make it more readable.\n- Single-line comments start with `#`: `# This is a comment`\n- Multi-line comments (docstrings) are often enclosed in triple quotes (`"""..."""` or `\'\'\'...\'\'\'`), typically used for function/class documentation.'
       }
     ],
     labs: [
       {
+        slug: 'lab-2-1-simple-calculator',
         title: 'Lab 2.1: Simple Calculator',
         description: 'Create a program that asks the user for two numbers and then prints their sum, difference, product, and quotient.',
         starterCode: 'num1_str = input("Enter first number: ")\nnum2_str = input("Enter second number: ")\n\n# Convert inputs to numbers (integers or floats)\n# Your code here\n\n# Perform calculations\n# Your code here\n\n# Print results\n# Your code here',
@@ -150,6 +165,7 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
     quizzes: [
       {
+        slug: 'quiz-2-basics-operators',
         title: 'Quiz 2: Python Basics, Data Types, and Operators',
         questionsCount: 6,
         questions: [
@@ -194,27 +210,33 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
   },
   {
+    slug: 'module-3-control-flow',
     title: 'Module 3: Control Flow - Conditional Execution and Loops',
     content: [
       {
+        slug: 'booleans-conditionals',
         subTitle: 'Boolean Values and Conditional Execution',
         text: 'Boolean values represent truth and can be either `True` or `False`.\nConditional execution allows your program to make decisions. The `if` statement is fundamental for this.\nSyntax: `if condition: # code to execute if condition is True`\nThe `condition` is an expression that evaluates to `True` or `False`. The indented code block only runs if the condition is `True`.',
       },
       {
+        slug: 'if-else-elif',
         subTitle: 'The `if-else` and `elif` statements',
         text: '- **`if-else`:** Provides an alternative block of code to execute if the `if` condition is `False`.\n  `if condition:\n    # code if True\n  else:\n    # code if False`\n\n- **`elif` (else if):** Allows you to check multiple conditions in sequence.\n  `if condition1:\n    # code if condition1 is True\n  elif condition2:\n    # code if condition1 is False and condition2 is True\n  else:\n    # code if all preceding conditions are False`',
       },
       {
+        slug: 'loops-while-for',
         subTitle: 'Loops: `while` and `for`',
         text: 'Loops are used to repeat a block of code multiple times.\n\n- **`while` loop:** Repeats a block of code as long as a condition is `True`.\n  `count = 0\n  while count < 5:\n    print(count)\n    count += 1`\n  Be careful to avoid infinite loops by ensuring the condition eventually becomes `False`.\n\n- **`for` loop:** Iterates over a sequence (like a list, string, or range) or other iterable objects.\n  `for letter in "Python": print(letter)`\n  `for i in range(5): print(i)  # Prints 0, 1, 2, 3, 4`\n  The `range()` function is commonly used with `for` loops to iterate a specific number of times. `range(start, stop, step)` generates numbers from `start` up to (but not including) `stop`, incrementing by `step`. If `start` is omitted, it defaults to 0. If `step` is omitted, it defaults to 1.',
       },
       {
+        slug: 'loop-control-break-continue-else',
         subTitle: 'Controlling Loop Execution: `break`, `continue`, and `else` in Loops',
         text: '- **`break`:** Immediately exits the current loop (both `for` and `while`).\n\n- **`continue`:** Skips the rest of the current iteration and proceeds to the next iteration of the loop.\n\n- **`else` clause in loops:** An optional `else` block can be used with loops. For a `for` loop, the `else` block executes after the loop finishes all iterations, but *only if the loop was not terminated by a `break` statement*. For a `while` loop, the `else` block executes when the loop\'s condition becomes `False`, but *not if the loop was exited with `break`*. \n  Example with `for`:\n  `for i in range(3):\n    print(i)\n  else:\n    print("Loop finished normally")`',
       },
     ],
     labs: [
       {
+        slug: 'lab-3-1-loop-master',
         title: 'Lab 3.1: Loop Master - Number Printer',
         description: 'Write a loop that prints numbers from 1 to 10 (inclusive). Inside the loop, add logic to skip printing the number 5 and to stop the loop entirely if the number 9 is reached (so 9 should not be printed).',
         starterCode: '# Your loop here\n# Remember range(start, stop) goes up to stop-1\nfor i in range(1, 11):\n    # Your logic for skipping 5 and breaking at 9 here\n    print(i)',
@@ -233,6 +255,7 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
     quizzes: [
       {
+        slug: 'quiz-3-control-flow',
         title: 'Quiz 3: Control Flow - Conditionals and Loops',
         questionsCount: 8,
         questions: [
@@ -289,31 +312,38 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
   },
   {
+    slug: 'module-4-data-collections-functions',
     title: 'Module 4: Data Collections and Functions',
     content: [
       {
+        slug: 'lists',
         subTitle: 'Lists',
         text: 'Lists are ordered, mutable (changeable) collections of items. Items can be of different types.\n- **Creating:** `my_list = [1, "hello", 3.14]`\n- **Accessing:** Use index (starts at 0). `my_list[0]` is `1`.\n- **Slicing:** Get a sub-list. `my_list[1:3]` is `["hello", 3.14]`.\n- **Modifying:** `my_list[1] = "world"`\n- **Common Methods:** `append(item)`, `insert(index, item)`, `pop(index_optional)`, `remove(item)`, `sort()`, `len(list)` (gets length).',
       },
       {
+        slug: 'tuples',
         subTitle: 'Tuples',
         text: 'Tuples are ordered, immutable (unchangeable) collections of items. Defined using parentheses `()`.\nExample: `my_tuple = (1, "apple", True)`\nOnce created, you cannot change, add, or remove items. They are often used for fixed collections of items, like coordinates `(x, y)`. Accessing items is similar to lists (using index).',
       },
       {
+        slug: 'dictionaries',
         subTitle: 'Dictionaries',
-        text: 'Dictionaries are unordered collections of key-value pairs. They are mutable.\n- **Creating:** `my_dict = {"name": "Alice", "age": 30, "city": "New York"}` or `my_dict = dict(name="Alice", age=30)`\n- **Accessing:** Use keys. `my_dict["age"]` is `30`.\n- **Modifying/Adding:** `my_dict["age"] = 31`, `my_dict["country"] = "USA"`\n- **Common Methods:** `keys()`, `values()`, `items()`, `get(key, default_value_optional)`, `pop(key)`.\nKeys must be unique and immutable (e.g., strings, numbers, tuples).',
+        text: 'Dictionaries are unordered collections of key-value pairs. They are mutable.\n- **Creating:** `my_dict = {"name": "Alice", "age": 30, "city": "New York"}` or `my_dict = dict(name="Alice", age=30)`\n- **Accessing:** Use keys. `my_dict["age"]` is `30`.\n- **Modifying/Adding:** `my_dict["age"] = 31`, `my_dict["country"] = "USA"`\n- **Common Methods:** `keys()`, `values()`, `items()`, `get(key, default_value_optional)`, `pop(key)`. Keys must be unique and immutable (e.g., strings, numbers, tuples).',
       },
       {
+        slug: 'functions',
         subTitle: 'Functions',
         text: 'Functions are reusable blocks of code that perform a specific task. They help organize code and make it more modular.\n- **Defining:** Use the `def` keyword.\n  `def greet(name):\n    print(f"Hello, {name}!")`\n- **Calling:** Use the function name followed by parentheses with arguments.\n  `greet("Bob")`  # Output: Hello, Bob!\n- **Parameters:** Variables listed inside the parentheses in the function definition (e.g., `name` in `greet(name)`).\n- **Arguments:** Values passed to the function when it is called (e.g., `"Bob"`).\n- **`return` statement:** Used to send a value back from the function. If omitted, the function returns `None` by default.\n  `def add(x, y):\n    return x + y\n  result = add(5, 3)  # result is 8`\n- **Scope:** Variables defined inside a function (local scope) are not accessible outside it, unless declared global (generally avoided).',
       },
       {
+        slug: 'error-handling-try-except',
         subTitle: 'Error Handling: `try` and `except`',
         text: 'Programs can encounter errors (exceptions) during execution. `try-except` blocks allow you to handle these errors gracefully instead of crashing the program.\n- **`try` block:** Contains the code that might raise an exception.\n- **`except` block:** Contains the code to execute if a specific exception occurs in the `try` block.\nExample:\n`try:\n  num = int(input("Enter a number: "))\n  result = 10 / num\n  print(result)\nexcept ValueError:\n  print("That was not a valid number!")\nexcept ZeroDivisionError:\n  print("You cannot divide by zero!")`\nYou can have multiple `except` blocks for different error types, or a generic `except Exception:` to catch any error.',
       },
     ],
     labs: [
       {
+        slug: 'lab-4-1-function-adder',
         title: 'Lab 4.1: Function Fun - Simple Adder',
         description: 'Create a function `add_numbers(a, b)` that takes two numbers as parameters and returns their sum. Then, get two numbers from user input, call your function with these numbers, and print the returned result.',
         starterCode: '# Define your function add_numbers(a, b) here\n# def ...\n\n# Get input from the user\n# num1_str = ...\n# num2_str = ...\n\n# Convert inputs to numbers\n# num1 = ...\n# num2 = ...\n\n# Call your function and store the result\n# sum_result = ...\n\n# Print the result\n# print(...)',
@@ -333,6 +363,7 @@ const pythonFoundationsModules: LessonModule[] = [
         ],
       },
       {
+        slug: 'lab-4-2-student-grades',
         title: 'Lab 4.2: Data Structures Challenge - Student Grades',
         description: 'Create a dictionary called `grades` to store the grades of three students: Alice (85), Bob (92), and Charlie (78). Then, calculate and print the average grade of these students.',
         starterCode: '# Create the grades dictionary\ngrades = {}\n\n# Calculate the sum of grades\n# total_grades = ...\n\n# Calculate the number of students\n# num_students = ...\n\n# Calculate the average\n# average_grade = ...\n\n# Print the average grade\n# print("Average grade:", average_grade)',
@@ -354,6 +385,7 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
     quizzes: [
       {
+        slug: 'quiz-4-collections-functions',
         title: 'Quiz 4: Data Collections and Functions',
         questionsCount: 10,
         questions: [
@@ -422,31 +454,38 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
   },
   {
+    slug: 'module-5-oop-introduction',
     title: "Module 5: Introduction to Object-Oriented Programming (OOP)",
     content: [
       {
+        slug: 'what-is-oop',
         subTitle: "What is OOP? - Classes and Objects",
         text: "Object-Oriented Programming (OOP) is a programming paradigm based on the concept of \"objects\", which can contain data in the form of fields (often known as attributes or properties) and code in the form of procedures (often known as methods).\n\n- **Class:** A blueprint or template for creating objects. It defines a set of attributes and methods that the created objects will have. Think of a class like a cookie cutter.\n- **Object (Instance):** An instance of a class. It's a concrete entity created from the class blueprint. Using the cookie cutter analogy, an object is an actual cookie made from the cutter.\n\nKey principles of OOP often include encapsulation, inheritance, and polymorphism (though these are more advanced topics beyond basic PCEP scope).",
       },
       {
+        slug: 'creating-classes-init-self',
         subTitle: "Creating Classes: `class`, `__init__`, and `self`",
-        text: "- **`class` keyword:** Used to define a new class.\n  `class Dog:`\n    `pass  # pass means 'do nothing', a placeholder`\n\n- **`__init__` method (Constructor):** A special method that is automatically called when you create a new object (instance) of a class. It's used to initialize the object's attributes. The name `__init__` has double underscores before and after.\n\n- **`self` parameter:** The first parameter of any method within a class (including `__init__`) is conventionally named `self`. It refers to the instance of the class itself. Through `self`, methods can access the attributes and other methods of the same object.",
+        text: "- **`class` keyword:** Used to define a new class.\n  \`class Dog:\n    pass  # pass means 'do nothing', a placeholder\`\n\n- **`__init__` method (Constructor):** A special method that is automatically called when you create a new object (instance) of a class. It's used to initialize the object's attributes. The name `__init__` has double underscores before and after.\n\n- **`self` parameter:** The first parameter of any method within a class (including `__init__`) is conventionally named `self`. It refers to the instance of the class itself. Through `self`, methods can access the attributes and other methods of the same object.",
       },
       {
+        slug: 'attributes-methods',
         subTitle: "Attributes and Methods",
-        text: "- **Attributes (Instance Variables):** Variables that belong to an object. They store the data or state of the object. Attributes are typically defined within the `__init__` method using `self.attribute_name = value`.\n  `class Dog:\n    def __init__(self, name, age):\n      self.name = name  # Instance attribute\n      self.age = age    # Instance attribute`\n\n- **Methods:** Functions that belong to a class. They define the behavior or actions that an object can perform. Methods always have `self` as their first parameter.\n  `class Dog:\n    def __init__(self, name, age):\n      self.name = name\n      self.age = age\n\n    def bark(self):  # Instance method\n      print(f\"{self.name} says Woof!\")`",
+        text: "- **Attributes (Instance Variables):** Variables that belong to an object. They store the data or state of the object. Attributes are typically defined within the `__init__` method using `self.attribute_name = value`.\n  \`class Dog:\n    def __init__(self, name, age):\n      self.name = name  # Instance attribute\n      self.age = age    # Instance attribute\`\n\n- **Methods:** Functions that belong to a class. They define the behavior or actions that an object can perform. Methods always have `self` as their first parameter.\n  \`class Dog:\n    def __init__(self, name, age):\n      self.name = name\n      self.age = age\n\n    def bark(self):  # Instance method\n      print(f\"{self.name} says Woof!\")\`"
       },
       {
+        slug: 'using-objects-instantiation-methods',
         subTitle: "Using Objects: Instantiation and Calling Methods",
-        text: "- **Instantiation (Creating an Object):** You create an object by calling the class name as if it were a function, passing any arguments required by the `__init__` method (excluding `self`).\n  `my_dog = Dog(\\\"Buddy\\\", 3)`  # Creates an instance of the Dog class\n\n- **Accessing Attributes:** Use the dot notation: `object_name.attribute_name`.\n  `print(my_dog.name)`  # Output: Buddy\n\n- **Calling Methods:** Use the dot notation: `object_name.method_name()`.\n  `my_dog.bark()`  # Output: Buddy says Woof!",
+        text: "- **Instantiation (Creating an Object):** You create an object by calling the class name as if it were a function, passing any arguments required by the `__init__` method (excluding `self`).\n  \`my_dog = Dog(\"Buddy\", 3)\`  # Creates an instance of the Dog class\n\n- **Accessing Attributes:** Use the dot notation: `object_name.attribute_name`.\n  \`print(my_dog.name)\`  # Output: Buddy\n\n- **Calling Methods:** Use the dot notation: `object_name.method_name()`.\n  \`my_dog.bark()\`  # Output: Buddy says Woof!"
       },
       {
+        slug: 'simple-inheritance-overview',
         subTitle: "Simple Inheritance (Brief Overview)",
-        text: "Inheritance is a way to form new classes using classes that have already been defined. The new classes, known as derived classes or child classes, inherit attributes and methods of the parent (or base/superclass) classes. This promotes code reuse.\nExample (very basic):\n`class Animal:\n  def speak(self):\n    print(\"Animal speaks\")\n\nclass Cat(Animal):  # Cat inherits from Animal\n  def meow(self):\n    print(\"Meow\")\n\nmy_cat = Cat()\nmy_cat.speak()  # Inherited from Animal\nmy_cat.meow()`\nPCEP focuses more on understanding the basics of classes and objects rather than deep inheritance concepts.",
+        text: "Inheritance is a way to form new classes using classes that have already been defined. The new classes, known as derived classes or child classes, inherit attributes and methods of the parent (or base/superclass) classes. This promotes code reuse.\nExample (very basic):\n\`class Animal:\n  def speak(self):\n    print(\"Animal speaks\")\n\nclass Cat(Animal):  # Cat inherits from Animal\n  def meow(self):\n    print(\"Meow\")\n\nmy_cat = Cat()\nmy_cat.speak()  # Inherited from Animal\nmy_cat.meow()\`\nPCEP focuses more on understanding the basics of classes and objects rather than deep inheritance concepts.",
       },
     ],
     labs: [
       {
+        slug: 'lab-5-1-class-builder',
         title: "Lab 5.1: Class Builder - My First Object",
         description: "Create a `Car` class. The constructor (`__init__`) should take `brand` and `year` as arguments and store them as attributes. Add a method called `display_info()` that prints a message like \"This is a 2020 Toyota.\". Create an instance of your Car class and call its `display_info()` method.",
         starterCode: "class Car:\n    # Define __init__ method here\n    # It should take self, brand, and year as parameters\n    # Assign brand and year to self.brand and self.year\n\n    # Define display_info method here\n    # It should take self as a parameter\n    # It should print the car's information\n\n# Create an instance of Car (e.g., my_car = Car(\"Honda\", 2022))\n\n# Call the display_info method on your car instance",
@@ -470,6 +509,7 @@ const pythonFoundationsModules: LessonModule[] = [
     ],
     quizzes: [
       {
+        slug: 'quiz-5-classes-objects',
         title: "Quiz 5: Classes and Objects Fundamentals",
         questionsCount: 8,
         questions: [
