@@ -19,12 +19,11 @@ import {
   ClipboardCheck, 
   BarChart3, 
   FileJson,
-  LineChart,
+  LineChart, // Using LineChart for Graphing Calculator Icon
   FunctionSquare,
   Code as CodeIcon, 
-  Binary, // Added for Prime Tester
-  Zap, // Added for Math Battle
-  AreaChart, // Placeholder for Graph Plotter
+  Binary,
+  Zap,
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -94,10 +93,10 @@ export const navItems: NavItem[] = [
         description: 'Quick fire math problems against the clock.',
       },
       {
-        title: 'Graph Plotter',
-        href: '/tools/graph-plotter',
-        icon: AreaChart, 
-        description: 'Plot mathematical expressions (Coming Soon).',
+        title: 'Graphing Calculator', // Updated Title
+        href: '/tools/graph-plotter', // Kept existing route, page renamed effectively
+        icon: LineChart, 
+        description: 'Plot mathematical expressions dynamically.',
       },
     ],
   },
@@ -195,15 +194,15 @@ export const featureCards: FeatureCardItem[] = [
     ctaLabel: 'Start Battle',
   },
   {
-    title: 'Graph Plotter',
-    description: 'Plot multiple mathematical functions on a dynamic graph. Customize appearance, explore intersections, and visualize complex equations. (Coming Soon!)',
-    href: '/tools/graph-plotter',
-    icon: AreaChart,
+    title: 'Graphing Calculator', // Updated Title
+    description: 'Plot multiple mathematical functions on a dynamic graph. Customize appearance, explore intersections, and visualize complex equations.',
+    href: '/tools/graph-plotter', // Kept existing route
+    icon: LineChart, // Using LineChart as a suitable icon
     imageSrc: 'https://picsum.photos/seed/graphplotter/600/400',
     imageAlt: 'Multiple functions plotted on a graph',
     dataAiHint: 'graph functions math',
-    ctaLabel: 'Coming Soon',
-    isComingSoon: true,
+    ctaLabel: 'Open Calculator', // Changed CTA from "Coming Soon"
+    isComingSoon: false, // No longer coming soon
   },
   {
     title: 'Hex Boxes Challenge',
