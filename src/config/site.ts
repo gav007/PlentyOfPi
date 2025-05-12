@@ -20,7 +20,7 @@ import {
   BarChart3, 
   FileJson,
   LineChart,
-  FunctionSquare,
+  FunctionSquare, // Equation icon was replaced by FunctionSquare as 'Equation' is not a valid Lucide icon
   Code as CodeIcon, 
   Binary,
   Zap,
@@ -30,7 +30,7 @@ import {
   GitFork, // Icon for Graph Traversal
   Repeat, // Icon for Recursion
   Users, // Icon for Game Theory
-  Equation, // Icon for Fourier Series Visualizer
+  // Equation icon was removed here
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -102,7 +102,7 @@ export const navItems: NavItem[] = [
       {
         title: 'Fourier Series Visualizer',
         href: '/tools/fourier-series',
-        icon: Equation,
+        icon: FunctionSquare, // Replaced Equation with FunctionSquare
         description: 'Explore Fourier series and waveform synthesis.',
       },
       {
@@ -212,7 +212,7 @@ export const featureCards: FeatureCardItem[] = [
     title: 'Fourier Series Visualizer',
     description: 'Discover how complex periodic functions can be represented as a sum of simple sine waves. Adjust the number of terms and see the approximation change in real-time with animated epicycles.',
     href: '/tools/fourier-series',
-    icon: Equation,
+    icon: FunctionSquare, // Replaced Equation with FunctionSquare
     imageSrc: 'https://picsum.photos/seed/fourier/600/400',
     imageAlt: 'Animated epicycles forming a square wave',
     dataAiHint: 'math physics',
