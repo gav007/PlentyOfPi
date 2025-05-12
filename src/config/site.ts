@@ -1,4 +1,3 @@
-
 import type { NavItem, FeatureCardItem } from '@/types';
 import {
   Home,
@@ -21,6 +20,7 @@ import {
   FileJson,
   LineChart,
   FunctionSquare,
+  Code as CodeIcon, // For JS Essentials
   // Shapes, Triangle, Circle, Square, LayoutPanelLeft removed as they are no longer used here
 } from 'lucide-react';
 
@@ -91,6 +91,12 @@ export const navItems: NavItem[] = [
         href: '/lessons/python-foundations',
         icon: FileCode,
         description: 'Learn core Python concepts step by step.',
+      },
+      {
+        title: 'JavaScript Essentials',
+        href: '/lessons/javascript-essentials',
+        icon: CodeIcon, // Using a generic code icon for JS
+        description: 'Master fundamental JavaScript concepts.',
       }
     ]
   },
@@ -116,6 +122,16 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Python code on a screen',
     dataAiHint: 'python programming',
     ctaLabel: 'Start Learning',
+  },
+   {
+    title: 'JavaScript Essentials',
+    description: 'Dive into JavaScript! Interactive lessons, a live code sandbox, and practical exercises to build your web development skills.',
+    href: '/lessons/javascript-essentials',
+    icon: CodeIcon,
+    imageSrc: 'https://picsum.photos/seed/javascriptcourse/600/400',
+    imageAlt: 'JavaScript code on a screen',
+    dataAiHint: 'javascript programming',
+    ctaLabel: 'Learn JS',
   },
   {
     title: 'Interactive Unit Circle',

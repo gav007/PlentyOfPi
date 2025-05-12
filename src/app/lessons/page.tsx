@@ -1,9 +1,8 @@
-
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, FileCode } from 'lucide-react';
+import { ArrowRight, FileCode, Code as CodeIcon } from 'lucide-react'; // Added CodeIcon
 import Image from 'next/image';
 
 export const metadata: Metadata = {
@@ -21,6 +20,15 @@ export default function LessonsPage() {
       imageSrc: 'https://picsum.photos/seed/pythonlessons/600/400',
       imageAlt: 'Python logo and code snippets',
       dataAiHint: 'python learning',
+    },
+    {
+      title: 'JavaScript Essentials',
+      description: 'Master the core concepts of JavaScript, the language of the web. Covers variables, functions, DOM manipulation basics, and modern JS features.',
+      href: '/lessons/javascript-essentials',
+      icon: CodeIcon, // JS Icon
+      imageSrc: 'https://picsum.photos/seed/jslessons/600/400',
+      imageAlt: 'JavaScript code examples',
+      dataAiHint: 'javascript learning',
     },
     // Add more lessons here as they become available
   ];
