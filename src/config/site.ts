@@ -1,3 +1,4 @@
+
 import type { NavItem, FeatureCardItem } from '@/types';
 import {
   Home,
@@ -6,7 +7,7 @@ import {
   Orbit,
   Puzzle,
   Sigma,
-  Calculator as CalculatorIcon, // Renamed to avoid conflict
+  Calculator as CalculatorIcon, 
   TestTubeDiagonal, 
   Scale,
   BookOpen,
@@ -20,8 +21,7 @@ import {
   FileJson,
   LineChart,
   FunctionSquare,
-  Code as CodeIcon, // For JS Essentials
-  // Shapes, Triangle, Circle, Square, LayoutPanelLeft removed as they are no longer used here
+  Code as CodeIcon, 
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -95,7 +95,7 @@ export const navItems: NavItem[] = [
       {
         title: 'JavaScript Essentials',
         href: '/lessons/javascript-essentials',
-        icon: CodeIcon, // Using a generic code icon for JS
+        icon: CodeIcon, 
         description: 'Master fundamental JavaScript concepts.',
       }
     ]
@@ -217,9 +217,42 @@ export const featureCards: FeatureCardItem[] = [
     ctaLabel: 'Debug Code',
   },
   {
+    title: 'JS: Output Match',
+    description: 'Match JavaScript code snippets to their correct console output. Test your JS execution knowledge.',
+    href: '/lessons/javascript-essentials/output-match',
+    icon: Target, 
+    imageSrc: 'https://picsum.photos/seed/jsoutputchallenge/600/400',
+    imageAlt: 'JavaScript code and console output comparison',
+    dataAiHint: 'javascript coding',
+    isComingSoon: false,
+    ctaLabel: 'Try JS Challenge',
+  },
+  {
+    title: 'JS: Syntax Spotter',
+    description: 'Spot syntax errors in JavaScript code. A great way to improve your attention to detail.',
+    href: '/lessons/javascript-essentials/syntax-spotter',
+    icon: SearchCode,
+    imageSrc: 'https://picsum.photos/seed/jssyntaxchallenge/600/400',
+    imageAlt: 'JavaScript code with error highlighting',
+    dataAiHint: 'javascript syntax',
+    isComingSoon: false,
+    ctaLabel: 'Spot JS Errors',
+  },
+  {
+    title: 'JS: Debug It!',
+    description: 'Fix buggy JavaScript code! Use the in-browser sandbox to test and correct the snippets.',
+    href: '/lessons/javascript-essentials/debug-it',
+    icon: Wrench,
+    imageSrc: 'https://picsum.photos/seed/jsdebugchallenge/600/400',
+    imageAlt: 'JavaScript code in a debugger interface',
+    dataAiHint: 'javascript debugging',
+    isComingSoon: false,
+    ctaLabel: 'Debug JS Code',
+  },
+  {
     title: 'Data Structures Visualizer',
     description: 'Coming soon! Interactive visualizations of common data structures like arrays, linked lists, trees, and graphs. Understand their operations and complexities.',
-    href: '#', // Update when page is ready
+    href: '#', 
     icon: FileJson,
     imageSrc: 'https://picsum.photos/seed/datastructuresvis/600/400',
     imageAlt: 'Abstract representation of data structures',
@@ -230,7 +263,7 @@ export const featureCards: FeatureCardItem[] = [
   {
     title: 'Algorithm Arena',
     description: 'Coming soon! Step through popular algorithms like sorting, searching, and pathfinding. See how they work with animated examples and explanations.',
-    href: '#', // Update when page is ready
+    href: '#', 
     icon: BarChart3,
     imageSrc: 'https://picsum.photos/seed/algorithmsvis/600/400',
     imageAlt: 'Flowchart representing an algorithm',

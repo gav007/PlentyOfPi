@@ -1,0 +1,51 @@
+
+[
+  {
+    "id": "js-debug-1",
+    "description": "This function should return the sum of two numbers, but it's returning them concatenated as strings. Fix it so it performs numerical addition.",
+    "initialCode": "function addNumbers(a, b) {\n  return a + b;\n}\n\nlet result = addNumbers('5', '3');\nconsole.log(result); // Should be 8",
+    "expectedOutput": "8",
+    "solution": "function addNumbers(a, b) {\n  return Number(a) + Number(b);\n}\n\nlet result = addNumbers('5', '3');\nconsole.log(result);",
+    "difficulty": "easy"
+  },
+  {
+    "id": "js-debug-2",
+    "description": "This loop should print numbers from 0 to 4. There's an issue with the loop condition.",
+    "initialCode": "for (let i = 0; i <= 5; i+) {\n  console.log(i);\n}",
+    "expectedOutput": "0\n1\n2\n3\n4",
+    "solution": "for (let i = 0; i < 5; i++) {\n  console.log(i);\n}",
+    "difficulty": "easy"
+  },
+  {
+    "id": "js-debug-3",
+    "description": "The `person` object is missing a comma between properties, causing a syntax error. Add the missing comma.",
+    "initialCode": "const person = {\n  name: 'John Doe'\n  age: 30\n};\nconsole.log(person.name + ' is ' + person.age);",
+    "expectedOutput": "John Doe is 30",
+    "solution": "const person = {\n  name: 'John Doe',\n  age: 30\n};\nconsole.log(person.name + ' is ' + person.age);",
+    "difficulty": "easy"
+  },
+  {
+    "id": "js-debug-4",
+    "description": "This code tries to call `toUpperCase` on an undefined variable. Initialize `myString` with a value.",
+    "initialCode": "let myString;\nconsole.log(myString.toUpperCase());",
+    "expectedOutput": "HELLO",
+    "solution": "let myString = 'hello';\nconsole.log(myString.toUpperCase());",
+    "difficulty": "medium"
+  },
+  {
+    "id": "js-debug-5",
+    "description": "The `if` condition is using an assignment operator (=) instead of a comparison operator (=== or ==). Fix it to correctly check if `x` is equal to 10.",
+    "initialCode": "let x = 5;\nif (x = 10) {\n  console.log('x is 10');\n} else {\n  console.log('x is not 10');\n}",
+    "expectedOutput": "x is not 10",
+    "solution": "let x = 5;\nif (x === 10) {\n  console.log('x is 10');\n} else {\n  console.log('x is not 10');\n}",
+    "difficulty": "medium"
+  },
+  {
+    "id": "js-debug-6",
+    "description": "This `setTimeout` is missing its callback function. It should log a message after 1 second.",
+    "initialCode": "setTimeout(1000);\n// Expected: 'Delayed message!' after 1 second.",
+    "expectedOutput": "Delayed message!",
+    "solution": "setTimeout(() => {\n  console.log('Delayed message!');\n}, 1000);",
+    "difficulty": "medium"
+  }
+]

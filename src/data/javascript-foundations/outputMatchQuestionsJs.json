@@ -1,0 +1,51 @@
+
+[
+  {
+    "code": "console.log(typeof 'Hello');",
+    "options": ["string", "object", "undefined", "String"],
+    "correct": "string",
+    "explanation": "The `typeof` operator returns a string indicating the type of the unevaluated operand. 'Hello' is a string literal."
+  },
+  {
+    "code": "let x = 5;\nconsole.log(x++);",
+    "options": ["5", "6", "4", "undefined"],
+    "correct": "5",
+    "explanation": "The postfix increment operator `x++` returns the value of `x` *before* incrementing. So, it logs 5, then x becomes 6."
+  },
+  {
+    "code": "console.log(Boolean(0));",
+    "options": ["true", "false", "null", "undefined"],
+    "correct": "false",
+    "explanation": "In JavaScript, 0 is a 'falsy' value, so `Boolean(0)` evaluates to false."
+  },
+  {
+    "code": "let arr = [10, 20, 30];\nconsole.log(arr.length);",
+    "options": ["2", "3", "4", "undefined"],
+    "correct": "3",
+    "explanation": "The `length` property of an array returns the number of elements in it. The array `arr` has 3 elements."
+  },
+  {
+    "code": "console.log('5' + 3);",
+    "options": ["8", "53", "NaN", "Error"],
+    "correct": "53",
+    "explanation": "When the `+` operator is used with a string and a number, JavaScript performs string concatenation. The number 3 is converted to the string '3'."
+  },
+  {
+    "code": "console.log('10' == 10);",
+    "options": ["true", "false", "undefined", "Error"],
+    "correct": "true",
+    "explanation": "The loose equality operator `==` performs type coercion. The string '10' is converted to the number 10 before comparison, resulting in true."
+  },
+  {
+    "code": "let y;\nconsole.log(y === undefined);",
+    "options": ["true", "false", "null", "Error"],
+    "correct": "true",
+    "explanation": "A variable declared without an initial value is automatically assigned the value `undefined`."
+  },
+  {
+    "code": "const obj = {a: 1};\nobj.b = 2;\nconsole.log(obj.a + obj.b);",
+    "options": ["1", "2", "3", "Error"],
+    "correct": "3",
+    "explanation": "Even if an object is declared with `const`, its properties can still be added or modified. `obj.b` is added, and then `1 + 2` is calculated."
+  }
+]
