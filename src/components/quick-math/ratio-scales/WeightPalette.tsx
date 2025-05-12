@@ -7,9 +7,10 @@ import { PlusSquare } from 'lucide-react';
 interface WeightPaletteProps {
   weights: number[];
   onAddWeight: (side: 'left' | 'right', value: number) => void;
+  disabled?: boolean; // New prop
 }
 
-export default function WeightPalette({ weights, onAddWeight }: WeightPaletteProps) {
+export default function WeightPalette({ weights, onAddWeight, disabled = false }: WeightPaletteProps) {
   return (
     <div className="p-4 border border-dashed border-accent rounded-lg bg-accent/10">
       <h3 className="text-lg font-semibold text-center mb-3 text-accent-foreground">Weight Palette</h3>
@@ -27,6 +28,7 @@ export default function WeightPalette({ weights, onAddWeight }: WeightPalettePro
                     onClick={() => onAddWeight('left', weightValue)}
                     className="text-xs px-2 py-1 h-auto bg-card hover:bg-muted"
                     aria-label={`Add weight ${weightValue} to left pan`}
+                    disabled={disabled}
                 >
                     To Left
                 </Button>
@@ -36,6 +38,7 @@ export default function WeightPalette({ weights, onAddWeight }: WeightPalettePro
                     onClick={() => onAddWeight('right', weightValue)}
                     className="text-xs px-2 py-1 h-auto bg-card hover:bg-muted"
                     aria-label={`Add weight ${weightValue} to right pan`}
+                    disabled={disabled}
                 >
                     To Right
                 </Button>
@@ -46,4 +49,3 @@ export default function WeightPalette({ weights, onAddWeight }: WeightPalettePro
     </div>
   );
 }
-

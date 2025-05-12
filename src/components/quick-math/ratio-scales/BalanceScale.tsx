@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Weight } from './RatioScalesCard';
@@ -11,30 +12,34 @@ interface BalanceScaleProps {
   onRemoveWeight: (side: 'left' | 'right', id: string) => void;
   sumLeft: number;
   sumRight: number;
+  disabled?: boolean; // New prop
 }
 
-const WeightBox: React.FC<{ weight: Weight; onRemove: () => void }> = ({ weight, onRemove }) => (
+const WeightBox: React.FC<{ weight: Weight; onRemove: () => void; disabled?: boolean }> = ({ weight, onRemove, disabled }) => (
   <div className="relative group bg-primary/10 border border-primary/30 p-2 rounded-md text-center shadow">
     <span className="text-lg font-semibold text-primary-foreground">{weight.value}</span>
-    <Button
-      variant="ghost"
-      size="icon"
-      className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-card hover:bg-destructive text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-      onClick={onRemove}
-      aria-label={`Remove weight ${weight.value}`}
-    >
-      <MinusCircle className="w-3.5 h-3.5" />
-    </Button>
+    {!disabled && (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-card hover:bg-destructive text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={onRemove}
+        aria-label={`Remove weight ${weight.value}`}
+        disabled={disabled}
+      >
+        <MinusCircle className="w-3.5 h-3.5" />
+      </Button>
+    )}
   </div>
 );
 
-export default function BalanceScale({ leftWeights, rightWeights, onRemoveWeight, sumLeft, sumRight }: BalanceScaleProps) {
+export default function BalanceScale({ leftWeights, rightWeights, onRemoveWeight, sumLeft, sumRight, disabled = false }: BalanceScaleProps) {
   const tiltFactor = 5; // Max degrees of tilt
   let rotation = 0;
   if (sumLeft > sumRight) {
-    rotation = -Math.min(tiltFactor, (sumLeft - sumRight) / Math.max(1,sumRight) * tiltFactor /2 ); // Tilt left
+    rotation = -Math.min(tiltFactor, (sumLeft - sumRight) / Math.max(1,sumRight || 1) * tiltFactor /2 ); // Tilt left, avoid div by 0
   } else if (sumRight > sumLeft) {
-    rotation = Math.min(tiltFactor, (sumRight - sumLeft) / Math.max(1,sumLeft) * tiltFactor / 2); // Tilt right
+    rotation = Math.min(tiltFactor, (sumRight - sumLeft) / Math.max(1,sumLeft || 1) * tiltFactor / 2); // Tilt right, avoid div by 0
   }
   
   const basePanHeight = "min-h-[120px]"; 
@@ -51,7 +56,7 @@ export default function BalanceScale({ leftWeights, rightWeights, onRemoveWeight
       <div className="w-0 h-0 
         border-l-[20px] border-l-transparent
         border-r-[20px] border-r-transparent
-        border-b-[30px] border-b-primary shadow-md"> {/* Changed border-b-muted-foreground to border-b-primary */}
+        border-b-[30px] border-b-primary shadow-md">
       </div>
 
       <div className="flex justify-around w-full max-w-lg mt-2">
@@ -60,7 +65,7 @@ export default function BalanceScale({ leftWeights, rightWeights, onRemoveWeight
           <h4 className="text-sm font-semibold text-secondary-foreground mb-2">LEFT PAN (Total: {sumLeft})</h4>
           <div className="flex flex-wrap justify-center gap-2">
             {leftWeights.length === 0 && <p className="text-xs text-muted-foreground">Empty</p>}
-            {leftWeights.map(w => <WeightBox key={w.id} weight={w} onRemove={() => onRemoveWeight('left', w.id)} />)}
+            {leftWeights.map(w => <WeightBox key={w.id} weight={w} onRemove={() => onRemoveWeight('left', w.id)} disabled={disabled} />)}
           </div>
         </div>
 
@@ -69,7 +74,7 @@ export default function BalanceScale({ leftWeights, rightWeights, onRemoveWeight
           <h4 className="text-sm font-semibold text-secondary-foreground mb-2">RIGHT PAN (Total: {sumRight})</h4>
           <div className="flex flex-wrap justify-center gap-2">
             {rightWeights.length === 0 && <p className="text-xs text-muted-foreground">Empty</p>}
-            {rightWeights.map(w => <WeightBox key={w.id} weight={w} onRemove={() => onRemoveWeight('right', w.id)} />)}
+            {rightWeights.map(w => <WeightBox key={w.id} weight={w} onRemove={() => onRemoveWeight('right', w.id)} disabled={disabled} />)}
           </div>
         </div>
       </div>

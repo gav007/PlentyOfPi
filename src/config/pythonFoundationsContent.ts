@@ -434,11 +434,11 @@ const pythonFoundationsModules: LessonModule[] = [
       },
       {
         subTitle: "Attributes and Methods",
-        text: "- **Attributes (Instance Variables):** Variables that belong to an object. They store the data or state of the object. Attributes are typically defined within the `__init__` method using `self.attribute_name = value`.\n  `class Dog:\n    def __init__(self, name, age):\n      self.name = name  # Instance attribute\n      self.age = age    # Instance attribute`\n\n- **Methods:** Functions that belong to a class. They define the behavior or actions that an object can perform. Methods always have `self` as their first parameter.\n  `class Dog:\n    def __init__(self, name, age):\n      self.name = name\n      self.age = age\n\n    def bark(self):  # Instance method\n      print(f"{self.name} says Woof!")`",
+        text: "- **Attributes (Instance Variables):** Variables that belong to an object. They store the data or state of the object. Attributes are typically defined within the `__init__` method using `self.attribute_name = value`.\n  `class Dog:\n    def __init__(self, name, age):\n      self.name = name  # Instance attribute\n      self.age = age    # Instance attribute`\n\n- **Methods:** Functions that belong to a class. They define the behavior or actions that an object can perform. Methods always have `self` as their first parameter.\n  `class Dog:\n    def __init__(self, name, age):\n      self.name = name\n      self.age = age\n\n    def bark(self):  # Instance method\n      print(f\"{self.name} says Woof!\")`",
       },
       {
         subTitle: "Using Objects: Instantiation and Calling Methods",
-        text: "- **Instantiation (Creating an Object):** You create an object by calling the class name as if it were a function, passing any arguments required by the `__init__` method (excluding `self`).\n  `my_dog = Dog("Buddy", 3)`  # Creates an instance of the Dog class\n\n- **Accessing Attributes:** Use the dot notation: `object_name.attribute_name`.\n  `print(my_dog.name)`  # Output: Buddy\n\n- **Calling Methods:** Use the dot notation: `object_name.method_name()`.\n  `my_dog.bark()`  # Output: Buddy says Woof!",
+        text: "- **Instantiation (Creating an Object):** You create an object by calling the class name as if it were a function, passing any arguments required by the `__init__` method (excluding `self`).\n  `my_dog = Dog(\\\"Buddy\\\", 3)`  # Creates an instance of the Dog class\n\n- **Accessing Attributes:** Use the dot notation: `object_name.attribute_name`.\n  `print(my_dog.name)`  # Output: Buddy\n\n- **Calling Methods:** Use the dot notation: `object_name.method_name()`.\n  `my_dog.bark()`  # Output: Buddy says Woof!",
       },
       {
         subTitle: "Simple Inheritance (Brief Overview)",
@@ -528,5 +528,3 @@ const pythonFoundationsModules: LessonModule[] = [
 ];
 
 export default pythonFoundationsModules;
-
-    
