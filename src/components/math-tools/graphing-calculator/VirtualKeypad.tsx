@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Divide, Minus, Plus, XIcon as MultiplyIcon, Percent, Superscript, SquareRoot, Pi } from 'lucide-react'; // Use XIcon as MultiplyIcon
+import { Divide, Minus, Plus, XIcon as MultiplyIcon, Percent, Superscript, Pi } from 'lucide-react'; // Use XIcon as MultiplyIcon
 
 interface VirtualKeypadProps {
   onKeypadInput: (key: string) => void;
@@ -30,7 +30,7 @@ const symbolMap: Record<string, React.ReactNode | string> = {
   '+': <Plus className="w-5 h-5" />,
   '%': <Percent className="w-5 h-5" />,
   '^': <Superscript className="w-5 h-5" />,
-  'sqrt(': <SquareRoot className="w-5 h-5" />,
+  'sqrt(': "√", // Text representation for square root
   'pi': <Pi className="w-5 h-5" />,
   // Text for others
   'x^y': 'xʸ', // Custom representation for power
@@ -83,3 +83,4 @@ export default function VirtualKeypad({ onKeypadInput }: VirtualKeypadProps) {
     </div>
   );
 }
+
