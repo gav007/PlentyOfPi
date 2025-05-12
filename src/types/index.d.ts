@@ -1,6 +1,7 @@
 
 
 import type { LucideIcon } from 'lucide-react';
+export type { LessonModule, LabItem, QuizItem, QuizQuestion } from './lessons'; // Re-export lesson types
 
 export type NavItem = {
   title: string;
@@ -25,7 +26,7 @@ export type FeatureCardItem = {
   isComingSoon?: boolean;
 };
 
-// Types for Fraction Duel Game
+// Types for Fraction Duel Game (kept for other parts of the app)
 export interface FractionValue {
   num: number;
   den: number;
@@ -51,3 +52,5 @@ export interface GameState {
   phase: 'question' | 'feedback' | 'summary';
   startTimePerTurn: number | null; // For potential time bonus
 }
+
+    
