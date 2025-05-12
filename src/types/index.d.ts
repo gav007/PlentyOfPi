@@ -5,6 +5,8 @@ export type { OutputMatchQuestion, SyntaxSpotterProblem, DebugItChallenge } from
 export type { JSModule, JSLessonItem, JSLabItem, JSQuizItem, JSQuizQuestion } from './javascript-lessons'; // Re-export JS lesson types
 export type { OutputMatchQuestionJS, SyntaxSpotterProblemJS, DebugItChallengeJS } from './javascript-games'; // Re-export JS game types
 export type { Expression, ExpressionPlotData, GraphDomain, GraphRange } from './graphing'; // Re-export graphing types
+export type { SortAlgorithmType, SortStep } from './sort-algorithms'; // Added for sorting visualizer
+
 
 export type NavItem = {
   title: string;
