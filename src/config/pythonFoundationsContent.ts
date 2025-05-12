@@ -1,4 +1,3 @@
-
 import type { LessonModule } from '@/types/lessons';
 
 const pythonFoundationsModules: LessonModule[] = [
@@ -135,7 +134,7 @@ const pythonFoundationsModules: LessonModule[] = [
       {
         slug: 'basic-io',
         subTitle: 'Basic Input and Output (I/O)',
-        text: '- **Output (`print()`):** We\'ve seen `print()` for displaying information.\n  `print("Name:", name, "Age:", age)`\n\n- **Input (`input()`):** Used to get data from the user. It always returns the input as a string.\n  `user_name = input("Enter your name: ")`\n  If you need a number, you must convert it: `user_age_str = input("Enter your age: "); user_age_int = int(user_age_str)`',
+        text: '- **Output (`print()`):** We\'ve seen `print()` for displaying information.\n  `print("Name:", name, "Age:", age)`\n\n- **Input (`input()`):** Used to get data from the user. It always returns the input as a string.\n  `user_name = input("Enter your name: ")`\n  If you need a number, you must convert it: `user_age_str = input("Enter your age: "); user_age_int = int(user_age_str)`\n\n  **Note for Sandbox:** In this online sandbox, `input()` doesn\'t work like a normal terminal. For labs, we\'ll simulate input by setting variables directly in the code.',
       },
       {
         slug: 'operators',
@@ -152,21 +151,23 @@ const pythonFoundationsModules: LessonModule[] = [
       {
         slug: 'lab-2-1-variable-play',
         title: 'Lab 2.1: Variable Play & Simple Calculator',
-        description: 'Create a program that asks the user for two numbers and then prints their sum, difference, product, and quotient.',
-        starterCode: 'num1_str = input("Enter first number: ")\nnum2_str = input("Enter second number: ")\n\n# Convert inputs to numbers (integers or floats)\n# Example: num1 = float(num1_str)\n# Your code here for num1 and num2\n\n# Perform calculations\n# sum_result = num1 + num2\n# Your code here for difference, product, quotient\n\n# Print results\n# print("Sum:", sum_result)\n# Your code here to print other results',
+        description: 'Create a program that takes two numbers (pre-defined in the code for this sandbox) and then prints their sum, difference, product, and quotient.',
+        starterCode: '# --- Simulated Inputs --- \n# Modify these values to test with different numbers!\nnum1_str = "20"  # Simulates user entering "20"\nnum2_str = "4"   # Simulates user entering "4"\n# --- End Simulated Inputs ---\n\nprint(f"First number (as string from input): {num1_str}")\nprint(f"Second number (as string from input): {num2_str}")\n\n# Convert inputs to numbers (integers or floats)\n# Example: num1 = float(num1_str)\n# Your code here for num1 and num2\nnum1 = float(num1_str)\nnum2 = float(num2_str)\n\nprint(f"First number (converted to float): {num1}")\nprint(f"Second number (converted to float): {num2}")\n\n# Perform calculations\n# sum_result = num1 + num2\n# Your code here for difference, product, quotient\nsum_result = 0 # Placeholder\ndifference_result = 0 # Placeholder\nproduct_result = 0 # Placeholder\nquotient_result = "N/A" # Placeholder\n\n# Print results\nprint("Calculating...")\n# print("Sum:", sum_result)\n# Your code here to print other results',
         tasks: [
-          'Get two numbers as input from the user.',
-          'Convert these inputs to numerical types (e.g., `float` to handle decimals).',
+          'Two numbers are pre-defined as strings (`num1_str`, `num2_str`). Modify these string values to test different inputs.',
+          'Convert these string inputs to numerical types (e.g., `float` to handle decimals) and store them in `num1` and `num2`.',
           'Calculate their sum, difference, product, and quotient.',
+          'Store these results in `sum_result`, `difference_result`, `product_result`, and `quotient_result`.',
           'Print each result with a descriptive label (e.g., "Sum: ...").',
+          'Handle potential division by zero for the quotient (e.g., print "Cannot divide by zero" if `num2` is 0).'
         ],
         hints: [
-          'Remember `input()` returns strings. Use `float()` or `int()` to convert.',
+          'Use `float()` or `int()` to convert strings to numbers.',
           'Use the arithmetic operators: `+`, `-`, `*`, `/`.',
-          'To prevent errors with division by zero, you might want to check if the second number is zero before dividing (optional for this lab).',
+          'For division by zero, use an `if` statement to check if `num2` is 0 before calculating the quotient.',
         ],
-        solutionCode: 'num1_str = input("Enter first number: ")\nnum2_str = input("Enter second number: ")\n\nnum1 = float(num1_str)\nnum2 = float(num2_str)\n\nsum_result = num1 + num2\ndifference_result = num1 - num2\nproduct_result = num1 * num2\n\n# Handle division by zero for quotient\nif num2 != 0:\n    quotient_result = num1 / num2\nelse:\n    quotient_result = "Cannot divide by zero"\n\nprint("Sum:", sum_result)\nprint("Difference:", difference_result)\nprint("Product:", product_result)\nprint("Quotient:", quotient_result)',
-        solutionExplanation: 'This solution first gets two inputs as strings. Then, it converts them to `float` to allow for decimal numbers. It calculates the sum, difference, and product. For the quotient, it includes a check to prevent division by zero, providing a message if `num2` is 0. Finally, it prints all results.',
+        solutionCode: '# --- Simulated Inputs --- \nnum1_str = "20"\nnum2_str = "4"\n# --- End Simulated Inputs ---\n\nprint(f"First number (as string from input): {num1_str}")\nprint(f"Second number (as string from input): {num2_str}")\n\nnum1 = float(num1_str)\nnum2 = float(num2_str)\n\nprint(f"First number (converted to float): {num1}")\nprint(f"Second number (converted to float): {num2}")\n\nsum_result = num1 + num2\ndifference_result = num1 - num2\nproduct_result = num1 * num2\n\nif num2 != 0:\n    quotient_result = num1 / num2\nelse:\n    quotient_result = "Cannot divide by zero"\n\nprint("Sum:", sum_result)\nprint("Difference:", difference_result)\nprint("Product:", product_result)\nprint("Quotient:", quotient_result)',
+        solutionExplanation: 'This solution first uses the pre-defined string values for `num1_str` and `num2_str`. It then converts them to `float`. It calculates the sum, difference, and product. For the quotient, it includes a check to prevent division by zero. Finally, it prints all results.',
       },
     ],
     quizzes: [
@@ -188,7 +189,7 @@ const pythonFoundationsModules: LessonModule[] = [
             feedback: '`int("5")` becomes `5` (integer). `float("2.5")` becomes `2.5` (float). Adding an integer and a float results in a float: `5 + 2.5 = 7.5`.',
           },
           {
-            question: 'By default, what data type does the `input()` function return?',
+            question: 'When `input()` is used in a standard Python terminal, what data type does it return?',
             options: { A: 'integer', B: 'float', C: 'string', D: 'boolean' },
             answer: 'C',
             feedback: 'The `input()` function always returns the user\'s input as a string, regardless of what the user types.',
@@ -355,24 +356,24 @@ const pythonFoundationsModules: LessonModule[] = [
       {
         slug: 'lab-4-1-function-fun',
         title: 'Lab 4.1: Function Fun - Simple Adder',
-        description: 'Create a function `add_numbers(a, b)` that takes two numbers as parameters and returns their sum. Then, get two numbers from user input, call your function with these numbers, and print the returned result.',
-        starterCode: '# Define your function add_numbers(a, b) here\n# def add_numbers(a, b):\n#     return ...\n\n# Get input from the user\n# num1_str = input("Enter first number: ")\n# num2_str = input("Enter second number: ")\n\n# Convert inputs to numbers\n# num1 = float(num1_str)\n# num2 = float(num2_str)\n\n# Call your function and store the result\n# sum_result = add_numbers(num1, num2)\n\n# Print the result\n# print("The sum is:", sum_result)',
+        description: 'Create a function `add_numbers(a, b)` that takes two numbers as parameters and returns their sum. Then, use pre-defined numbers (simulating user input for this sandbox), call your function, and print the result.',
+        starterCode: '# Define your function add_numbers(a, b) here\ndef add_numbers(a, b):\n    # Your code here to return the sum of a and b\n    return 0 # Placeholder\n\n# --- Simulated Inputs ---\n# Modify these values to test your function\nnum1_val = "15.5"\nnum2_val = "4.5"\n# --- End Simulated Inputs ---\n\nprint(f"Simulated first number input: {num1_val}")\nprint(f"Simulated second number input: {num2_val}")\n\n# Convert simulated inputs to numbers\nnum1 = float(num1_val)\nnum2 = float(num2_val)\n\nprint(f"Converted first number: {num1}")\nprint(f"Converted second number: {num2}")\n\n# Call your function and store the result\nsum_result = add_numbers(num1, num2)\n\n# Print the result\nprint("The sum is:", sum_result)',
         tasks: [
           'Define a function named `add_numbers` that accepts two parameters (e.g., `a` and `b`).',
           'Inside the function, calculate the sum of `a` and `b`.',
           'Use the `return` statement to send the sum back from the function.',
-          'Outside the function, prompt the user to enter two numbers.',
-          'Convert these user inputs from strings to numerical types (e.g., `float`).',
-          'Call your `add_numbers` function with the user\'s numbers as arguments.',
+          'Two numbers are provided as strings (`num1_val`, `num2_val`). These simulate user input.',
+          'Convert these string values to numerical types (e.g., `float`).',
+          'Call your `add_numbers` function with these converted numbers as arguments.',
           'Print the value returned by the function in a user-friendly way (e.g., "The sum is: ...").',
         ],
         hints: [
           'Function definition starts with `def function_name(param1, param2):`.',
           'Use `return value` to send a value out of a function.',
-          'Remember to convert `input()` results using `int()` or `float()` before performing math.',
+          'Remember to convert string "inputs" using `int()` or `float()` before performing math.',
         ],
-        solutionCode: 'def add_numbers(a, b):\n    return a + b\n\nnum1_str = input("Enter first number: ")\nnum2_str = input("Enter second number: ")\n\nnum1 = float(num1_str)\nnum2 = float(num2_str)\n\nsum_result = add_numbers(num1, num2)\n\nprint("The sum is:", sum_result)',
-        solutionExplanation: 'The `add_numbers` function takes two arguments `a` and `b` and simply returns their sum. Outside the function, we get two numbers from the user, convert them to `float`, call `add_numbers` with these values, and print the result.',
+        solutionCode: 'def add_numbers(a, b):\n    return a + b\n\n# --- Simulated Inputs ---\nnum1_val = "15.5"\nnum2_val = "4.5"\n# --- End Simulated Inputs ---\n\nprint(f"Simulated first number input: {num1_val}")\nprint(f"Simulated second number input: {num2_val}")\n\nnum1 = float(num1_val)\nnum2 = float(num2_val)\n\nprint(f"Converted first number: {num1}")\nprint(f"Converted second number: {num2}")\n\nsum_result = add_numbers(num1, num2)\n\nprint("The sum is:", sum_result)',
+        solutionExplanation: 'The `add_numbers` function takes two arguments `a` and `b` and returns their sum. The simulated string inputs are converted to `float`, then `add_numbers` is called, and the result is printed.',
       },
       {
         slug: 'lab-4-2-student-grades',
@@ -480,7 +481,7 @@ const pythonFoundationsModules: LessonModule[] = [
       {
         slug: 'creating-classes-init-self',
         subTitle: "Creating Classes: `class`, `__init__`, and `self`",
-        text: "- **`class` keyword:** Used to define a new class.\n  `class Dog:\n    pass  # pass means 'do nothing', a placeholder`\n\n- **`__init__` method (Constructor):** A special method that is automatically called when you create a new object (instance) of a class. It's used to initialize the object's attributes. The name `__init__` has double underscores before and after.\n\n- **`self` parameter:** The first parameter of any method within a class (including `__init__`) is conventionally named `self`. It refers to the instance of the class itself. Through `self`, methods can access the attributes and other methods of the same object.",
+        text: "- **`class` keyword:** Used to define a new class.\n  ```python\n  class Dog:\n    pass  # pass means 'do nothing', a placeholder\n  ```\n\n- **`__init__` method (Constructor):** A special method that is automatically called when you create a new object (instance) of a class. It's used to initialize the object's attributes. The name `__init__` has double underscores before and after.\n\n- **`self` parameter:** The first parameter of any method within a class (including `__init__`) is conventionally named `self`. It refers to the instance of the class itself. Through `self`, methods can access the attributes and other methods of the same object.",
       },
       {
         slug: 'attributes-methods',
@@ -490,7 +491,7 @@ const pythonFoundationsModules: LessonModule[] = [
       {
         slug: 'using-objects-instantiation-methods',
         subTitle: "Using Objects: Instantiation and Calling Methods",
-        text: "- **Instantiation (Creating an Object):** You create an object by calling the class name as if it were a function, passing any arguments required by the `__init__` method (excluding `self`).\n  `my_dog = Dog(\"Buddy\", 3)`  # Creates an instance of the Dog class\n\n- **Accessing Attributes:** Use the dot notation: `object_name.attribute_name`.\n  `print(my_dog.name)`  # Output: Buddy\n\n- **Calling Methods:** Use the dot notation: `object_name.method_name()`.\n  `my_dog.bark()`  # Output: Buddy says Woof!"
+        text: "- **Instantiation (Creating an Object):** You create an object by calling the class name as if it were a function, passing any arguments required by the `__init__` method (excluding `self`).\n  ```python\n  my_dog = Dog(\"Buddy\", 3)  # Creates an instance of the Dog class\n  ```\n\n- **Accessing Attributes:** Use the dot notation: `object_name.attribute_name`.\n  ```python\n  print(my_dog.name)  # Output: Buddy\n  ```\n\n- **Calling Methods:** Use the dot notation: `object_name.method_name()`.\n  ```python\n  my_dog.bark()  # Output: Buddy says Woof!\n  ```"
       },
       {
         slug: 'simple-inheritance-overview',
