@@ -7,7 +7,7 @@ import {
   Orbit,
   Puzzle,
   Sigma,
-  Calculator,
+  Calculator as CalculatorIcon, // Renamed to avoid conflict
   TestTubeDiagonal, 
   Scale,
   BookOpen,
@@ -83,13 +83,12 @@ export const navItems: NavItem[] = [
         description: 'Visualize functions, derivatives, and integrals.',
       },
       {
-        title: 'Geometry Tools',
-        href: '/geometry', // Main landing for geometry tools (optional)
-        icon: Shapes,
-        description: 'Interactive geometry calculators.',
-        // Sub-items for individual geometry tools will be listed here if a separate /geometry page is made
-        // Or directly link to the first tool, e.g. /geometry/triangle if no main geometry page
+        title: 'Graphing Calculator',
+        href: '/graphing-calculator',
+        icon: LineChart, // Changed icon
+        description: 'Plot multiple functions interactively.',
       },
+      // Geometry tools moved to their own top-level category for better visibility
     ],
   },
   {
@@ -122,11 +121,6 @@ export const navItems: NavItem[] = [
         description: 'Calculate properties of trapeziums.',
       },
     ],
-  },
-  {
-    title: 'Graphing Calculator',
-    href: '/graphing-calculator',
-    icon: Calculator,
   },
   {
     title: 'Lessons',
@@ -186,6 +180,17 @@ export const featureCards: FeatureCardItem[] = [
     ctaLabel: 'Start Plotting',
   },
   {
+    title: 'Advanced Graphing Calculator',
+    description: 'Plot multiple complex functions, explore equations interactively, and visualize math concepts with our powerful Desmos-like graphing calculator.',
+    href: '/graphing-calculator',
+    icon: LineChart, 
+    imageSrc: 'https://picsum.photos/seed/graphingcalcfeature/600/400',
+    imageAlt: 'Advanced graphing calculator interface plotting multiple functions',
+    dataAiHint: 'graph calculator functions',
+    isComingSoon: false, // No longer coming soon
+    ctaLabel: 'Plot Functions',
+  },
+  {
     title: 'Triangle Calculator',
     description: 'Interactively calculate area, perimeter, angles, and more for triangles. Drag vertices or input values.',
     href: '/geometry/triangle',
@@ -194,7 +199,7 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Interactive triangle diagram',
     dataAiHint: 'triangle geometry',
     ctaLabel: 'Explore Triangles',
-    isComingSoon: false, // Assuming it will be built now
+    isComingSoon: false,
   },
   {
     title: 'Circle Calculator',
@@ -205,7 +210,7 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Interactive circle diagram',
     dataAiHint: 'circle geometry',
     ctaLabel: 'Explore Circles',
-    isComingSoon: false, // Assuming it will be built now
+    isComingSoon: false, 
   },
   {
     title: 'Square Calculator',
@@ -216,7 +221,7 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Interactive square diagram',
     dataAiHint: 'square geometry',
     ctaLabel: 'Explore Squares',
-    isComingSoon: false, // Assuming it will be built now
+    isComingSoon: false,
   },
   {
     title: 'Trapezium Calculator',
@@ -227,18 +232,7 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Interactive trapezium diagram',
     dataAiHint: 'trapezium geometry',
     ctaLabel: 'Explore Trapeziums',
-    isComingSoon: false, // Assuming it will be built now
-  },
-  {
-    title: 'Graphing Calculator',
-    description: 'Plot functions, explore equations, and visualize math concepts with our powerful graphing calculator. (Coming Soon!)',
-    href: '/graphing-calculator',
-    icon: LineChart, 
-    imageSrc: 'https://picsum.photos/seed/graphingcalcfeature/600/400',
-    imageAlt: 'Advanced graphing calculator interface',
-    dataAiHint: 'graph calculator',
-    isComingSoon: true,
-    ctaLabel: 'Explore (Soon)',
+    isComingSoon: false,
   },
   {
     title: 'Hex Boxes Challenge',
