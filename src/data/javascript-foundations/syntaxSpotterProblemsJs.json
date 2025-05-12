@@ -65,5 +65,69 @@
     ],
     "errorLineIndex": 1,
     "explanation": "TypeError (often caught as syntax error by linters): Assignment to constant variable. Variables declared with `const` cannot be reassigned."
+  },
+  {
+    "lines": [
+      "let array = [1, 2, 3;",
+      "console.log(array[0]);"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "Syntax Error: Missing a closing square bracket ']' in the array literal."
+  },
+  {
+    "lines": [
+      "let num = '5';",
+      "if (num === 5 {",
+      "  console.log('Match');",
+      "}"
+    ],
+    "errorLineIndex": 1,
+    "explanation": "Syntax Error: Missing a closing parenthesis ')' in the if condition."
+  },
+  {
+    "lines": [
+      "function sayHi()",
+      "  console.log('Hi!');",
+      "}"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "Syntax Error: Function declaration is missing curly braces '{}' for its body."
+  },
+  {
+    "lines": [
+      "const myObject = { key: 'value' }",
+      "console.log(myObject.key);"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "Syntax Error: Missing a semicolon after the object declaration, though ASI often handles this. The primary issue is if it were part of a larger expression where a comma or semicolon would be syntactically required."
+  },
+  {
+    "lines": [
+      "var x = 1;",
+      "if x > 0 {",
+      "  console.log('Positive');",
+      "}"
+    ],
+    "errorLineIndex": 1,
+    "explanation": "Syntax Error: The condition in an `if` statement must be enclosed in parentheses `()`. It should be `if (x > 0)`."
+  },
+  {
+    "lines": [
+      "const name = \"Bard\";",
+      "console.log(\"Hello, ${name}!\");"
+    ],
+    "errorLineIndex": 1,
+    "explanation": "Syntax Error: Template literals require backticks (`` ` ``) not double quotes for string interpolation. It should be `console.log(`Hello, ${name}!`);`"
+  },
+  {
+    "lines": [
+      "let count = 0;",
+      "do {",
+      "  console.log(count);",
+      "  count++;",
+      "} while count < 5;"
+    ],
+    "errorLineIndex": 4,
+    "explanation": "Syntax Error: The condition in a `do...while` loop must be enclosed in parentheses `()`. It should be `} while (count < 5);`"
   }
 ]

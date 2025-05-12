@@ -47,5 +47,71 @@
     "options": ["1", "2", "3", "Error"],
     "correct": "3",
     "explanation": "Even if an object is declared with `const`, its properties can still be added or modified. `obj.b` is added, and then `1 + 2` is calculated."
+  },
+  {
+    "code": "console.log(2 ** 3);",
+    "options": ["6", "8", "5", "9"],
+    "correct": "8",
+    "explanation": "The exponentiation operator `**` raises the left operand to the power of the right operand. 2 raised to the power of 3 is 8."
+  },
+  {
+    "code": "console.log(10 % 3);",
+    "options": ["1", "3", "0", "3.33"],
+    "correct": "1",
+    "explanation": "The modulus operator `%` returns the remainder of a division. 10 divided by 3 is 3 with a remainder of 1."
+  },
+  {
+    "code": "let greeting = 'Hello';\nconsole.log(greeting.toUpperCase());",
+    "options": ["Hello", "hello", "HELLO", "Error"],
+    "correct": "HELLO",
+    "explanation": "The `toUpperCase()` string method converts all characters in a string to uppercase."
+  },
+  {
+    "code": "let items = ['apple', 'banana'];\nitems.push('cherry');\nconsole.log(items[2]);",
+    "options": ["apple", "banana", "cherry", "undefined"],
+    "correct": "cherry",
+    "explanation": "The `push()` method adds one or more elements to the end of an array. 'cherry' is added at index 2."
+  },
+  {
+    "code": "console.log(Boolean(''));",
+    "options": ["true", "false", "null", "Error"],
+    "correct": "false",
+    "explanation": "An empty string `''` is a 'falsy' value in JavaScript, so `Boolean('')` evaluates to false."
+  },
+  {
+    "code": "console.log('5' - 2);",
+    "options": ["3", "52", "NaN", "Error"],
+    "correct": "3",
+    "explanation": "When the `-` operator is used with a string that can be converted to a number, JavaScript performs numeric subtraction. '5' is converted to 5."
+  },
+  {
+    "code": "let a = 5;\nlet b = '5';\nconsole.log(a === b);",
+    "options": ["true", "false", "undefined", "Error"],
+    "correct": "false",
+    "explanation": "The strict equality operator `===` checks for both value and type equality without type coercion. A number is not strictly equal to a string."
+  },
+  {
+    "code": "const arr1 = [1, 2];\nconst arr2 = [1, 2];\nconsole.log(arr1 === arr2);",
+    "options": ["true", "false", "null", "undefined"],
+    "correct": "false",
+    "explanation": "When comparing objects (including arrays) with `===`, JavaScript checks if they are the same object in memory, not if their contents are identical. `arr1` and `arr2` are two different array objects."
+  },
+  {
+    "code": "console.log(!!'hello');",
+    "options": ["true", "false", "NaN", "'hello'"],
+    "correct": "true",
+    "explanation": "The double negation `!!` coerces a value to its boolean equivalent. Non-empty strings are 'truthy', so `!!'hello'` becomes `!!true`, which is `true`."
+  },
+  {
+    "code": "let num = 10;\nif (num > 5 && num < 15) {\n  console.log('In range');\n} else {\n  console.log('Out of range');\n}",
+    "options": ["In range", "Out of range", "undefined", "Error"],
+    "correct": "In range",
+    "explanation": "The logical AND operator `&&` checks if both conditions are true. 10 is greater than 5 AND less than 15."
+  },
+  {
+    "code": "let color = 'red';\nswitch(color) {\n  case 'blue': console.log('Blue'); break;\n  case 'red': console.log('Red');\n  case 'green': console.log('Green'); break;\n  default: console.log('Unknown');\n}",
+    "options": ["Red", "Red\nGreen", "Blue", "Unknown"],
+    "correct": "Red\nGreen",
+    "explanation": "The `switch` statement matches 'red'. Since there's no `break` after the 'red' case, execution 'falls through' to the 'green' case as well."
   }
 ]

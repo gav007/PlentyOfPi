@@ -65,7 +65,7 @@ const jsFoundationsModules: JSModule[] = [
       {
         slug: 'quiz-1-introduction-to-js',
         title: 'Quiz 1: Introduction to JavaScript',
-        questionsCount: 6,
+        questionsCount: 8, // Updated count
         questions: [
           {
             question: 'What is JavaScript primarily known as?',
@@ -131,6 +131,28 @@ const jsFoundationsModules: JSModule[] = [
             answer: 'B',
             feedback: 'False. While JavaScript is dominant in front-end development, technologies like Node.js allow JavaScript to be used for server-side (back-end) programming as well.',
           },
+          {
+            question: 'Which is NOT a primary advantage of JavaScript?',
+            options: {
+                A: 'Creating interactive web pages.',
+                B: 'Running directly on the server without a runtime environment like Node.js.',
+                C: 'Having a large ecosystem of libraries and frameworks.',
+                D: 'Being supported by all modern web browsers.'
+            },
+            answer: 'B',
+            feedback: 'JavaScript requires a runtime environment like Node.js to run on the server-side. Client-side JS runs directly in browsers.'
+          },
+          {
+            question: 'Where is it generally recommended to place `<script>` tags in an HTML document for better performance?',
+            options: {
+                A: 'Inside the `<head>` tag.',
+                B: 'Just before the closing `</body>` tag.',
+                C: 'At the very beginning of the `<body>` tag.',
+                D: 'It does not matter where they are placed.'
+            },
+            answer: 'B',
+            feedback: 'Placing `<script>` tags just before the closing `</body>` tag ensures that the HTML content is parsed and rendered before the script, which can improve perceived load time and prevent errors if scripts try to access DOM elements that haven\'t been created yet.'
+          }
         ],
       },
     ],
@@ -201,7 +223,7 @@ const jsFoundationsModules: JSModule[] = [
       {
         slug: 'quiz-2-variables-data-types',
         title: 'Quiz 2: Variables and Data Types',
-        questionsCount: 7,
+        questionsCount: 9, // Updated count
         questions: [
           {
             question: 'Which keyword is used to declare a variable in modern JavaScript that can be reassigned?',
@@ -245,6 +267,18 @@ const jsFoundationsModules: JSModule[] = [
             answer: 'C',
             feedback: 'Arrays (and Objects) are complex data types in JavaScript. Strings, Numbers, and Booleans are primitive types.',
           },
+          {
+            question: 'If `let x = 10;` and then `const x = 20;` is written in the same scope, what happens?',
+            options: { A: 'x becomes 20.', B: 'A TypeError occurs.', C: 'A SyntaxError occurs.', D: 'x remains 10.' },
+            answer: 'C',
+            feedback: 'You cannot re-declare a variable defined with `let` or `const` in the same scope. This will result in a SyntaxError: "Identifier \'x\' has already been declared".'
+          },
+          {
+            question: 'What is the value of `myVar` after this code: `let myVar;`?',
+            options: { A: 'null', B: '0', C: '"" (empty string)', D: 'undefined' },
+            answer: 'D',
+            feedback: 'If a variable is declared using `let` or `var` without an initial value, it is automatically assigned the value `undefined`.'
+          }
         ],
       },
     ],
@@ -317,7 +351,7 @@ const jsFoundationsModules: JSModule[] = [
       {
         slug: 'quiz-3-operators-interaction',
         title: 'Quiz 3: Operators and User Interaction',
-        questionsCount: 7,
+        questionsCount: 9, // Updated count
         questions: [
           {
             question: 'What is the result of `10 % 3` in JavaScript?',
@@ -361,6 +395,18 @@ const jsFoundationsModules: JSModule[] = [
             answer: 'C',
             feedback: 'In JavaScript, arrays are a special type of object. Therefore, `typeof [1, 2, 3]` returns `"object"`.',
           },
+          {
+            question: 'What is the value of `x` after `let x = 10; x++;`?',
+            options: { A: '10', B: '11', C: '9', D: 'undefined' },
+            answer: 'B',
+            feedback: 'The postfix increment operator `x++` increments the value of `x` by 1 after its original value is used in an expression. Here, `x` becomes 11.'
+          },
+          {
+            question: 'If `a = 5` and `b = "5"`, what is `a == b` and `a === b`?',
+            options: { A: 'true, true', B: 'true, false', C: 'false, true', D: 'false, false' },
+            answer: 'B',
+            feedback: '`a == b` (loose equality) is `true` because type coercion converts the string "5" to the number 5. `a === b` (strict equality) is `false` because the types (number and string) are different.'
+          }
         ],
       },
     ],
@@ -425,7 +471,7 @@ const jsFoundationsModules: JSModule[] = [
       {
         slug: 'quiz-4-control-flow',
         title: 'Quiz 4: Control Flow',
-        questionsCount: 7,
+        questionsCount: 9, // Updated count
         questions: [
           {
             question: 'Which statement is used to execute a block of code only if a condition is true?',
@@ -469,6 +515,18 @@ const jsFoundationsModules: JSModule[] = [
             answer: 'B',
             feedback: 'The `break` keyword in a `switch` statement is used to terminate the execution within the switch block once a matching `case` is found and its code executed, preventing unintended execution of subsequent `case` blocks.',
           },
+          {
+            question: 'What will be printed by: `for (let i = 1; i <= 3; i++) { console.log(i); }`?',
+            options: { A: '0 1 2', B: '1 2 3', C: '1 2', D: '0 1 2 3' },
+            answer: 'B',
+            feedback: 'The loop initializes `i` to 1, continues as long as `i <= 3`, and increments `i`. So it prints 1, 2, and 3.'
+          },
+          {
+            question: 'Which keyword is used to skip the current iteration of a loop and proceed to the next?',
+            options: { A: 'break', B: 'return', C: 'continue', D: 'pass' },
+            answer: 'C',
+            feedback: 'The `continue` statement skips the remaining code in the current loop iteration and proceeds to the next iteration.'
+          }
         ],
       },
     ],
@@ -534,7 +592,7 @@ const jsFoundationsModules: JSModule[] = [
       {
         slug: 'quiz-5-functions',
         title: 'Quiz 5: Functions',
-        questionsCount: 7,
+        questionsCount: 9, // Updated count
         questions: [
           {
             question: 'How do you declare a basic function in JavaScript?',
@@ -544,7 +602,7 @@ const jsFoundationsModules: JSModule[] = [
           },
           {
             question: 'What is a "parameter" in the context of a function?',
-            options: { A: 'The value returned by the function.', B: 'A variable declared inside the function.', B: 'A variable declared inside the function.', C: 'A placeholder for a value that a function expects to receive when it is called.', D: 'The actual value passed to a function when it is called.' },
+            options: { A: 'The value returned by the function.', B: 'A variable declared inside the function.', C: 'A placeholder for a value that a function expects to receive when it is called.', D: 'The actual value passed to a function when it is called.' },
             answer: 'C',
             feedback: 'Parameters are variables listed in a function\'s definition. They act as placeholders for the arguments that will be passed in when the function is invoked.',
           },
@@ -578,6 +636,18 @@ const jsFoundationsModules: JSModule[] = [
             answer: 'B',
             feedback: '`setInterval(callback, delay)` is used to repeatedly call the `callback` function every `delay` milliseconds until `clearInterval()` is called.',
           },
+          {
+            question: 'Which syntax is used for an arrow function that takes no parameters and implicitly returns the string "Hello"?',
+            options: { A: '`=> "Hello"`', B: '`() => "Hello"`', C: '`function() => "Hello"`', D: '`void => "Hello"`' },
+            answer: 'B',
+            feedback: 'An arrow function with no parameters uses empty parentheses `()`, followed by `=>` and the expression to be returned (if it\'s a concise body). `() => "Hello"` is correct.'
+          },
+          {
+            question: 'What is the value of `x` after the following code? `function test() { let x = 10; } test();`',
+            options: { A: '10', B: 'undefined', C: 'Error: x is not defined', D: 'null' },
+            answer: 'C',
+            feedback: '`x` is declared with `let` inside the `test` function, so it has local scope. It is not accessible outside the function, leading to a ReferenceError if you try to access `x` globally after `test()` is called.'
+          }
         ],
       },
     ],
@@ -638,7 +708,7 @@ const jsFoundationsModules: JSModule[] = [
       {
         slug: 'quiz-6-errors-debugging',
         title: 'Quiz 6: Errors and Debugging',
-        questionsCount: 7,
+        questionsCount: 9, // Updated count
         questions: [
           {
             question: 'Which type of error occurs when code violates the grammatical rules of JavaScript, preventing it from being parsed?',
@@ -682,6 +752,18 @@ const jsFoundationsModules: JSModule[] = [
             answer: 'D',
             feedback: '`console.error()` is used to output error messages. Browsers often display these messages in red or with an error icon to distinguish them.',
           },
+          {
+            question: 'What is the `name` property of an error object thrown by `throw new TypeError("My type error");`?',
+            options: { A: '"Error"', B: '"TypeError"', C: '"My type error"', D: 'undefined' },
+            answer: 'B',
+            feedback: 'When you throw an instance of a specific error class like `TypeError`, the `name` property of the error object will be the name of that class (e.g., "TypeError"). The `message` property will be "My type error".'
+          },
+          {
+            question: 'If a `try` block executes successfully without throwing any errors, what happens to the `catch` block?',
+            options: { A: 'It is executed.', B: 'It is skipped.', C: 'It causes an error.', D: 'It is executed only if there is also a `finally` block.' },
+            answer: 'B',
+            feedback: 'The `catch` block is only executed if an error (exception) is thrown within the corresponding `try` block. If no error occurs in `try`, `catch` is skipped.'
+          }
         ],
       },
     ],

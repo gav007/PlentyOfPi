@@ -47,5 +47,53 @@
     "expectedOutput": "Delayed message!",
     "solution": "setTimeout(() => {\n  console.log('Delayed message!');\n}, 1000);",
     "difficulty": "medium"
+  },
+  {
+    "id": "js-debug-7",
+    "description": "The function `multiplyByTwo` should return the number multiplied by two, but it's not returning anything. Add a return statement.",
+    "initialCode": "function multiplyByTwo(num) {\n  let result = num * 2;\n  // Missing return statement\n}\n\nlet value = multiplyByTwo(7);\nconsole.log(value); // Should be 14",
+    "expectedOutput": "14",
+    "solution": "function multiplyByTwo(num) {\n  let result = num * 2;\n  return result;\n}\n\nlet value = multiplyByTwo(7);\nconsole.log(value);",
+    "difficulty": "easy"
+  },
+  {
+    "id": "js-debug-8",
+    "description": "This array `pop()` method is used incorrectly. It should remove and log the last element ('cherry'). The current code logs the new length of the array.",
+    "initialCode": "let fruits = ['apple', 'banana', 'cherry'];\nlet lastFruit = fruits.pop();\nconsole.log(fruits.length); // Should log 'cherry'",
+    "expectedOutput": "cherry",
+    "solution": "let fruits = ['apple', 'banana', 'cherry'];\nlet lastFruit = fruits.pop();\nconsole.log(lastFruit);",
+    "difficulty": "medium"
+  },
+  {
+    "id": "js-debug-9",
+    "description": "The loop should sum numbers from 1 to 3 (inclusive). The variable `sum` is re-declared inside the loop, resetting its value. Initialize `sum` before the loop.",
+    "initialCode": "function sumNumbers(n) {\n  for (let i = 1; i <= n; i++) {\n    let sum = 0; // Error: sum is reset in each iteration\n    sum += i;\n  }\n  return sum; // sum here is out of scope or the last iteration's sum\n}\nconsole.log(sumNumbers(3)); // Should be 6 (1+2+3)",
+    "expectedOutput": "6",
+    "solution": "function sumNumbers(n) {\n  let sum = 0; // Initialize sum before the loop\n  for (let i = 1; i <= n; i++) {\n    sum += i;\n  }\n  return sum;\n}\nconsole.log(sumNumbers(3));",
+    "difficulty": "medium"
+  },
+  {
+    "id": "js-debug-10",
+    "description": "This code tries to access array elements with `arr.i` instead of `arr[i]`.",
+    "initialCode": "let arr = [10, 20, 30];\nfor (let i = 0; i < arr.length; i++) {\n  console.log(arr.i); // Incorrect array access\n}",
+    "expectedOutput": "10\n20\n30",
+    "solution": "let arr = [10, 20, 30];\nfor (let i = 0; i < arr.length; i++) {\n  console.log(arr[i]);\n}",
+    "difficulty": "easy"
+  },
+  {
+    "id": "js-debug-11",
+    "description": "A `while` loop is missing the increment of its counter, causing an infinite loop. Increment `counter`.",
+    "initialCode": "let counter = 0;\nwhile (counter < 3) {\n  console.log('Looping...');\n  // Missing counter increment\n}",
+    "expectedOutput": "Looping...\nLooping...\nLooping...",
+    "solution": "let counter = 0;\nwhile (counter < 3) {\n  console.log('Looping...');\n  counter++;\n}",
+    "difficulty": "medium"
+  },
+  {
+    "id": "js-debug-12",
+    "description": "The `getUserData` function is supposed to return an object with name and age, but the properties are not correctly defined.",
+    "initialCode": "function getUserData() {\n  let name = 'Test User';\n  let age = 25;\n  return { name; age; }; // Incorrect object property definition\n}\nconst user = getUserData();\nconsole.log(user.name + ' is ' + user.age);",
+    "expectedOutput": "Test User is 25",
+    "solution": "function getUserData() {\n  let name = 'Test User';\n  let age = 25;\n  return { name: name, age: age }; // Or shorthand: return { name, age };\n}\nconst user = getUserData();\nconsole.log(user.name + ' is ' + user.age);",
+    "difficulty": "easy"
   }
 ]
