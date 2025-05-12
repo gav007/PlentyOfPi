@@ -1,8 +1,6 @@
 
-
 import type { LucideIcon } from 'lucide-react';
 export type { LessonModule, LabItem, QuizItem, QuizQuestion } from './lessons'; // Re-export lesson types
-export type { Expression, PlotData, PlotPoint } from './graphing'; // Re-export graphing types
 
 export type NavItem = {
   title: string;

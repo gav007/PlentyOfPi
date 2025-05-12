@@ -82,12 +82,6 @@ export const navItems: NavItem[] = [
         icon: Sigma,
         description: 'Visualize functions, derivatives, and integrals.',
       },
-      {
-        title: 'Graphing Calculator',
-        href: '/graphing-calculator',
-        icon: LineChart, // Changed icon
-        description: 'Plot multiple functions interactively.',
-      },
       // Geometry tools moved to their own top-level category for better visibility
     ],
   },
@@ -178,17 +172,6 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Graph of a function with tangent line and shaded area',
     dataAiHint: 'calculus graph',
     ctaLabel: 'Start Plotting',
-  },
-  {
-    title: 'Advanced Graphing Calculator',
-    description: 'Plot multiple complex functions, explore equations interactively, and visualize math concepts with our powerful Desmos-like graphing calculator.',
-    href: '/graphing-calculator',
-    icon: LineChart, 
-    imageSrc: 'https://picsum.photos/seed/graphingcalcfeature/600/400',
-    imageAlt: 'Advanced graphing calculator interface plotting multiple functions',
-    dataAiHint: 'graph calculator functions',
-    isComingSoon: false, // No longer coming soon
-    ctaLabel: 'Plot Functions',
   },
   {
     title: 'Triangle Calculator',
