@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import FourierControls from './FourierControls';
 import EpicycleCanvas from './EpicycleCanvas';
 import WaveformPlot from './WaveformPlot';
-import { Equation } from 'lucide-react'; // Using Equation icon for Fourier Series
+import { FunctionSquare } from 'lucide-react'; // Using FunctionSquare icon for Fourier Series
 
 const MAX_TERMS = 50; // Max number of terms for performance
 const TIME_PERIOD = 2 * Math.PI; // One full cycle for the waveform
@@ -18,7 +18,7 @@ export default function FourierVisualizer() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [animationSpeed, setAnimationSpeed] = useState(0.01); // Radians per frame effectively
 
-  const [epicycleData, setEpicycleData] = useState<Array<{ x: number; y: number; radius: number; angle: number }>>([]);
+  const [epicycleData, setEpicycleData] = useState<Array<{ x: number; y: number; radius: number; angle: number, tipX: number, tipY: number }>>([]);
   const [waveformPath, setWaveformPath] = useState<Array<{ x: number; y: number }>>([]);
   const [currentWaveformPoint, setCurrentWaveformPoint] = useState<{ x: number; y: number } | null>(null);
   const [tracedPath, setTracedPath] = useState<Array<{x: number, y:number}>>([]);
@@ -50,7 +50,7 @@ export default function FourierVisualizer() {
 
   // Update epicycles and current waveform point based on animTime
   useEffect(() => {
-    const epicycles = [];
+    const epicyclesResult = [];
     let currentX = 0;
     let currentY = 0;
 
@@ -65,7 +65,7 @@ export default function FourierVisualizer() {
       currentX += radius * Math.cos(angle);
       currentY += radius * Math.sin(angle);
 
-      epicycles.push({
+      epicyclesResult.push({
         x: prevX, // Center of this epicycle
         y: prevY,
         radius,
@@ -74,7 +74,7 @@ export default function FourierVisualizer() {
         tipY: currentY,
       });
     }
-    setEpicycleData(epicycles);
+    setEpicycleData(epicyclesResult);
     setCurrentWaveformPoint({ x: animTime, y: currentY }); // currentY is SF(animTime)
 
     // Update traced path
@@ -120,7 +120,7 @@ export default function FourierVisualizer() {
     <Card className="w-full shadow-xl">
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
-          <Equation className="w-8 h-8" />
+          <FunctionSquare className="w-8 h-8" />
           Fourier Series Visualizer
         </CardTitle>
         <CardDescription className="text-muted-foreground">
@@ -166,3 +166,4 @@ export default function FourierVisualizer() {
     </Card>
   );
 }
+
