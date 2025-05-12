@@ -3,7 +3,7 @@
 'use client';
 
 import * as React from 'react';
-import HowToUseToggle from '@/components/ui/HowToUseToggle'; // Updated path
+import HowToUseToggle from '@/components/ui/HowToUseToggle';
 import ShapeForm from './ShapeForm';
 import CanvasRenderer from './CanvasRenderer';
 import ResultsDisplay from './ResultsDisplay';
@@ -11,19 +11,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import type { Point, TriangleVertices, TriangleSides, TriangleAngles } from '@/lib/geometry/triangleUtils';
 import { calculateSideLengths, calculateAngles, calculateArea, calculatePerimeter, classifyTriangle } from '@/lib/geometry/triangleUtils';
 
-const CANVAS_WIDTH = 400; 
-const CANVAS_HEIGHT = 350;
-const GRID_SPACING = 25; // Grid spacing in pixels
+const INITIAL_CANVAS_WIDTH = 400; 
+const INITIAL_CANVAS_HEIGHT = 300; // Maintained for 4:3 aspect ratio initially
+const GRID_SPACING = 25; 
 
 export default function TriangleTool() {
-  const instructions = "Drag the vertices (A, B, C) of the triangle on the canvas, or enter their coordinates in the form below. Vertices will snap to the grid, where each grid unit represents 1 unit for calculations (e.g., 25 pixels = 1 math unit if scaling). The tool will dynamically calculate and display the triangle's side lengths, angles, area, perimeter, and type. The origin (0,0) is at the bottom-left of the canvas.";
+  const instructions = "Drag the vertices (A, B, C) of the triangle on the canvas, or enter their coordinates in the form below. Vertices will snap to the grid. The tool will dynamically calculate and display the triangle's side lengths, angles, area, perimeter, and type. The origin (0,0) is at the bottom-left of the canvas.";
+  
+  const DRAG_HANDLE_RADIUS = 8; // Consistent with CanvasRenderer
 
-  // Initialize vertices based on pixel coordinates within the canvas dimensions.
-  // These are now interpreted as direct pixel values for the canvas.
   const [vertices, setVertices] = React.useState<TriangleVertices>({
-    A: { x: GRID_SPACING * 2, y: CANVAS_HEIGHT - GRID_SPACING * 2 },
-    B: { x: CANVAS_WIDTH - GRID_SPACING * 2, y: CANVAS_HEIGHT - GRID_SPACING * 2 },
-    C: { x: Math.round((CANVAS_WIDTH / 2) / GRID_SPACING) * GRID_SPACING, y: GRID_SPACING * 2 },
+    A: { x: GRID_SPACING * 2, y: GRID_SPACING * 2 }, // Initial Y is top-down screen coord
+    B: { x: INITIAL_CANVAS_WIDTH - GRID_SPACING * 2, y: GRID_SPACING * 2 },
+    C: { x: Math.round((INITIAL_CANVAS_WIDTH / 2) / GRID_SPACING) * GRID_SPACING, y: INITIAL_CANVAS_HEIGHT - GRID_SPACING * 2 },
   });
 
   const [sides, setSides] = React.useState<TriangleSides>({ a: 0, b: 0, c: 0 });
@@ -32,26 +32,26 @@ export default function TriangleTool() {
   const [perimeter, setPerimeter] = React.useState<number>(0);
   const [triangleType, setTriangleType] = React.useState<string>("N/A");
 
-  // Function to convert canvas pixel coordinates to math units if needed
-  // For now, assuming 1 pixel = 1 math unit for simplicity in calculations based on vertex positions
-  const toMathUnits = (pixelValue: number): number => pixelValue; // Or pixelValue / GRID_SPACING if grid represents units
 
   React.useEffect(() => {
-    // Create math-unit vertices if calculations depend on unit scaling
-    // For this example, calculations are direct from pixel positions, assuming 1px = 1 unit.
-    // If GRID_SPACING represents a "math unit", then:
-    // const mathA = { x: vertices.A.x / GRID_SPACING, y: (CANVAS_HEIGHT - vertices.A.y) / GRID_SPACING }; // Y flipped for math
-    // const mathB = { x: vertices.B.x / GRID_SPACING, y: (CANVAS_HEIGHT - vertices.B.y) / GRID_SPACING };
-    // const mathC = { x: vertices.C.x / GRID_SPACING, y: (CANVAS_HEIGHT - vertices.C.y) / GRID_SPACING };
-    // const mathVertices = {A: mathA, B: mathB, C: mathC};
-    // For direct pixel calculation:
-    const mathVertices = {
-        A: {x: vertices.A.x, y: CANVAS_HEIGHT - vertices.A.y}, // Y is flipped for calculation (origin bottom-left)
-        B: {x: vertices.B.x, y: CANVAS_HEIGHT - vertices.B.y},
-        C: {x: vertices.C.x, y: CANVAS_HEIGHT - vertices.C.y},
-    }
+    // For calculations, convert screen Y (top-down) to math Y (bottom-up) based on a nominal height.
+    // Since canvas is responsive, this nominal height is for calculation consistency if vertices were based on it.
+    // However, as vertices are in screen coords, their diffs for side lengths are correct.
+    // The critical part is that the *display* in CanvasRenderer flips.
+    // Calculations should use the direct vertex values as they represent relative positions.
+    
+    // Example: If canvas height is H, and vertex Y is screen_y (from top),
+    // its math_y (from bottom, assuming origin at bottom-left of the drawing area) is H - screen_y.
+    // However, distance formula (sqrt((x2-x1)^2 + (y2-y1)^2)) works the same with screen_y.
+    // The angles also depend on side lengths, so they are fine.
+    
+    const mathVerticesForCalc = { // Not strictly needed if side lengths are direct pixel diffs
+        A: {x: vertices.A.x, y: vertices.A.y}, 
+        B: {x: vertices.B.x, y: vertices.B.y},
+        C: {x: vertices.C.x, y: vertices.C.y},
+    };
 
-    const newSides = calculateSideLengths(mathVertices);
+    const newSides = calculateSideLengths(mathVerticesForCalc);
     setSides(newSides);
     const newAngles = calculateAngles(newSides);
     setAngles(newAngles);
@@ -61,10 +61,17 @@ export default function TriangleTool() {
   }, [vertices]);
 
   const handleVertexChange = (vertexKey: keyof TriangleVertices, coord: 'x' | 'y', value: number) => {
+    // This function receives values from the input form, which should be math units
+    // These need to be snapped and clamped based on the *current* canvas size.
+    // This part is tricky if form inputs are absolute math units and canvas is responsive.
+    // For now, assume form inputs are also pixel-like values that snap to grid.
+    const canvasWidth = canvasRef.current?.width || INITIAL_CANVAS_WIDTH; // Get current canvas width
+    const canvasHeight = canvasRef.current?.height || INITIAL_CANVAS_HEIGHT; // Get current canvas height
+
     const snappedValue = Math.round(value / GRID_SPACING) * GRID_SPACING;
     const clampedValue = Math.max(
-        DRAG_HANDLE_RADIUS, // From CanvasRenderer, assuming it's exported or defined similarly
-        Math.min(snappedValue, (coord === 'x' ? CANVAS_WIDTH : CANVAS_HEIGHT) - DRAG_HANDLE_RADIUS)
+        DRAG_HANDLE_RADIUS, 
+        Math.min(snappedValue, (coord === 'x' ? canvasWidth : canvasHeight) - DRAG_HANDLE_RADIUS)
     );
     setVertices(prev => ({
       ...prev,
@@ -75,10 +82,15 @@ export default function TriangleTool() {
     }));
   };
   
+  // Ref for canvas element to get its current size for clamping in form input
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+
   const handleCanvasVertexMove = (vertexKey: keyof TriangleVertices, newPosition: Point) => {
+    // newPosition from CanvasRenderer is already snapped and clamped based on its current dimensions
     setVertices(prev => ({
       ...prev,
-      [vertexKey]: newPosition, // newPosition is already snapped and clamped by CanvasRenderer
+      [vertexKey]: newPosition,
     }));
   };
 
@@ -94,14 +106,11 @@ export default function TriangleTool() {
     'Type': triangleType,
   };
   
-  // Define DRAG_HANDLE_RADIUS if not imported from CanvasRenderer (for clamping in handleVertexChange)
-  const DRAG_HANDLE_RADIUS = 8; 
-
   return (
     <div className="space-y-6">
       <HowToUseToggle instructions={instructions} title="How to Use Triangle Tool" />
       <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:flex-1 md:max-w-sm"> {/* Inputs Card takes less space on larger screens */}
+        <div className="w-full md:flex-1 md:max-w-sm">
           <Card className="h-full">
             <CardHeader>
               <CardTitle>Triangle Inputs</CardTitle>
@@ -110,25 +119,28 @@ export default function TriangleTool() {
             <CardContent>
               <ShapeForm
                 shapeType="triangle"
-                triangleVertices={vertices} // Pass pixel-based vertices to form
+                triangleVertices={vertices}
                 onTriangleVertexChange={handleVertexChange}
               />
             </CardContent>
           </Card>
         </div>
-        <div className="w-full md:flex-1"> {/* Canvas Card takes more space */}
+        <div className="w-full md:flex-1">
           <Card className="h-full">
             <CardHeader>
               <CardTitle>Visual Representation</CardTitle>
               <CardDescription>Grid spacing: {GRID_SPACING}px. Origin (0,0) at bottom-left.</CardDescription>
             </CardHeader>
-            <CardContent className="flex items-center justify-center p-2 md:p-4 bg-muted/10 rounded-md min-h-[350px] md:min-h-[auto]">
+            {/* Parent div for responsive canvas */}
+            <CardContent className="flex items-center justify-center p-2 md:p-4 bg-muted/10 rounded-md aspect-[4/3] min-h-[300px] md:min-h-[auto]">
               <CanvasRenderer
+                // Pass ref to CanvasRenderer if it needs to know its own actual rendered size for some internal calcs
+                // Or, CanvasRenderer can manage its own ref. For now, let CSS handle sizing.
                 shapeType="triangle"
                 triangleVertices={vertices}
                 onTriangleVertexMove={handleCanvasVertexMove}
-                canvasWidth={CANVAS_WIDTH}
-                canvasHeight={CANVAS_HEIGHT}
+                initialCanvasWidth={INITIAL_CANVAS_WIDTH} // Pass initial for fallback
+                initialCanvasHeight={INITIAL_CANVAS_HEIGHT} // Pass initial for fallback
                 gridSpacing={GRID_SPACING}
                 showAxes={true}
                 showTicks={true}

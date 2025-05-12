@@ -1,14 +1,14 @@
 
 'use client';
 
-import HowToUseToggle from '@/components/ui/HowToUseToggle'; // Updated path
+import HowToUseToggle from '@/components/ui/HowToUseToggle';
 import ShapeForm from './ShapeForm';
 import CanvasRenderer from './CanvasRenderer';
 import ResultsDisplay from './ResultsDisplay';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-const CANVAS_WIDTH = 400;
-const CANVAS_HEIGHT = 300; // Keep as is, or adjust for consistency
+const INITIAL_CANVAS_WIDTH = 400;
+const INITIAL_CANVAS_HEIGHT = 300; // For 4:3 aspect ratio
 
 export default function CircleTool() {
   const instructions = "Interactive Circle Tool: Adjust the circle's radius using the input field. The tool will live-calculate and display the circle's area, circumference, and diameter. The canvas shows a visual representation with the origin (0,0) at the bottom-left.";
@@ -34,12 +34,12 @@ export default function CircleTool() {
               <CardTitle>Visual Representation</CardTitle>
               <CardDescription>A sample circle is displayed on the coordinate grid.</CardDescription>
             </CardHeader>
-            <CardContent className="flex items-center justify-center p-2 md:p-4 bg-muted/10 rounded-md min-h-[300px] md:min-h-[auto]">
+            <CardContent className="flex items-center justify-center p-2 md:p-4 bg-muted/10 rounded-md aspect-[4/3] min-h-[300px] md:min-h-[auto]">
               <CanvasRenderer 
                 shapeType="circle" 
-                canvasWidth={CANVAS_WIDTH}
-                canvasHeight={CANVAS_HEIGHT}
-                gridSpacing={25} // Example grid spacing
+                initialCanvasWidth={INITIAL_CANVAS_WIDTH}
+                initialCanvasHeight={INITIAL_CANVAS_HEIGHT}
+                gridSpacing={25}
               />
             </CardContent>
           </Card>
