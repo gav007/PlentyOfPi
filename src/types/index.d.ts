@@ -6,6 +6,7 @@ export type { JSModule, JSLessonItem, JSLabItem, JSQuizItem, JSQuizQuestion } fr
 export type { OutputMatchQuestionJS, SyntaxSpotterProblemJS, DebugItChallengeJS } from './javascript-games'; // Re-export JS game types
 export type { Expression, ExpressionPlotData, GraphDomain, GraphRange } from './graphing'; // Re-export graphing types
 export type { SortAlgorithmType, SortStep } from './sort-algorithms'; // Added for sorting visualizer
+export type { SearchAlgorithmType, SearchStep } from './search-algorithms';
 
 
 export type NavItem = {
@@ -59,3 +60,4 @@ export interface GameState {
 }
 
     
+

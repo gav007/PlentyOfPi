@@ -13,10 +13,11 @@ export default function SearchingPage() {
       <header className="text-center mb-8">
         <h1 className="text-4xl font-bold text-primary">Searching Algorithm Visualizer</h1>
         <p className="text-lg text-muted-foreground">
-          See how Linear Search and Binary Search find elements.
+          Watch Linear Search and Binary Search find elements. Adjust array size, speed, and see step-by-step explanations.
         </p>
       </header>
       <SearchVisualizer />
     </div>
   );
 }
+
