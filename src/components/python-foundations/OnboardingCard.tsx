@@ -3,11 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { BookOpenCheck, Info } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image'; // Import the Image component
 
 export default function OnboardingCard() {
   return (
     <Card className="bg-secondary/30 shadow-lg">
-      <CardHeader>
+      <CardHeader>        
         <CardTitle className="flex items-center gap-2 text-2xl">
           <Info className="w-7 h-7 text-primary" />
           Welcome to Python Foundations!
@@ -17,7 +18,7 @@ export default function OnboardingCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground">        
           <strong>Module Goals:</strong>
         </p>
         <ul className="list-disc list-inside pl-5 text-muted-foreground space-y-1">

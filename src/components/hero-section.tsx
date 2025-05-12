@@ -1,6 +1,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import piHomeImage from '@/components/pi_home.jpg';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
@@ -32,12 +33,10 @@ export default function HeroSection() {
               </Button>
             </div>
           </div>
-          <Image
-            src="https://picsum.photos/seed/mathsymbol/1200/800" // Updated image source
-            width="1200"
-            height="800"
-            alt="Abstract representation of a Pi symbol or mathematical concepts" // Updated alt text
-            data-ai-hint="pi symbol" // Updated data-ai-hint
+          <Image src={piHomeImage}
+            alt="Pi mathematical symbol"
+            data-ai-hint="pi symbol"
+
             className="mx-auto aspect-video overflow-hidden rounded-2xl object-cover sm:w-full lg:order-last shadow-xl"
             priority
           />
