@@ -22,16 +22,17 @@ interface GraphData { nodes: Node[]; edges: Edge[]; }
 interface GraphSearchStep {
   explanation: string;
   visited: Set<string>;
-  queue?: string[];      
-  stack?: string[];      
-  distances?: Map<string, number>; 
-  parents?: Map<string, string | null>; 
-  currentNode?: string;  
-  processingNeighborsOf?: string; 
+  queue?: string[];
+  stack?: string[];
+  distances?: Map<string, number>;
+  parents?: Map<string, string | null>;
+  currentNode?: string;
+  processingNeighborsOf?: string;
   highlightedEdge?: { source: string; target: string };
   finalPath?: string[];
   searchComplete?: boolean;
   message?: string;
+  priorityQueueSnapshot?: {node: string, distance: number}[]; // For Dijkstra's priority queue visualization
 }
 
 const GRAPH_ALGORITHMS: { value: GraphAlgorithmType; label: string; description: string, timeComplexity: string, spaceComplexity: string }[] = [
@@ -55,94 +56,17 @@ const sampleGraph: GraphData = {
 
 const BASE_ANIMATION_DELAY_MS_GRAPH = 800;
 
-
-// BFS Implementation
-function bfsSteps(graph: GraphData, startNodeId: string, endNodeId?: string): GraphSearchStep[] {
-  const steps: GraphSearchStep[] = [];
-  const adj = new Map<string, {neighbor: string, weight?:number}[]>();
+function buildAdjacencyList(graph: GraphData): Map<string, {neighbor: string, weight:number}[]> {
+  const adj = new Map<string, {neighbor: string, weight:number}[]>();
   graph.nodes.forEach(node => adj.set(node.id, []));
   graph.edges.forEach(edge => {
-    adj.get(edge.source)?.push({neighbor: edge.target, weight: edge.weight});
-    adj.get(edge.target)?.push({neighbor: edge.source, weight: edge.weight}); 
-  });
-
-  const queue: string[] = [];
-  const visited = new Set<string>();
-  const parents = new Map<string, string | null>();
-
-  if (!graph.nodes.find(n => n.id === startNodeId)) {
-    steps.push({ explanation: `Start node ${startNodeId} not found in graph.`, visited, searchComplete: true, message: "Start node invalid."});
-    return steps;
-  }
-
-  queue.push(startNodeId);
-  visited.add(startNodeId);
-  parents.set(startNodeId, null);
-
-  steps.push({
-    explanation: `Starting BFS from node ${startNodeId}. Added ${startNodeId} to queue. Queue: [${queue.join(', ')}]`,
-    visited: new Set(visited), queue: [...queue], parents: new Map(parents)
-  });
-
-  let pathFoundToTarget = false;
-
-  while (queue.length > 0) {
-    const u = queue.shift()!;
-    steps.push({
-      explanation: `Dequeued ${u}. Current queue: [${queue.join(', ')}]. Exploring neighbors of ${u}.`,
-      visited: new Set(visited), queue: [...queue], currentNode: u, processingNeighborsOf: u, parents: new Map(parents)
-    });
-
-    if (endNodeId && u === endNodeId) {
-        pathFoundToTarget = true;
-        steps.push({ 
-            explanation: `Target node ${endNodeId} reached! Path reconstruction starting.`,
-            visited: new Set(visited), queue: [...queue], currentNode: u, searchComplete: false, parents: new Map(parents), finalPath: reconstructPath(parents, startNodeId, endNodeId)
-        });
-        break; 
+    adj.get(edge.source)?.push({neighbor: edge.target, weight: edge.weight ?? 1}); // Default weight 1 if undefined
+    // For undirected graphs, add reverse edge if not already present or if specific structure
+    if (!adj.get(edge.target)?.find(e => e.neighbor === edge.source)) {
+        adj.get(edge.target)?.push({neighbor: edge.source, weight: edge.weight ?? 1});
     }
-
-    const neighbors = adj.get(u) || [];
-    for (const { neighbor: v } of neighbors) { // Assuming unweighted for BFS path part
-      steps.push({
-        explanation: `Checking edge ${u}-${v}. Is neighbor ${v} visited?`,
-        visited: new Set(visited), queue: [...queue], currentNode: u, processingNeighborsOf: u, highlightedEdge: { source: u, target: v }, parents: new Map(parents)
-      });
-      if (!visited.has(v)) {
-        visited.add(v);
-        parents.set(v, u);
-        queue.push(v);
-        steps.push({
-          explanation: `Node ${v} is unvisited. Added to queue. Queue: [${queue.join(', ')}]. Marked visited.`,
-          visited: new Set(visited), queue: [...queue], currentNode: u, processingNeighborsOf: u, highlightedEdge: { source: u, target: v }, parents: new Map(parents)
-        });
-      } else {
-         steps.push({
-          explanation: `Node ${v} already visited. Skipping.`,
-          visited: new Set(visited), queue: [...queue], currentNode: u, processingNeighborsOf: u, highlightedEdge: { source: u, target: v }, parents: new Map(parents)
-        });
-      }
-    }
-     steps.push({
-        explanation: `Finished processing neighbors of ${u}.`,
-        visited: new Set(visited), queue: [...queue], currentNode: u, processingNeighborsOf: undefined, parents: new Map(parents)
-    });
-    if (pathFoundToTarget) break;
-  }
-
-  const finalMessage = pathFoundToTarget && endNodeId
-    ? `Path found to ${endNodeId}.`
-    : endNodeId
-      ? `Target ${endNodeId} not reachable from ${startNodeId}.`
-      : "BFS complete. All reachable nodes visited.";
-
-  steps.push({
-    explanation: finalMessage,
-    visited: new Set(visited), queue: [...queue], searchComplete: true, message: finalMessage,
-    parents: new Map(parents),
-    finalPath: endNodeId ? reconstructPath(parents, startNodeId, endNodeId) : undefined
   });
-  return steps;
+  return adj;
 }
 
 function reconstructPath(parents: Map<string, string | null>, startNodeId: string, endNodeId: string): string[] {
@@ -153,17 +77,194 @@ function reconstructPath(parents: Map<string, string | null>, startNodeId: strin
         if (current === startNodeId) break;
         current = parents.get(current) || null;
     }
-    // If path doesn't start with startNodeId, it means endNode was not reachable from startNode
     return (path.length > 0 && path[0] === startNodeId) ? path : [];
 }
 
 
-// Placeholder for DFS and Dijkstra's - to be implemented similarly
-function dfsSteps(graph: GraphData, startNodeId: string, endNodeId?: string): GraphSearchStep[] {
-    return [{ explanation: `DFS from ${startNodeId} not yet implemented.`, visited: new Set([startNodeId]), searchComplete: true, message: "DFS Not Implemented" }];
+function bfsSteps(graph: GraphData, startNodeId: string, endNodeId?: string): GraphSearchStep[] {
+  const steps: GraphSearchStep[] = [];
+  const adj = buildAdjacencyList(graph);
+  const queue: string[] = [];
+  const visited = new Set<string>();
+  const parents = new Map<string, string | null>();
+
+  if (!graph.nodes.find(n => n.id === startNodeId)) {
+    steps.push({ explanation: `Start node ${startNodeId} not found.`, visited, searchComplete: true, message: "Start node invalid."});
+    return steps;
+  }
+
+  queue.push(startNodeId);
+  visited.add(startNodeId);
+  parents.set(startNodeId, null);
+  steps.push({ explanation: `Starting BFS from ${startNodeId}. Added to queue.`, visited: new Set(visited), queue: [...queue], parents: new Map(parents) });
+
+  let pathFoundToTarget = false;
+  while (queue.length > 0) {
+    const u = queue.shift()!;
+    steps.push({ explanation: `Dequeued ${u}. Exploring neighbors.`, visited: new Set(visited), queue: [...queue], currentNode: u, processingNeighborsOf: u, parents: new Map(parents) });
+
+    if (endNodeId && u === endNodeId) {
+        pathFoundToTarget = true;
+        steps.push({ explanation: `Target ${endNodeId} reached!`, visited: new Set(visited), queue: [...queue], currentNode: u, searchComplete: false, parents: new Map(parents), finalPath: reconstructPath(parents, startNodeId, endNodeId) });
+        break;
+    }
+
+    const neighbors = adj.get(u) || [];
+    for (const { neighbor: v } of neighbors) {
+      steps.push({ explanation: `Checking edge ${u}-${v}. Is ${v} visited?`, visited: new Set(visited), queue: [...queue], currentNode: u, processingNeighborsOf: u, highlightedEdge: { source: u, target: v }, parents: new Map(parents) });
+      if (!visited.has(v)) {
+        visited.add(v);
+        parents.set(v, u);
+        queue.push(v);
+        steps.push({ explanation: `${v} is unvisited. Added to queue. Marked visited.`, visited: new Set(visited), queue: [...queue], currentNode: u, processingNeighborsOf: u, highlightedEdge: { source: u, target: v }, parents: new Map(parents) });
+      } else {
+         steps.push({ explanation: `${v} already visited. Skipping.`, visited: new Set(visited), queue: [...queue], currentNode: u, processingNeighborsOf: u, highlightedEdge: { source: u, target: v }, parents: new Map(parents) });
+      }
+    }
+     steps.push({ explanation: `Finished processing neighbors of ${u}.`, visited: new Set(visited), queue: [...queue], currentNode: u, processingNeighborsOf: undefined, parents: new Map(parents) });
+    if (pathFoundToTarget) break;
+  }
+
+  const finalMessage = pathFoundToTarget && endNodeId ? `Path found to ${endNodeId}.` : endNodeId ? `Target ${endNodeId} not reachable from ${startNodeId}.` : "BFS complete.";
+  steps.push({ explanation: finalMessage, visited: new Set(visited), queue: [...queue], searchComplete: true, message: finalMessage, parents: new Map(parents), finalPath: (endNodeId && pathFoundToTarget) ? reconstructPath(parents, startNodeId, endNodeId) : undefined });
+  return steps;
 }
+
+function dfsSteps(graph: GraphData, startNodeId: string, endNodeId?: string): GraphSearchStep[] {
+    const steps: GraphSearchStep[] = [];
+    const adj = buildAdjacencyList(graph);
+    const stack: string[] = [];
+    const visited = new Set<string>();
+    const parents = new Map<string, string | null>();
+
+    if (!graph.nodes.find(n => n.id === startNodeId)) {
+        steps.push({ explanation: `Start node ${startNodeId} not found.`, visited, searchComplete: true, message: "Start node invalid." });
+        return steps;
+    }
+
+    stack.push(startNodeId);
+    // For DFS, marking visited when pushed can prevent cycles in some interpretations.
+    // Marking visited when popped is also common. Let's mark when pushed for this visualizer.
+    // visited.add(startNodeId); 
+    parents.set(startNodeId, null);
+    steps.push({ explanation: `Starting DFS from ${startNodeId}. Added to stack.`, visited: new Set(visited), stack: [...stack], parents: new Map(parents) });
+    
+    let pathFoundToTarget = false;
+    while (stack.length > 0) {
+        const u = stack.pop()!;
+
+        if (visited.has(u)) { // If already visited (e.g. explored all its children from a previous path)
+            steps.push({ explanation: `${u} already fully explored. Skipping.`, visited: new Set(visited), stack: [...stack], currentNode: u, parents: new Map(parents) });
+            continue;
+        }
+        
+        visited.add(u); // Mark visited when popped and processed
+        steps.push({ explanation: `Popped ${u}. Exploring neighbors.`, visited: new Set(visited), stack: [...stack], currentNode: u, processingNeighborsOf: u, parents: new Map(parents) });
+
+        if (endNodeId && u === endNodeId) {
+            pathFoundToTarget = true;
+            steps.push({ explanation: `Target ${endNodeId} reached!`, visited: new Set(visited), stack: [...stack], currentNode: u, searchComplete: false, parents: new Map(parents), finalPath: reconstructPath(parents, startNodeId, endNodeId) });
+            break;
+        }
+
+        const neighbors = adj.get(u) || [];
+        // Add neighbors in reverse order to explore in typical "left-most" or "first-defined" order due to stack LIFO
+        for (let i = neighbors.length - 1; i >= 0; i--) {
+            const { neighbor: v } = neighbors[i];
+            steps.push({ explanation: `Checking edge ${u}-${v}. Is ${v} visited?`, visited: new Set(visited), stack: [...stack], currentNode: u, processingNeighborsOf: u, highlightedEdge: { source: u, target: v }, parents: new Map(parents) });
+            if (!visited.has(v)) { // Only push if not already fully explored. Stack might contain it if it's on path from another branch.
+                // Check if v is already in stack to avoid re-adding if paths cross, or rely on visited check when popped
+                if (!stack.includes(v)) { // Simple check to avoid direct re-pushing if already scheduled from another parent
+                     parents.set(v, u); // Parent set when scheduled for visit
+                     stack.push(v);
+                     steps.push({ explanation: `${v} is unvisited. Added to stack.`, visited: new Set(visited), stack: [...stack], currentNode: u, processingNeighborsOf: u, highlightedEdge: { source: u, target: v }, parents: new Map(parents) });
+                } else {
+                     steps.push({ explanation: `${v} already in stack (on current path). Skipping re-add.`, visited: new Set(visited), stack: [...stack], currentNode: u, processingNeighborsOf: u, highlightedEdge: { source: u, target: v }, parents: new Map(parents) });
+                }
+            } else {
+                steps.push({ explanation: `${v} already visited. Skipping.`, visited: new Set(visited), stack: [...stack], currentNode: u, processingNeighborsOf: u, highlightedEdge: { source: u, target: v }, parents: new Map(parents) });
+            }
+        }
+        steps.push({ explanation: `Finished processing neighbors of ${u}.`, visited: new Set(visited), stack: [...stack], currentNode: u, processingNeighborsOf: undefined, parents: new Map(parents) });
+        if (pathFoundToTarget) break;
+    }
+    
+    const finalMessage = pathFoundToTarget && endNodeId ? `Path found to ${endNodeId}.` : endNodeId ? `Target ${endNodeId} not reachable from ${startNodeId}.` : "DFS complete.";
+    steps.push({ explanation: finalMessage, visited: new Set(visited), stack: [...stack], searchComplete: true, message: finalMessage, parents: new Map(parents), finalPath: (endNodeId && pathFoundToTarget) ? reconstructPath(parents, startNodeId, endNodeId) : undefined });
+    return steps;
+}
+
 function dijkstraSteps(graph: GraphData, startNodeId: string, endNodeId: string): GraphSearchStep[] {
-     return [{ explanation: `Dijkstra from ${startNodeId} to ${endNodeId} not yet implemented.`, visited: new Set([startNodeId]), searchComplete: true, message: "Dijkstra's Not Implemented" }];
+    const steps: GraphSearchStep[] = [];
+    const adj = buildAdjacencyList(graph);
+    
+    const distances = new Map<string, number>();
+    const parents = new Map<string, string | null>();
+    const pq: {node: string, distance: number}[] = []; // Priority queue: {node, distance}
+    const finalized = new Set<string>(); // Nodes whose shortest path is found
+
+    graph.nodes.forEach(node => {
+        distances.set(node.id, Infinity);
+        parents.set(node.id, null);
+    });
+
+    if (!graph.nodes.find(n => n.id === startNodeId) || !graph.nodes.find(n => n.id === endNodeId)) {
+        steps.push({ explanation: `Start or end node not found.`, visited: finalized, searchComplete: true, message: "Invalid start/end node."});
+        return steps;
+    }
+
+    distances.set(startNodeId, 0);
+    pq.push({node: startNodeId, distance: 0});
+    steps.push({ explanation: `Starting Dijkstra's from ${startNodeId}. Target: ${endNodeId}. Initializing distances.`, visited: new Set(finalized), distances: new Map(distances), parents: new Map(parents), priorityQueueSnapshot: [...pq].sort((a,b)=>a.distance-b.distance)});
+
+    let pathFoundToTarget = false;
+    while (pq.length > 0) {
+        pq.sort((a, b) => a.distance - b.distance); // Simulate PQ by sorting
+        const { node: u, distance: u_dist } = pq.shift()!;
+
+        if (finalized.has(u)) { // If already finalized, skip
+             steps.push({ explanation: `Node ${u} already finalized. Skipping.`, visited: new Set(finalized), distances: new Map(distances), parents: new Map(parents), currentNode: u, priorityQueueSnapshot: [...pq].sort((a,b)=>a.distance-b.distance)});
+            continue;
+        }
+        
+        finalized.add(u);
+        steps.push({ explanation: `Visiting node ${u} (finalized distance: ${u_dist}).`, visited: new Set(finalized), distances: new Map(distances), parents: new Map(parents), currentNode: u, processingNeighborsOf: u, priorityQueueSnapshot: [...pq].sort((a,b)=>a.distance-b.distance)});
+
+
+        if (u === endNodeId) {
+            pathFoundToTarget = true;
+            steps.push({ explanation: `Target ${endNodeId} reached with distance ${u_dist}!`, visited: new Set(finalized), distances: new Map(distances), parents: new Map(parents), currentNode: u, searchComplete: false, finalPath: reconstructPath(parents, startNodeId, endNodeId), priorityQueueSnapshot: [...pq].sort((a,b)=>a.distance-b.distance) });
+            break;
+        }
+
+        const neighbors = adj.get(u) || [];
+        for (const { neighbor: v, weight: w } of neighbors) {
+            if (finalized.has(v)) continue; // Skip if neighbor already finalized
+
+            steps.push({ explanation: `Checking edge ${u}-${v} (weight ${w}). Current dist to ${v}: ${distances.get(v)}.`, visited: new Set(finalized), distances: new Map(distances), parents: new Map(parents), currentNode: u, processingNeighborsOf: u, highlightedEdge: {source: u, target: v}, priorityQueueSnapshot: [...pq].sort((a,b)=>a.distance-b.distance)});
+
+            const altDistance = u_dist + w;
+            if (altDistance < (distances.get(v) ?? Infinity)) {
+                distances.set(v, altDistance);
+                parents.set(v, u);
+                
+                // Update PQ: remove old entry for v if exists, add new one
+                const pqIndex = pq.findIndex(item => item.node === v);
+                if (pqIndex > -1) pq.splice(pqIndex, 1);
+                pq.push({node: v, distance: altDistance});
+                
+                steps.push({ explanation: `Relaxed edge ${u}-${v}. New shortest distance to ${v} is ${altDistance}. Updated PQ.`, visited: new Set(finalized), distances: new Map(distances), parents: new Map(parents), currentNode: u, processingNeighborsOf: u, highlightedEdge: {source: u, target: v}, priorityQueueSnapshot: [...pq].sort((a,b)=>a.distance-b.distance)});
+            } else {
+                 steps.push({ explanation: `Edge ${u}-${v} not relaxed. Distance ${altDistance} is not better than ${distances.get(v)}.`, visited: new Set(finalized), distances: new Map(distances), parents: new Map(parents), currentNode: u, processingNeighborsOf: u, highlightedEdge: {source: u, target: v}, priorityQueueSnapshot: [...pq].sort((a,b)=>a.distance-b.distance)});
+            }
+        }
+        steps.push({ explanation: `Finished processing neighbors of ${u}.`, visited: new Set(finalized), distances: new Map(distances), parents: new Map(parents), currentNode: u, processingNeighborsOf: undefined, priorityQueueSnapshot: [...pq].sort((a,b)=>a.distance-b.distance)});
+        if (pathFoundToTarget) break;
+    }
+
+    const finalMessage = pathFoundToTarget ? `Shortest path to ${endNodeId} found.` : `Target ${endNodeId} not reachable from ${startNodeId}.`;
+    steps.push({ explanation: finalMessage, visited: new Set(finalized), distances: new Map(distances), parents: new Map(parents), searchComplete: true, message: finalMessage, finalPath: pathFoundToTarget ? reconstructPath(parents, startNodeId, endNodeId) : undefined, priorityQueueSnapshot: [...pq].sort((a,b)=>a.distance-b.distance)});
+    return steps;
 }
 
 
@@ -171,8 +272,8 @@ export default function GraphSearchVisualizer() {
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<GraphAlgorithmType>('bfs');
   const [graphData, setGraphData] = useState<GraphData>(sampleGraph);
   const [startNode, setStartNode] = useState<string>(sampleGraph.nodes[0]?.id || '');
-  const [endNode, setEndNode] = useState<string>(sampleGraph.nodes[sampleGraph.nodes.length - 1]?.id || ''); 
-  
+  const [endNode, setEndNode] = useState<string>(sampleGraph.nodes[sampleGraph.nodes.length - 1]?.id || '');
+
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed, setSpeed] = useState<number>(3);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
@@ -180,7 +281,7 @@ export default function GraphSearchVisualizer() {
 
   const [showExplanationPanel, setShowExplanationPanel] = useState<boolean>(true);
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const algorithmDetails = GRAPH_ALGORITHMS.find(algo => algo.value === selectedAlgorithm);
 
   const generateAndSetSteps = useCallback(() => {
@@ -190,10 +291,10 @@ export default function GraphSearchVisualizer() {
         steps = bfsSteps(graphData, startNode, endNode);
         break;
       case 'dfs':
-        steps = dfsSteps(graphData, startNode, endNode); // Placeholder
+        steps = dfsSteps(graphData, startNode, endNode);
         break;
       case 'dijkstra':
-        steps = dijkstraSteps(graphData, startNode, endNode); // Placeholder
+        steps = dijkstraSteps(graphData, startNode, endNode);
         break;
       default:
         steps = [{ explanation: "Select an algorithm.", visited: new Set(), searchComplete: true, message: "Algorithm needed." }];
@@ -206,7 +307,7 @@ export default function GraphSearchVisualizer() {
   useEffect(() => {
     generateAndSetSteps();
   }, [generateAndSetSteps]);
-  
+
   useEffect(() => {
     if (isPlaying && currentStepIndex < searchSteps.length - 1) {
       const delay = BASE_ANIMATION_DELAY_MS_GRAPH / speed;
@@ -224,7 +325,7 @@ export default function GraphSearchVisualizer() {
 
   const handlePlay = () => {
     if (currentStepIndex >= searchSteps.length - 1 && searchSteps.length > 0) {
-      generateAndSetSteps(); // Resets steps and index to 0
+      generateAndSetSteps();
     }
     setIsPlaying(true);
   };
@@ -235,10 +336,10 @@ export default function GraphSearchVisualizer() {
   };
   const handleReset = () => {
     setIsPlaying(false);
-    generateAndSetSteps(); // This will re-generate steps and set currentStepIndex to 0
+    generateAndSetSteps();
   };
-  
-  const currentDisplayStep = searchSteps[currentStepIndex] || { explanation: "Initializing...", visited: new Set(), queue: [], stack: [] };
+
+  const currentDisplayStep = searchSteps[currentStepIndex] || { explanation: "Initializing...", visited: new Set(), queue: [], stack: [], distances: new Map(), parents: new Map() };
 
   return (
     <Card className="w-full shadow-xl">
@@ -266,9 +367,9 @@ export default function GraphSearchVisualizer() {
                 <SelectContent>{graphData.nodes.map(n => <SelectItem key={n.id} value={n.id}>{n.label || n.id}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          {selectedAlgorithm === 'dijkstra' && ( // Also show for BFS/DFS if pathfinding is a goal
+          {(selectedAlgorithm === 'dijkstra' || selectedAlgorithm === 'bfs' || selectedAlgorithm === 'dfs') && (
             <div>
-                <Label htmlFor="end-node-select" className="text-sm font-medium">End Node</Label>
+                <Label htmlFor="end-node-select" className="text-sm font-medium">End Node (Optional for BFS/DFS)</Label>
                 <Select value={endNode} onValueChange={setEndNode} disabled={isPlaying}>
                     <SelectTrigger id="end-node-select"><SelectValue/></SelectTrigger>
                     <SelectContent>{graphData.nodes.map(n => <SelectItem key={n.id} value={n.id}>{n.label || n.id}</SelectItem>)}</SelectContent>
@@ -279,12 +380,11 @@ export default function GraphSearchVisualizer() {
 
         <ArenaCanvas className="min-h-[350px] md:min-h-[400px] relative !bg-background">
             <svg width="100%" height="100%" viewBox="0 0 400 200">
-                {/* Edges */}
                 {graphData.edges.map((edge) => {
                     const sourceNode = graphData.nodes.find(n => n.id === edge.source);
                     const targetNode = graphData.nodes.find(n => n.id === edge.target);
                     if (!sourceNode || !targetNode) return null;
-                    
+
                     const isHighlighted = currentDisplayStep.highlightedEdge?.source === edge.source && currentDisplayStep.highlightedEdge?.target === edge.target ||
                                         currentDisplayStep.highlightedEdge?.source === edge.target && currentDisplayStep.highlightedEdge?.target === edge.source;
                     const isInPath = currentDisplayStep.finalPath?.includes(edge.source) && currentDisplayStep.finalPath?.includes(edge.target) &&
@@ -295,7 +395,7 @@ export default function GraphSearchVisualizer() {
                              <line
                                 x1={sourceNode.x} y1={sourceNode.y}
                                 x2={targetNode.x} y2={targetNode.y}
-                                stroke={isInPath ? "hsl(var(--destructive))" : isHighlighted ? "hsl(var(--yellow-400))" : "hsl(var(--muted-foreground)/0.5)"}
+                                stroke={isInPath ? "hsl(var(--destructive))" : isHighlighted ? "hsl(var(--chart-4))" : "hsl(var(--muted-foreground)/0.5)"}
                                 strokeWidth={isInPath ? "3" : isHighlighted ? "2.5" : "1.5"}
                                 className="transition-all duration-150"
                             />
@@ -311,25 +411,25 @@ export default function GraphSearchVisualizer() {
                         </g>
                     );
                 })}
-                {/* Nodes */}
                 {graphData.nodes.map(node => {
                     const isCurrent = currentDisplayStep.currentNode === node.id;
                     const isProcessingNeighbor = currentDisplayStep.processingNeighborsOf === node.id;
                     const isVisited = currentDisplayStep.visited.has(node.id);
                     const isInQueue = currentDisplayStep.queue?.includes(node.id);
+                    const isInStack = currentDisplayStep.stack?.includes(node.id);
                     const isInPath = currentDisplayStep.finalPath?.includes(node.id);
 
-                    let fillClass = "fill-muted-foreground/30"; // Default: unvisited
+                    let fillClass = "fill-muted-foreground/30";
                     if (isInPath) fillClass = "fill-destructive/80";
                     else if (isCurrent) fillClass = "fill-yellow-400/80";
-                    else if (isProcessingNeighbor) fillClass = "fill-yellow-500/90"; // Slightly darker if it's the one whose neighbors are processed
-                    else if (isInQueue) fillClass = "fill-blue-400/70"; // In queue/stack
-                    else if (isVisited) fillClass = "fill-primary/60"; // Visited but not current/in-queue
+                    else if (isProcessingNeighbor) fillClass = "fill-yellow-500/90";
+                    else if (isInQueue || isInStack) fillClass = "fill-blue-400/70";
+                    else if (isVisited) fillClass = "fill-primary/60";
 
                     return (
                         <g key={node.id} className="transition-all duration-150">
-                            <circle 
-                                cx={node.x} cy={node.y} r="12" 
+                            <circle
+                                cx={node.x} cy={node.y} r="12"
                                 className={cn(fillClass, "stroke-foreground/70")}
                                 strokeWidth={isCurrent || isProcessingNeighbor || isInPath ? "2" : "1"}
                             />
@@ -346,7 +446,7 @@ export default function GraphSearchVisualizer() {
                 })}
             </svg>
         </ArenaCanvas>
-        
+
         <ArenaControls
             onPlay={handlePlay}
             onPause={handlePause}
@@ -383,8 +483,16 @@ export default function GraphSearchVisualizer() {
               {currentDisplayStep.explanation && (
                 <p className="mt-2 pt-2 border-t text-accent-foreground/80 text-xs">Current Action: {currentDisplayStep.explanation}</p>
               )}
-               {selectedAlgorithm === "bfs" && currentDisplayStep.queue && (
+               {(selectedAlgorithm === "bfs" && currentDisplayStep.queue) && (
                 <p className="mt-1 text-xs text-blue-600">Queue: [{currentDisplayStep.queue.join(', ')}]</p>
+              )}
+              {(selectedAlgorithm === "dfs" && currentDisplayStep.stack) && (
+                <p className="mt-1 text-xs text-indigo-600">Stack: [{currentDisplayStep.stack.join(', ')}]</p>
+              )}
+              {(selectedAlgorithm === "dijkstra" && currentDisplayStep.priorityQueueSnapshot) && (
+                <p className="mt-1 text-xs text-purple-600">
+                    PQ: [{currentDisplayStep.priorityQueueSnapshot.map(item => `${item.node}(${item.distance === Infinity ? '∞' : item.distance})`).join(', ')}]
+                </p>
               )}
             </>
           }

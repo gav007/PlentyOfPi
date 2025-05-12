@@ -10,9 +10,9 @@ import { Slider } from '@/components/ui/slider';
 import ArenaCanvas from '@/components/algorithm-arena/shared/ArenaCanvas';
 import ArenaControls from '@/components/algorithm-arena/shared/ArenaControls';
 import StepByStepExplanation from '@/components/algorithm-arena/shared/StepByStepExplanation';
-import ComplexityDisplay from '@/components/algorithm-arena/shared/ComplexityDisplay'; // Import new component
+import ComplexityDisplay from '@/components/algorithm-arena/shared/ComplexityDisplay';
 import { BarChartHorizontal, RotateCcw } from 'lucide-react';
-import type { SortAlgorithmType, SortStep } from '@/types/sort-algorithms'; 
+import type { SortAlgorithmType, SortStep } from '@/types/sort-algorithms';
 import { cn } from '@/lib/utils';
 
 const ALGORITHMS: { value: SortAlgorithmType; label: string; description: string, timeComplexity: string, spaceComplexity: string }[] = [
@@ -22,12 +22,12 @@ const ALGORITHMS: { value: SortAlgorithmType; label: string; description: string
 ];
 
 const INITIAL_ARRAY_SIZE = 15;
-const MAX_ARRAY_SIZE = 30; 
+const MAX_ARRAY_SIZE = 30;
 const MIN_ARRAY_SIZE = 5;
-const BASE_ANIMATION_DELAY_MS = 600; 
+const BASE_ANIMATION_DELAY_MS = 600;
 
 function generateRandomArray(size: number): number[] {
-  return Array.from({ length: size }, () => Math.floor(Math.random() * 95) + 5); 
+  return Array.from({ length: size }, () => Math.floor(Math.random() * 95) + 5);
 }
 
 function bubbleSortSteps(arr: number[]): SortStep[] {
@@ -51,12 +51,11 @@ function bubbleSortSteps(arr: number[]): SortStep[] {
       }
     }
     steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: getSortedSuffix(n, i + 1), explanation: `End of pass ${i + 1}. Element ${localArr[n-i-1]} is now in its sorted position.` });
-    if (!swappedInPass && i < n -1) { // Check if still relevant to break
+    if (!swappedInPass && i < n -1) {
         steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: Array.from({length: n}, (_, k) => k), explanation: "No swaps in the last pass. Array is sorted." });
-        break; 
+        break;
     }
   }
-  // Ensure final step always marks all as sorted if loop completes fully
   if (steps[steps.length - 1]?.explanation !== "No swaps in the last pass. Array is sorted.") {
     steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: Array.from({length: n}, (_, k) => k), explanation: "Array fully sorted." });
   }
@@ -71,13 +70,13 @@ function getSortedSuffix(n: number, passesCompleted: number): number[] {
     return sorted;
 }
 
-function mergeSortSteps(arr: number[]): SortStep[] { 
+function mergeSortSteps(arr: number[]): SortStep[] {
     const steps: SortStep[] = [{array: [...arr], comparing: [], swapping: [], sortedIndices: [], explanation: "Merge Sort not yet implemented. Initial array shown."}];
     const sortedArr = [...arr].sort((a,b) => a-b);
     steps.push({array: [...sortedArr], comparing: [], swapping: [], sortedIndices: Array.from({length: arr.length}, (_,k)=>k), explanation: "Merge Sort (Placeholder) - Array sorted."});
     return steps;
 }
-function quickSortSteps(arr: number[]): SortStep[] { 
+function quickSortSteps(arr: number[]): SortStep[] {
     const steps: SortStep[] = [{array: [...arr], comparing: [], swapping: [], sortedIndices: [], explanation: "Quick Sort not yet implemented. Initial array shown."}];
     const sortedArr = [...arr].sort((a,b) => a-b);
     steps.push({array: [...sortedArr], comparing: [], swapping: [], sortedIndices: Array.from({length: arr.length}, (_,k)=>k), explanation: "Quick Sort (Placeholder) - Array sorted."});
@@ -89,29 +88,29 @@ export default function SortVisualizer() {
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<SortAlgorithmType>('bubble');
   const [arrayData, setArrayData] = useState<number[]>([]);
   const [arraySize, setArraySize] = useState<number>(INITIAL_ARRAY_SIZE);
-  
+
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [speed, setSpeed] = useState<number>(3); 
+  const [speed, setSpeed] = useState<number>(3);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [sortSteps, setSortSteps] = useState<SortStep[]>([]);
-  
+
   const [showExplanationPanel, setShowExplanationPanel] = useState<boolean>(true);
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const algorithmDetails = ALGORITHMS.find(algo => algo.value === selectedAlgorithm);
 
   const generateAndSetSteps = useCallback(() => {
-    if (!arrayData || arrayData.length === 0) return; // Guard against empty arrayData
+    if (!arrayData || arrayData.length === 0) return;
     let steps: SortStep[];
     switch (selectedAlgorithm) {
       case 'bubble':
         steps = bubbleSortSteps([...arrayData]);
         break;
       case 'merge':
-        steps = mergeSortSteps([...arrayData]); 
+        steps = mergeSortSteps([...arrayData]);
         break;
       case 'quick':
-        steps = quickSortSteps([...arrayData]); 
+        steps = quickSortSteps([...arrayData]);
         break;
       default:
         steps = [{ array: [...arrayData], comparing: [], swapping: [], sortedIndices: [], explanation: "Select an algorithm." }];
@@ -127,23 +126,23 @@ export default function SortVisualizer() {
 
   useEffect(() => {
     resetArrayAndSteps();
-  }, [arraySize, resetArrayAndSteps]); // Removed selectedAlgorithm as direct dependency for array regeneration
+  }, [arraySize, resetArrayAndSteps]);
 
   useEffect(() => {
-    if (arrayData.length > 0) { // Only generate steps if arrayData is populated
+    if (arrayData.length > 0) {
         generateAndSetSteps();
     }
   }, [arrayData, selectedAlgorithm, generateAndSetSteps]);
-  
+
 
   useEffect(() => {
     if (isPlaying && currentStepIndex < sortSteps.length - 1) {
-      const delay = BASE_ANIMATION_DELAY_MS / speed; 
+      const delay = BASE_ANIMATION_DELAY_MS / speed;
       animationTimeoutRef.current = setTimeout(() => {
         setCurrentStepIndex(prev => prev + 1);
       }, delay);
     } else if (isPlaying && currentStepIndex >= sortSteps.length - 1) {
-      setIsPlaying(false); 
+      setIsPlaying(false);
     }
     return () => {
       if (animationTimeoutRef.current) {
@@ -154,8 +153,8 @@ export default function SortVisualizer() {
 
 
   const handlePlay = () => {
-    if (currentStepIndex >= sortSteps.length - 1 && sortSteps.length > 0) { 
-      generateAndSetSteps(); // This will reset steps and currentStepIndex to 0
+    if (currentStepIndex >= sortSteps.length - 1 && sortSteps.length > 0) {
+      generateAndSetSteps();
     }
     setIsPlaying(true);
   };
@@ -164,22 +163,21 @@ export default function SortVisualizer() {
     if (currentStepIndex < sortSteps.length - 1) {
       setCurrentStepIndex(prev => prev + 1);
     }
-     setIsPlaying(false); 
+     setIsPlaying(false);
   };
   const handleReset = () => {
     setIsPlaying(false);
-    resetArrayAndSteps(); 
+    resetArrayAndSteps();
   };
-  
+
   const handleAlgorithmChange = (value: string) => {
     setSelectedAlgorithm(value as SortAlgorithmType);
-    // Array and steps will be regenerated by respective useEffects
   };
 
   const handleSizeChange = (value: number[]) => {
     setArraySize(value[0]);
   };
-  
+
   const handleSpeedChange = (value: number) => {
     setSpeed(value);
   };
@@ -237,13 +235,12 @@ export default function SortVisualizer() {
               const isComparing = currentDisplayStep.comparing?.includes(index);
               const isSwapping = currentDisplayStep.swapping?.includes(index);
               const isSorted = currentDisplayStep.sortedIndices?.includes(index);
-              
-              let barColorClass = 'bg-primary/70'; 
-              if (isSorted) barColorClass = 'bg-green-500/80'; 
-              
-              // Swapping takes precedence for visual, then comparing
-              if (isSwapping) barColorClass = 'bg-red-500 animate-pulse'; 
-              else if (isComparing) barColorClass = 'bg-yellow-400'; 
+
+              let barColorClass = 'bg-primary/70';
+              if (isSorted) barColorClass = 'bg-green-500/80';
+
+              if (isSwapping) barColorClass = 'bg-red-500 animate-pulse';
+              else if (isComparing) barColorClass = 'bg-yellow-400';
 
               return (
                 <div
@@ -252,9 +249,9 @@ export default function SortVisualizer() {
                     "transition-all duration-150 ease-in-out rounded-t-sm",
                     barColorClass
                   )}
-                  style={{ 
-                    height: `${Math.max(5, (value / 105) * 100)}%`, // Ensure min height for visibility
-                    width: `${Math.max(1, 100 / currentArrayToDisplay.length - 1)}%` 
+                  style={{
+                    height: `${Math.max(5, (value / 105) * 100)}%`,
+                    width: `${Math.max(1, 100 / currentArrayToDisplay.length - 1)}%`
                   }}
                   title={`Value: ${value}, Index: ${index}`}
                 ></div>
@@ -285,7 +282,7 @@ export default function SortVisualizer() {
               <div className="prose prose-sm dark:prose-invert max-w-none">
                 <p className="font-semibold">How it works:</p>
                 <p className="text-xs mb-2">{algorithmDetails?.description || 'Select an algorithm.'}</p>
-                
+
                 {algorithmDetails && (
                   <div className="grid grid-cols-2 gap-2 my-2">
                     <ComplexityDisplay complexity={algorithmDetails.timeComplexity} type="Time" />
