@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -53,20 +52,25 @@ function bubbleSortSteps(arr: number[]): SortStep[] {
          steps.push({ array: [...localArr], comparing: [j, j + 1], swapping: [], sortedIndices: [...sortedIndices], explanation: `${localArr[j]} <= ${localArr[j+1]}. No swap.` });
       }
     }
-    sortedIndices.unshift(n - 1 - i); // Add to the beginning as they are sorted from the end
-    sortedIndices.sort((a, b) => a - b); // Keep sortedIndices sorted for easier consumption
+    sortedIndices.unshift(n - 1 - i); 
+    sortedIndices.sort((a, b) => a - b); 
 
     steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [...sortedIndices], explanation: `End of pass ${i + 1}. Element ${localArr[n-1-i]} is now in its sorted position.` });
     
     if (!swappedInPass) {
-      // Mark all remaining elements as sorted
-      const remainingUnsortedIndices = Array.from({length: n - 1 - i}, (_, k) => k);
+      const remainingUnsortedIndices = Array.from({length: n - sortedIndices.length}, (_, k) => {
+        // Find indices not yet in sortedIndices
+        let current = 0;
+        while(sortedIndices.includes(current) || remainingUnsortedIndices.includes(current)){
+            current++;
+        }
+        return current;
+      }).filter(idx => idx < n); // Ensure indices are within bounds
       sortedIndices = [...new Set([...sortedIndices, ...remainingUnsortedIndices])].sort((a,b) => a-b);
       steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [...sortedIndices], explanation: "No swaps in the last pass. Array is sorted." });
       break; 
     }
   }
-  // Ensure all indices are marked sorted at the very end if loop completed fully
   if (sortedIndices.length < n) {
     sortedIndices = Array.from({length: n}, (_, k) => k);
   }
@@ -76,15 +80,158 @@ function bubbleSortSteps(arr: number[]): SortStep[] {
 
 
 function mergeSortSteps(arr: number[]): SortStep[] {
-    const steps: SortStep[] = [{array: [...arr], comparing: [], swapping: [], sortedIndices: [], explanation: "Merge Sort not yet implemented. Initial array shown."}];
-    const sortedArr = [...arr].sort((a,b) => a-b);
-    steps.push({array: [...sortedArr], comparing: [], swapping: [], sortedIndices: Array.from({length: arr.length}, (_,k)=>k), explanation: "Merge Sort (Placeholder) - Array sorted."});
+    const steps: SortStep[] = [];
+    let localArr = [...arr];
+    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [], explanation: "Initial array for Merge Sort." });
+
+    function merge(left: number[], right: number[], originalStartIndex: number): number[] {
+        let resultArray: number[] = [], leftIndex = 0, rightIndex = 0;
+        let currentComparison: number[] = [];
+        
+        // For visualization: combine indices relative to original array
+        const mapToOriginalIndices = (subArrayIndices: number[], baseIndex: number) => subArrayIndices.map(idx => idx + baseIndex);
+
+        while (leftIndex < left.length && rightIndex < right.length) {
+            currentComparison = [originalStartIndex + leftIndex, originalStartIndex + left.length + rightIndex];
+            steps.push({ 
+                array: [...localArr], // Show current state of full array
+                comparing: currentComparison, 
+                swapping: [], // Swapping is implicit in merge
+                sortedIndices: [], // Not final yet
+                subArrayBounds: [originalStartIndex, originalStartIndex + left.length + right.length -1],
+                explanation: `Merging: Comparing L[${leftIndex}] (${left[leftIndex]}) and R[${rightIndex}] (${right[rightIndex]})`
+            });
+
+            if (left[leftIndex] < right[rightIndex]) {
+                resultArray.push(left[leftIndex]);
+                leftIndex++;
+            } else {
+                resultArray.push(right[rightIndex]);
+                rightIndex++;
+            }
+        }
+        
+        const mergedPortion = resultArray.concat(left.slice(leftIndex)).concat(right.slice(rightIndex));
+        
+        // Update localArr with the merged portion for visualization
+        for(let i = 0; i < mergedPortion.length; i++) {
+            localArr[originalStartIndex + i] = mergedPortion[i];
+        }
+        
+        steps.push({ 
+            array: [...localArr], 
+            comparing: [], 
+            swapping: mapToOriginalIndices(Array.from({length: mergedPortion.length}, (_,k)=>k), originalStartIndex), // Highlight merged part
+            sortedIndices: [], 
+            subArrayBounds: [originalStartIndex, originalStartIndex + mergedPortion.length -1],
+            explanation: `Merged subarray from index ${originalStartIndex} to ${originalStartIndex + mergedPortion.length -1}. Content: [${mergedPortion.join(', ')}]`
+        });
+        return mergedPortion;
+    }
+
+    function mergeSortRecursive(arrayToSort: number[], startIndexInFullArray: number): number[] {
+        if (arrayToSort.length <= 1) {
+            steps.push({ 
+                array: [...localArr], 
+                comparing: [], 
+                swapping: [], 
+                sortedIndices: mapToOriginalIndices(Array.from({length: arrayToSort.length}, (_,k)=>k), startIndexInFullArray), // Mark as "sorted" sub-portion
+                subArrayBounds: [startIndexInFullArray, startIndexInFullArray + arrayToSort.length -1],
+                explanation: `Base case: Subarray [${arrayToSort.join(', ')}] (at original index ${startIndexInFullArray}) is considered sorted.`
+            });
+            return arrayToSort;
+        }
+        const middle = Math.floor(arrayToSort.length / 2);
+        const leftHalf = arrayToSort.slice(0, middle);
+        const rightHalf = arrayToSort.slice(middle);
+
+        steps.push({ 
+            array: [...localArr], 
+            comparing: [], 
+            swapping: [], 
+            sortedIndices: [], 
+            subArrayBounds: [startIndexInFullArray, startIndexInFullArray + arrayToSort.length -1],
+            explanation: `Dividing subarray at original index ${startIndexInFullArray}: Left [${leftHalf.join(', ')}], Right [${rightHalf.join(', ')}]`
+        });
+
+        const sortedLeft = mergeSortRecursive(leftHalf, startIndexInFullArray);
+        const sortedRight = mergeSortRecursive(rightHalf, startIndexInFullArray + middle);
+        
+        return merge(sortedLeft, sortedRight, startIndexInFullArray);
+    }
+
+    mergeSortRecursive(localArr, 0);
+    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: Array.from({length: arr.length}, (_,k)=>k), explanation: "Merge Sort complete. Array fully sorted."});
     return steps;
 }
+
 function quickSortSteps(arr: number[]): SortStep[] {
-    const steps: SortStep[] = [{array: [...arr], comparing: [], swapping: [], sortedIndices: [], explanation: "Quick Sort not yet implemented. Initial array shown."}];
-    const sortedArr = [...arr].sort((a,b) => a-b);
-    steps.push({array: [...sortedArr], comparing: [], swapping: [], sortedIndices: Array.from({length: arr.length}, (_,k)=>k), explanation: "Quick Sort (Placeholder) - Array sorted."});
+    const steps: SortStep[] = [];
+    let localArr = [...arr];
+    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: [], explanation: "Initial array for Quick Sort." });
+
+    function partition(array: number[], low: number, high: number): number {
+        const pivotValue = array[high];
+        let i = low - 1; 
+        steps.push({
+            array: [...localArr],
+            comparing: [],
+            swapping: [],
+            pivot: high,
+            subArrayBounds: [low, high],
+            explanation: `Partitioning subarray from index ${low} to ${high}. Pivot is ${pivotValue} (at index ${high}).`
+        });
+
+        for (let j = low; j < high; j++) {
+            steps.push({ array: [...localArr], comparing: [j, high], swapping: [], pivot: high, subArrayBounds: [low, high], explanation: `Comparing element ${array[j]} with pivot ${pivotValue}.` });
+            if (array[j] < pivotValue) {
+                i++;
+                steps.push({ array: [...localArr], comparing: [j, high], swapping: [i,j], pivot: high, subArrayBounds: [low, high], explanation: `${array[j]} < ${pivotValue}. Swapping ${array[i]} (at index ${i}) with ${array[j]} (at index ${j}).` });
+                [array[i], array[j]] = [array[j], array[i]];
+                [localArr[i], localArr[j]] = [localArr[j], localArr[i]]; // Keep localArr in sync for full array visualization
+                 steps.push({ array: [...localArr], comparing: [], swapping: [i,j], pivot: high, subArrayBounds: [low, high], explanation: `Elements swapped.` });
+            }
+        }
+        steps.push({ array: [...localArr], comparing: [], swapping: [i+1, high], pivot: high, subArrayBounds: [low, high], explanation: `Placing pivot ${pivotValue}. Swapping ${array[i+1]} (at index ${i+1}) with pivot ${array[high]} (at index ${high}).` });
+        [array[i + 1], array[high]] = [array[high], array[i + 1]];
+        [localArr[i+1], localArr[high]] = [localArr[high], localArr[i+1]];
+        
+        const pivotFinalIndex = i + 1;
+        steps.push({ 
+            array: [...localArr], 
+            comparing: [], 
+            swapping: [], 
+            sortedIndices: [pivotFinalIndex], // Pivot is now in sorted position for this partition
+            pivot: pivotFinalIndex, 
+            subArrayBounds: [low, high],
+            explanation: `Pivot ${pivotValue} is now at its sorted position: index ${pivotFinalIndex}.` 
+        });
+        return pivotFinalIndex;
+    }
+
+    function quickSortRecursive(array: number[], low: number, high: number) {
+        if (low < high) {
+            const pi = partition(array, low, high);
+            steps.push({ array: [...localArr], comparing: [], swapping: [], pivot: pi, subArrayBounds: [low, high], explanation: `Pivot placed. Recursively sorting left and right partitions.`});
+            quickSortRecursive(array, low, pi - 1);
+            quickSortRecursive(array, pi + 1, high);
+        } else if (low === high) { // Single element partition is sorted
+             steps.push({ 
+                array: [...localArr], 
+                comparing: [], 
+                swapping: [], 
+                sortedIndices: [low],
+                subArrayBounds: [low, high],
+                explanation: `Subarray of size 1 at index ${low} is sorted.`
+            });
+        }
+    }
+    
+    quickSortRecursive(localArr, 0, localArr.length - 1);
+
+    // After recursion, mark all as sorted
+    const finalSortedIndices = Array.from({length: localArr.length}, (_, k) => k);
+    steps.push({ array: [...localArr], comparing: [], swapping: [], sortedIndices: finalSortedIndices, explanation: "Quick Sort complete. Array fully sorted."});
     return steps;
 }
 
@@ -159,7 +306,6 @@ export default function SortVisualizer() {
 
   const handlePlay = () => {
     if (currentStepIndex >= sortSteps.length - 1 && sortSteps.length > 0) {
-      // If at the end of a completed sort, reset steps and current index to replay
       generateAndSetSteps(); 
     }
     setIsPlaying(true);
@@ -173,17 +319,15 @@ export default function SortVisualizer() {
   };
   const handleReset = () => {
     setIsPlaying(false);
-    resetArrayAndSteps(); // This will regenerate array and then steps via useEffect
+    resetArrayAndSteps(); 
   };
 
   const handleAlgorithmChange = (value: string) => {
     setSelectedAlgorithm(value as SortAlgorithmType);
-    // Steps will be regenerated by the useEffect watching selectedAlgorithm
   };
 
   const handleSizeChange = (value: number[]) => {
     setArraySize(value[0]);
-    // Array and steps will be regenerated by useEffects watching arraySize
   };
 
   const handleSpeedChange = (value: number) => {
@@ -237,18 +381,29 @@ export default function SortVisualizer() {
           </div>
         </div>
 
-        <ArenaCanvas className="min-h-[300px] !bg-background">
+        <ArenaCanvas className="min-h-[300px]">
           <div className="flex items-end justify-center h-full gap-0.5 px-2 overflow-hidden" aria-label="Array visualization">
             {currentArrayToDisplay.map((value, index) => {
               const isComparing = currentDisplayStep.comparing?.includes(index);
               const isSwapping = currentDisplayStep.swapping?.includes(index);
               const isSorted = currentDisplayStep.sortedIndices?.includes(index);
+              const isPivot = currentDisplayStep.pivot === index;
+              
+              let barColorClass = 'bg-primary/70'; // Default bar color
 
-              let barColorClass = 'bg-primary/70';
-              if (isSorted) barColorClass = 'bg-green-500/80';
+              if(currentDisplayStep.subArrayBounds) {
+                 if(index >= currentDisplayStep.subArrayBounds[0] && index <= currentDisplayStep.subArrayBounds[1]) {
+                    barColorClass = 'bg-accent/70'; // Color for elements in current subarray
+                 } else {
+                    barColorClass = 'bg-muted-foreground/30'; // Dim elements outside current subarray focus
+                 }
+              }
 
-              if (isSwapping) barColorClass = 'bg-red-500 animate-pulse';
-              else if (isComparing) barColorClass = 'bg-yellow-400';
+              if (isPivot) barColorClass = 'bg-purple-500'; // Pivot color
+              if (isComparing) barColorClass = 'bg-yellow-400'; // Comparing color
+              if (isSwapping) barColorClass = 'bg-red-500 animate-pulse'; // Swapping color
+              if (isSorted) barColorClass = 'bg-green-500/80'; // Sorted color
+              
 
               return (
                 <div
@@ -258,7 +413,7 @@ export default function SortVisualizer() {
                     barColorClass
                   )}
                   style={{
-                    height: `${Math.max(5, (value / 105) * 100)}%`, // Ensure min height & scale relative to max possible val (100 + 5 buffer)
+                    height: `${Math.max(5, (value / 105) * 100)}%`, 
                     width: `${Math.max(1, 100 / currentArrayToDisplay.length - 1)}%`
                   }}
                   title={`Value: ${value}, Index: ${index}`}
