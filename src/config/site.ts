@@ -7,7 +7,7 @@ import {
   Orbit,
   Puzzle,
   Sigma,
-  Calculator, // Will be used for Graphing Calculator
+  Calculator,
   TestTubeDiagonal, 
   Scale,
   BookOpen,
@@ -19,8 +19,13 @@ import {
   ClipboardCheck, 
   BarChart3, 
   FileJson,
-  LineChart, // Potential icon for Graphing Calc if Calculator is taken
-  FunctionSquare // Alternative for Graphing Calc
+  LineChart,
+  FunctionSquare,
+  Shapes, // For Geometry Tools category
+  Triangle,
+  Circle,
+  Square,
+  LayoutPanelLeft, // For Trapezium
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -54,13 +59,13 @@ export const navItems: NavItem[] = [
       },
       {
         title: 'Fraction Duel',
-        href: '/quick-math/fraction-duel', // Path remains same, moved under Games
+        href: '/quick-math/fraction-duel',
         icon: TestTubeDiagonal,
         description: 'Test your fraction arithmetic skills in a duel!',
       },
       {
         title: 'Ratio Scales',
-        href: '/quick-math/ratio-scales', // Path remains same, moved under Games
+        href: '/quick-math/ratio-scales',
         icon: Scale,
         description: 'Balance weights to understand ratios.',
       },
@@ -77,12 +82,51 @@ export const navItems: NavItem[] = [
         icon: Sigma,
         description: 'Visualize functions, derivatives, and integrals.',
       },
+      {
+        title: 'Geometry Tools',
+        href: '/geometry', // Main landing for geometry tools (optional)
+        icon: Shapes,
+        description: 'Interactive geometry calculators.',
+        // Sub-items for individual geometry tools will be listed here if a separate /geometry page is made
+        // Or directly link to the first tool, e.g. /geometry/triangle if no main geometry page
+      },
     ],
   },
   {
-    title: 'Graphing Calculator', // New Top Level Item
+    title: 'Geometry', // New top-level category for direct access
+    href: '#', // This will be a dropdown trigger
+    icon: Shapes,
+    subItems: [
+      {
+        title: 'Triangle Calculator',
+        href: '/geometry/triangle',
+        icon: Triangle,
+        description: 'Calculate properties of triangles.',
+      },
+      {
+        title: 'Circle Calculator',
+        href: '/geometry/circle',
+        icon: Circle,
+        description: 'Calculate properties of circles.',
+      },
+      {
+        title: 'Square Calculator',
+        href: '/geometry/square',
+        icon: Square,
+        description: 'Calculate properties of squares.',
+      },
+      {
+        title: 'Trapezium Calculator',
+        href: '/geometry/trapezium',
+        icon: LayoutPanelLeft, // Using LayoutPanelLeft for Trapezium
+        description: 'Calculate properties of trapeziums.',
+      },
+    ],
+  },
+  {
+    title: 'Graphing Calculator',
     href: '/graphing-calculator',
-    icon: Calculator, // Using Calculator icon as Quick Math is removed
+    icon: Calculator,
   },
   {
     title: 'Lessons',
@@ -106,7 +150,7 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Master binary numbers with our interactive 8-bit and 16-bit converter game. Toggle bits, see instant decimal and hex conversions, and test your skills in game mode!',
     href: '/binary-game',
     icon: Brain,
-    imageSrc: 'https://picsum.photos/seed/binary/600/400',
+    imageSrc: 'https://picsum.photos/seed/binarygame/600/400',
     imageAlt: 'Binary game interface with toggles and lights',
     dataAiHint: 'binary code',
     ctaLabel: 'Play Now',
@@ -116,7 +160,7 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Embark on your Python journey! Learn the fundamentals with interactive lessons, a code sandbox, and gamified challenges.',
     href: '/lessons/python-foundations',
     icon: FileCode,
-    imageSrc: 'https://picsum.photos/seed/pythondev/600/400',
+    imageSrc: 'https://picsum.photos/seed/pythoncourse/600/400',
     imageAlt: 'Python code on a screen',
     dataAiHint: 'python programming',
     ctaLabel: 'Start Learning',
@@ -126,7 +170,7 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Explore the unit circle dynamically. Drag the angle, see radians, degrees, and trigonometric values (sin, cos, tan) update in real-time. Visualize the linked sine wave.',
     href: '/unit-circle',
     icon: Orbit,
-    imageSrc: 'https://picsum.photos/seed/unitcircle/600/400',
+    imageSrc: 'https://picsum.photos/seed/unitcircletool/600/400',
     imageAlt: 'Unit circle diagram with sine wave',
     dataAiHint: 'math diagram',
     ctaLabel: 'Explore Circle',
@@ -136,17 +180,61 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Visualize calculus concepts. Input functions, explore graphs, derivatives (as tangent lines), and integrals (area under curve) with an interactive slider and customizable graph bounds.',
     href: '/calculus-playground',
     icon: Sigma,
-    imageSrc: 'https://picsum.photos/seed/calculus/600/400',
+    imageSrc: 'https://picsum.photos/seed/calculustool/600/400',
     imageAlt: 'Graph of a function with tangent line and shaded area',
     dataAiHint: 'calculus graph',
     ctaLabel: 'Start Plotting',
+  },
+  {
+    title: 'Triangle Calculator',
+    description: 'Interactively calculate area, perimeter, angles, and more for triangles. Drag vertices or input values.',
+    href: '/geometry/triangle',
+    icon: Triangle,
+    imageSrc: 'https://picsum.photos/seed/triangletool/600/400',
+    imageAlt: 'Interactive triangle diagram',
+    dataAiHint: 'triangle geometry',
+    ctaLabel: 'Explore Triangles',
+    isComingSoon: false, // Assuming it will be built now
+  },
+  {
+    title: 'Circle Calculator',
+    description: 'Explore circles. Calculate area, circumference, and diameter with interactive inputs and visuals.',
+    href: '/geometry/circle',
+    icon: Circle,
+    imageSrc: 'https://picsum.photos/seed/circletool/600/400',
+    imageAlt: 'Interactive circle diagram',
+    dataAiHint: 'circle geometry',
+    ctaLabel: 'Explore Circles',
+    isComingSoon: false, // Assuming it will be built now
+  },
+  {
+    title: 'Square Calculator',
+    description: 'Calculate area, perimeter, and diagonal of squares. Interactive resizing and visual feedback.',
+    href: '/geometry/square',
+    icon: Square,
+    imageSrc: 'https://picsum.photos/seed/squaretool/600/400',
+    imageAlt: 'Interactive square diagram',
+    dataAiHint: 'square geometry',
+    ctaLabel: 'Explore Squares',
+    isComingSoon: false, // Assuming it will be built now
+  },
+  {
+    title: 'Trapezium Calculator',
+    description: 'Work with trapeziums. Calculate area and other properties with dynamic inputs for bases and height.',
+    href: '/geometry/trapezium',
+    icon: LayoutPanelLeft,
+    imageSrc: 'https://picsum.photos/seed/trapeziumtool/600/400',
+    imageAlt: 'Interactive trapezium diagram',
+    dataAiHint: 'trapezium geometry',
+    ctaLabel: 'Explore Trapeziums',
+    isComingSoon: false, // Assuming it will be built now
   },
   {
     title: 'Graphing Calculator',
     description: 'Plot functions, explore equations, and visualize math concepts with our powerful graphing calculator. (Coming Soon!)',
     href: '/graphing-calculator',
     icon: LineChart, 
-    imageSrc: 'https://picsum.photos/seed/graphingcalc/600/400',
+    imageSrc: 'https://picsum.photos/seed/graphingcalcfeature/600/400',
     imageAlt: 'Advanced graphing calculator interface',
     dataAiHint: 'graph calculator',
     isComingSoon: true,
@@ -157,7 +245,7 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Learn hexadecimal conversion by converting decimal numbers (0-255) to two-digit hex values. Select digits from a grid and test your understanding in challenge or learn mode.',
     href: '/hex-boxes',
     icon: Puzzle,
-    imageSrc: 'https://picsum.photos/seed/hexbox/600/400',
+    imageSrc: 'https://picsum.photos/seed/hexgame/600/400',
     imageAlt: 'Hexadecimal digit selection grid',
     dataAiHint: 'hexadecimal code',
     ctaLabel: 'Play Hex Game',
@@ -167,9 +255,9 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Challenge your fraction arithmetic! Solve expressions by choosing the correct simplified answer from multiple choices. Difficulty increases with each turn.',
     href: '/quick-math/fraction-duel',
     icon: TestTubeDiagonal,
-    imageSrc: 'https://picsum.photos/seed/fractionduel/600/400',
+    imageSrc: 'https://picsum.photos/seed/fractiongame/600/400',
     imageAlt: 'Fraction expression with multiple choice answers',
-    dataAiHint: 'fraction math quiz',
+    dataAiHint: 'fraction math game',
     ctaLabel: 'Start Duel',
   },
   {
@@ -177,9 +265,9 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Balance weights on virtual scales to intuitively understand ratios and proportions. Experiment with different weights and see how equivalent ratios are formed.',
     href: '/quick-math/ratio-scales',
     icon: Scale,
-    imageSrc: 'https://picsum.photos/seed/ratios/600/400',
+    imageSrc: 'https://picsum.photos/seed/ratiogame/600/400',
     imageAlt: 'Balance scale with weights',
-    dataAiHint: 'balance scale',
+    dataAiHint: 'balance scale math',
     ctaLabel: 'Explore Ratios',
   },
   {
@@ -187,9 +275,9 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Match Python code snippets to their correct output. A fun way to test your understanding of Python execution.',
     href: '/lessons/python-foundations/output-match',
     icon: Target,
-    imageSrc: 'https://picsum.photos/seed/pyoutput/600/400',
+    imageSrc: 'https://picsum.photos/seed/pyoutputchallenge/600/400',
     imageAlt: 'Python code and output comparison',
-    dataAiHint: 'python code',
+    dataAiHint: 'python coding',
     isComingSoon: false, 
     ctaLabel: 'Try Challenge',
   },
@@ -198,9 +286,9 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Can you spot the syntax errors? Sharpen your Python debugging skills by identifying mistakes in code.',
     href: '/lessons/python-foundations/syntax-spotter',
     icon: SearchCode,
-    imageSrc: 'https://picsum.photos/seed/pysyntax/600/400',
+    imageSrc: 'https://picsum.photos/seed/pysyntaxchallenge/600/400',
     imageAlt: 'Python code with highlighted errors',
-    dataAiHint: 'python syntax error',
+    dataAiHint: 'python syntax',
     isComingSoon: false, 
     ctaLabel: 'Spot Errors',
   },
@@ -209,29 +297,29 @@ export const featureCards: FeatureCardItem[] = [
     description: 'Fix broken Python code! Apply your knowledge to debug real-world-like scenarios and make the code run.',
     href: '/lessons/python-foundations/debug-it',
     icon: Wrench,
-    imageSrc: 'https://picsum.photos/seed/pydebug/600/400',
+    imageSrc: 'https://picsum.photos/seed/pydebugchallenge/600/400',
     imageAlt: 'Python code with debugging tools',
-    dataAiHint: 'python debugging',
+    dataAiHint: 'python debugging code',
     isComingSoon: false, 
     ctaLabel: 'Debug Code',
   },
   {
     title: 'Data Structures Visualizer',
     description: 'Coming soon! Interactive visualizations of common data structures like arrays, linked lists, trees, and graphs. Understand their operations and complexities.',
-    href: '#',
+    href: '#', // Update when page is ready
     icon: FileJson,
-    imageSrc: 'https://picsum.photos/seed/datastructures/600/400',
+    imageSrc: 'https://picsum.photos/seed/datastructuresvis/600/400',
     imageAlt: 'Abstract representation of data structures',
-    dataAiHint: 'data structure',
+    dataAiHint: 'data structures',
     isComingSoon: true,
     ctaLabel: 'Coming Soon',
   },
   {
     title: 'Algorithm Arena',
     description: 'Coming soon! Step through popular algorithms like sorting, searching, and pathfinding. See how they work with animated examples and explanations.',
-    href: '#',
+    href: '#', // Update when page is ready
     icon: BarChart3,
-    imageSrc: 'https://picsum.photos/seed/algorithms/600/400',
+    imageSrc: 'https://picsum.photos/seed/algorithmsvis/600/400',
     imageAlt: 'Flowchart representing an algorithm',
     dataAiHint: 'algorithm flowchart',
     isComingSoon: true,
