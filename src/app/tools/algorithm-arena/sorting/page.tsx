@@ -13,7 +13,7 @@ export default function SortingPage() {
       <header className="text-center mb-8">
         <h1 className="text-4xl font-bold text-primary">Sorting Algorithm Visualizer</h1>
         <p className="text-lg text-muted-foreground">
-          Watch various sorting algorithms in action.
+          Watch various sorting algorithms in action. Adjust array size, speed, and see step-by-step explanations.
         </p>
       </header>
       <SortVisualizer />

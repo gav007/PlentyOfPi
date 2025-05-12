@@ -13,7 +13,7 @@ export default function RecursionPage() {
       <header className="text-center mb-8">
         <h1 className="text-4xl font-bold text-primary">Recursion Visualizer</h1>
         <p className="text-lg text-muted-foreground">
-          See how recursive functions solve problems by breaking them down.
+          See how recursive functions solve problems by breaking them down. Visualize the call stack in action.
         </p>
       </header>
       <RecursionVisualizer />

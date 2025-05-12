@@ -17,7 +17,7 @@ export default function GameTheoryPage() {
         </p>
       </header>
       <PrisonersDilemma /> 
-      {/* Other games can be added here or linked from a sub-dashboard */}
+      {/* Other games can be added here in future or linked from a sub-dashboard */}
     </div>
   );
 }
