@@ -99,5 +99,71 @@
     ],
     "errorLineIndex": 0,
     "explanation": "TypeError (related to string formatting syntax): The `%d` format specifier expects an integer, but the string \"twenty\" is provided. It should be an integer, or use `%s` for string if that was the intent (though the message implies a number)."
+  },
+  {
+    "lines": [
+      "def my_func:",
+      "  pass"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "Syntax Error: A function definition requires parentheses `()` after the function name, even if it takes no arguments. It should be `def my_func():`."
+  },
+  {
+    "lines": [
+      "if x > 0:",
+      "print(\"Positive\")",
+      "else",
+      "print(\"Non-positive\")"
+    ],
+    "errorLineIndex": 2,
+    "explanation": "Syntax Error: An `else` statement must end with a colon `:`."
+  },
+  {
+    "lines": [
+      "data = [10, 20, 30,]",
+      "print(data[1)"
+    ],
+    "errorLineIndex": 1,
+    "explanation": "Syntax Error: Missing a closing square bracket `]` when accessing the list element `data[1]`."
+  },
+  {
+    "lines": [
+      "student = {name: \"Eve\", age: 25}",
+      "print(student['name'])"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "Syntax Error: Dictionary keys that are strings must be enclosed in quotes. It should be `{\"name\": \"Eve\", \"age\": 25}`."
+  },
+  {
+    "lines": [
+      "print(\"Value: \" + 10)"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "TypeError (often leads to syntax discussions): Cannot directly concatenate a string and an integer using `+`. Convert the integer to a string using `str(10)`."
+  },
+  {
+    "lines": [
+      "for item in my_collection",
+      "  print(item)"
+    ],
+    "errorLineIndex": 0,
+    "explanation": "Syntax Error: A `for` loop statement must end with a colon `:`."
+  },
+  {
+    "lines": [
+      "x = 5",
+      "y = 7",
+      "if x > y print(\"x is greater\")"
+    ],
+    "errorLineIndex": 2,
+    "explanation": "Syntax Error: Missing a colon `:` after the `if` condition."
+  },
+  {
+    "lines": [
+      "my_string = \"Hello, world!\"",
+      "print(my_string.upper)"
+    ],
+    "errorLineIndex": 1,
+    "explanation": "TypeError (related to syntax of method calls): `upper` is a method and needs to be called with parentheses: `my_string.upper()`."
   }
 ]

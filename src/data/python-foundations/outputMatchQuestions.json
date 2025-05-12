@@ -89,5 +89,65 @@
     "options": ["2.5", "2", "1", "0"],
     "correct": "2",
     "explanation": "The `%` (modulus) operator returns the remainder of a division. 10 divided by 4 is 2 with a remainder of 2."
+  },
+  {
+    "code": "word = \"Programming\"\nprint(word.find(\"g\"))",
+    "options": ["3", "-1", "2", "Error"],
+    "correct": "3",
+    "explanation": "The `find()` string method returns the index of the first occurrence of the substring. 'g' is at index 3."
+  },
+  {
+    "code": "values = [x*x for x in range(3)]\nprint(values)",
+    "options": ["[0, 1, 4]", "[0, 1, 2]", "[1, 4, 9]", "[0, 2, 4]"],
+    "correct": "[0, 1, 4]",
+    "explanation": "This is a list comprehension. `range(3)` generates 0, 1, 2. For each x, `x*x` is calculated: 0*0=0, 1*1=1, 2*2=4. The resulting list is [0, 1, 4]."
+  },
+  {
+    "code": "data = {\"a\": 1, \"b\": 2}\ndata.update({\"c\": 3, \"a\": 5})\nprint(data[\"a\"])",
+    "options": ["1", "3", "5", "Error"],
+    "correct": "5",
+    "explanation": "The `update()` method merges dictionaries. If a key exists, its value is updated. Key 'a' is updated from 1 to 5."
+  },
+  {
+    "code": "def scope_test():\n  x = 10\n  print(x)\n\nx = 20\nscope_test()\nprint(x)",
+    "options": ["10\n20", "20\n10", "10\n10", "20\n20"],
+    "correct": "10\n20",
+    "explanation": "Inside `scope_test()`, `x` is local and set to 10, so it prints 10. The `x` outside the function (global scope) remains 20 and is printed last."
+  },
+  {
+    "code": "set1 = {1, 2, 3}\nset2 = {3, 4, 5}\nprint(len(set1.intersection(set2)))",
+    "options": ["1", "2", "3", "5"],
+    "correct": "1",
+    "explanation": "The `intersection()` method returns common elements. Only `3` is common to both sets. The length of the intersection `{3}` is 1."
+  },
+  {
+    "code": "print(bool(0) or bool(\"\"))",
+    "options": ["True", "False", "Error", "None"],
+    "correct": "False",
+    "explanation": "`bool(0)` is False. `bool(\"\")` (empty string) is False. `False or False` evaluates to False."
+  },
+  {
+    "code": "string = \"hello\"\nprint(string.capitalize())",
+    "options": ["hello", "Hello", "HELLO", "hELLO"],
+    "correct": "Hello",
+    "explanation": "The `capitalize()` string method converts the first character to uppercase and all other characters to lowercase."
+  },
+  {
+    "code": "tuple_val = (1, [2, 3], 4)\ntuple_val[1][0] = 5\nprint(tuple_val[1][0])",
+    "options": ["2", "3", "5", "Error"],
+    "correct": "5",
+    "explanation": "Tuples are immutable, but if they contain mutable objects (like a list), those objects can be changed. `tuple_val[1]` refers to the list `[2, 3]`. `tuple_val[1][0] = 5` changes the first element of this inner list."
+  },
+  {
+    "code": "print(\"{1}{0}\".format('a', 'b'))",
+    "options": ["ab", "ba", "10", "Error"],
+    "correct": "ba",
+    "explanation": "The `.format()` method substitutes placeholders. `{1}` refers to the argument at index 1 ('b'), and `{0}` refers to the argument at index 0 ('a')."
+  },
+  {
+    "code": "x = 5\ny = x\ny += 2\nprint(x)",
+    "options": ["5", "7", "2", "Error"],
+    "correct": "5",
+    "explanation": "Integers are immutable. When `y = x`, `y` gets the value of `x`. When `y += 2`, `y` is reassigned to a new integer `7`. `x` remains unchanged."
   }
 ]

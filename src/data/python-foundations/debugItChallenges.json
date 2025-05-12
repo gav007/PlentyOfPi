@@ -89,5 +89,35 @@
     "description": "String comparison in Python is case-sensitive. 'blue' is not the same as 'Blue'. Fix the comparison to make the condition true.",
     "expectedOutput": "The color is blue.",
     "solution": "color = \"blue\"\nif color == \"blue\":\n  print(\"The color is blue.\")\nelse:\n  print(\"The color is not blue.\")"
+  },
+  {
+    "initialCode": "numbers = (1, 2, 3)\nnumbers[0] = 10\nprint(numbers)",
+    "description": "Tuples are immutable, meaning their elements cannot be changed after creation. This code attempts to modify a tuple, which will cause an error. The task is to understand this, but for a 'fix', one might convert to a list, modify, and convert back if the structure must be a tuple, or simply acknowledge the immutability. The simplest 'fix' for the *spirit* of debugging might be to make it a list if modification is intended.",
+    "expectedOutput": "[10, 2, 3]",
+    "solution": "numbers = [1, 2, 3] # Changed to list to allow modification\nnumbers[0] = 10\nprint(numbers)"
+  },
+  {
+    "initialCode": "for i in range(1, 5):\n  total = 0\n  total += i\nprint(total)",
+    "description": "`total` is reset to 0 in each iteration. It should be initialized before the loop to sum all numbers from 1 to 4.",
+    "expectedOutput": "10",
+    "solution": "total = 0\nfor i in range(1, 5):\n  total += i\nprint(total)"
+  },
+  {
+    "initialCode": "def calculate_average(nums):\n  return sum(nums) / len(nums)\n\nresult = calculate_average([])\nprint(result)",
+    "description": "The function tries to divide by `len(nums)`, which is 0 for an empty list, causing a ZeroDivisionError. Add a check for an empty list.",
+    "expectedOutput": "Cannot calculate average of empty list.",
+    "solution": "def calculate_average(nums):\n  if not nums:\n    return \"Cannot calculate average of empty list.\"\n  return sum(nums) / len(nums)\n\nresult = calculate_average([])\nprint(result)"
+  },
+  {
+    "initialCode": "user = {\"name\": \"Sam\", \"city\": \"Paris\"}\nprint(user.get(\"country\"))",
+    "description": "Accessing a non-existent key with `get()` without a default value returns `None`. The expected output is 'N/A' or a similar indicator.",
+    "expectedOutput": "N/A",
+    "solution": "user = {\"name\": \"Sam\", \"city\": \"Paris\"}\nprint(user.get(\"country\", \"N/A\"))"
+  },
+  {
+    "initialCode": "limit = 3\nfor x in range(limit):\n  print(x)\n  limit -=1 # Modifying loop variable inside loop, bad practice",
+    "description": "Modifying the `limit` variable, which `range` used to create its iterator, doesn't affect the already created iterator. The loop will run for `range(3)`, i.e., 0, 1, 2. The `limit -=1` part is confusing but doesn't change the number of iterations here. The goal is to understand the original `range` behavior.",
+    "expectedOutput": "0\n1\n2",
+    "solution": "limit = 3\nfor x in range(limit):\n  print(x)\n  # The 'limit -=1' line has no effect on the number of iterations\n  # for the current loop instance once range(limit) is evaluated.\n  # Removing it or commenting it out clarifies the loop's behavior."
   }
 ]
