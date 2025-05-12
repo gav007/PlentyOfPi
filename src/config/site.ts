@@ -19,11 +19,17 @@ import {
   ClipboardCheck, 
   BarChart3, 
   FileJson,
-  LineChart, // Using LineChart for Graphing Calculator Icon
+  LineChart,
   FunctionSquare,
   Code as CodeIcon, 
   Binary,
   Zap,
+  BrainCircuit, // Icon for Algorithm Arena
+  BarChartHorizontal, // Icon for Sorting
+  Search, // Icon for Searching
+  GitFork, // Icon for Graph Traversal
+  Repeat, // Icon for Recursion
+  Users, // Icon for Game Theory
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -93,10 +99,42 @@ export const navItems: NavItem[] = [
         description: 'Quick fire math problems against the clock.',
       },
       {
-        title: 'Graphing Calculator', // Updated Title
-        href: '/tools/graph-plotter', // Kept existing route, page renamed effectively
-        icon: LineChart, 
-        description: 'Plot mathematical expressions dynamically.',
+        title: 'Algorithm Arena',
+        href: '/tools/algorithm-arena',
+        icon: BrainCircuit,
+        description: 'Explore algorithms and game theory interactively.',
+        subItems: [ // Nested subItems for Algorithm Arena
+          {
+            title: 'Sorting Visualizer',
+            href: '/tools/algorithm-arena/sorting',
+            icon: BarChartHorizontal,
+            description: 'Visualize sorting algorithms like Bubble Sort, Merge Sort.',
+          },
+          {
+            title: 'Searching Visualizer',
+            href: '/tools/algorithm-arena/searching',
+            icon: Search,
+            description: 'See how Binary Search and Linear Search work.',
+          },
+          {
+            title: 'Graph Traversal',
+            href: '/tools/algorithm-arena/graph-traversal',
+            icon: GitFork,
+            description: 'Explore BFS, DFS, Dijkstra’s algorithm.',
+          },
+          {
+            title: 'Recursion Visualizer',
+            href: '/tools/algorithm-arena/recursion',
+            icon: Repeat,
+            description: 'Understand Factorial, Fibonacci, Tower of Hanoi.',
+          },
+          {
+            title: 'Game Theory Playground',
+            href: '/tools/algorithm-arena/game-theory',
+            icon: Users,
+            description: 'Simulate Prisoner\'s Dilemma and other scenarios.',
+          },
+        ]
       },
     ],
   },
@@ -154,6 +192,16 @@ export const featureCards: FeatureCardItem[] = [
     ctaLabel: 'Learn JS',
   },
   {
+    title: 'Algorithm Arena',
+    description: 'Explore sorting, searching, graph traversal, recursion, and game theory with interactive visualizations and simulations. Understand algorithms step-by-step.',
+    href: '/tools/algorithm-arena',
+    icon: BrainCircuit,
+    imageSrc: 'https://picsum.photos/seed/algorithmmarena/600/400',
+    imageAlt: 'Abstract representation of algorithms and logic flows',
+    dataAiHint: 'algorithms logic',
+    ctaLabel: 'Explore Arena',
+  },
+  {
     title: 'Interactive Unit Circle',
     description: 'Explore the unit circle dynamically. Drag the angle, see radians, degrees, and trigonometric values (sin, cos, tan) update in real-time. Visualize the linked sine wave.',
     href: '/unit-circle',
@@ -192,17 +240,6 @@ export const featureCards: FeatureCardItem[] = [
     imageAlt: 'Dynamic display of math problems and scores',
     dataAiHint: 'math game quiz',
     ctaLabel: 'Start Battle',
-  },
-  {
-    title: 'Graphing Calculator', // Updated Title
-    description: 'Plot multiple mathematical functions on a dynamic graph. Customize appearance, explore intersections, and visualize complex equations.',
-    href: '/tools/graph-plotter', // Kept existing route
-    icon: LineChart, // Using LineChart as a suitable icon
-    imageSrc: 'https://picsum.photos/seed/graphplotter/600/400',
-    imageAlt: 'Multiple functions plotted on a graph',
-    dataAiHint: 'graph functions math',
-    ctaLabel: 'Open Calculator', // Changed CTA from "Coming Soon"
-    isComingSoon: false, // No longer coming soon
   },
   {
     title: 'Hex Boxes Challenge',
@@ -308,17 +345,6 @@ export const featureCards: FeatureCardItem[] = [
     imageSrc: 'https://picsum.photos/seed/datastructuresvis/600/400',
     imageAlt: 'Abstract representation of data structures',
     dataAiHint: 'data structures',
-    isComingSoon: true,
-    ctaLabel: 'Coming Soon',
-  },
-  {
-    title: 'Algorithm Arena',
-    description: 'Coming soon! Step through popular algorithms like sorting, searching, and pathfinding. See how they work with animated examples and explanations.',
-    href: '#', 
-    icon: BarChart3,
-    imageSrc: 'https://picsum.photos/seed/algorithmsvis/600/400',
-    imageAlt: 'Flowchart representing an algorithm',
-    dataAiHint: 'algorithm flowchart',
     isComingSoon: true,
     ctaLabel: 'Coming Soon',
   },
