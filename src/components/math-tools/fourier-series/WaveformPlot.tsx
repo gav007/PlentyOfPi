@@ -1,16 +1,15 @@
-
 'use client';
 
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceDot } from 'recharts';
 
 interface WaveformPlotProps {
-  fullWaveformPath: Array<{ x: number; y: number }>; // x is time, y is f(t)
-  tracedWaveformPath: Array<{ x: number; y: number }>; // Points traced by animation
-  currentTime: number;    // Current time for the drawing head
-  currentValue: number;   // Current value f(currentTime)
-  timePeriod: number;     // e.g., 2 * Math.PI
-  width: number;
+  fullWaveformPath: Array<{ x: number; y: number }>; 
+  tracedWaveformPath: Array<{ x: number; y: number }>; 
+  currentTime: number;    
+  currentValue: number;   
+  timePeriod: number;     
+  width: number; // This might be deprecated if we always use full width of parent
   height: number;
 }
 
@@ -20,23 +19,23 @@ const WaveformPlot: React.FC<WaveformPlotProps> = ({
   currentTime,
   currentValue,
   timePeriod,
-  width,
+  width, // width prop might not be strictly needed if ResponsiveContainer handles it
   height
 }) => {
 
-  // Determine Y-axis domain dynamically or set fixed
   const yValues = fullWaveformPath.map(p => p.y);
-  const yMin = Math.min(...yValues, -1.5); // Ensure at least -1.5 to 1.5 range
+  const yMin = Math.min(...yValues, -1.5); 
   const yMax = Math.max(...yValues, 1.5);
   const yDomain = [Math.floor(yMin * 10) / 10, Math.ceil(yMax * 10) / 10];
 
 
   return (
-    <div style={{ width: `${width}px`, height: `${height}px` }} className="border rounded-md bg-background shadow-inner">
+    // Changed to w-full to respect parent width, height set on ResponsiveContainer
+    <div style={{ height: `${height}px` }} className="w-full border rounded-md bg-background shadow-inner">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
-            data={fullWaveformPath} // Use full path for defining chart scale and background wave
-            margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+            data={fullWaveformPath} 
+            margin={{ top: 20, right: 30, left: 0, bottom: 20 }} // Added bottom margin
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
@@ -53,7 +52,7 @@ const WaveformPlot: React.FC<WaveformPlotProps> = ({
               return '';
             }}
             stroke="hsl(var(--muted-foreground))"
-            label={{ value: "t (time)", position: "insideBottomRight", offset: -5, fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+            label={{ value: "t (time)", position: "insideBottom", dy: 15, fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
           />
           <YAxis 
             domain={yDomain} 
@@ -68,15 +67,12 @@ const WaveformPlot: React.FC<WaveformPlotProps> = ({
             cursor={{stroke: 'hsl(var(--primary))', strokeDasharray: '3 3'}}
           />
           
-          {/* Full waveform (dimmed background) */}
           <Line type="monotone" dataKey="y" stroke="hsl(var(--muted))" dot={false} strokeWidth={1.5} isAnimationActive={false} />
 
-          {/* Traced waveform (animated part) */}
           {tracedWaveformPath.length > 0 && (
             <Line type="monotone" dataKey="y" data={tracedWaveformPath} stroke="hsl(var(--primary))" dot={false} strokeWidth={2.5} isAnimationActive={false}/>
           )}
 
-          {/* Drawing head / Current point on waveform */}
           <ReferenceDot
             x={currentTime}
             y={currentValue}
