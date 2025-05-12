@@ -45,30 +45,38 @@ export default function GraphingCalculatorPage() {
 
   React.useEffect(() => {
     const newPlotData: PlotData[] = [];
-    expressions.forEach(expr => {
+    let hasErrors = false;
+    const updatedExpressions = expressions.map(expr => {
+      let currentError = null;
       if (!expr.visible || !expr.value.trim()) {
-        return;
+        if (expr.error) return { ...expr, error: null }; // Clear error if not visible or empty
+        return expr;
       }
       try {
         const parsedFunc = parseExpression(expr.value);
         if (parsedFunc) {
           const data = generatePlotData(parsedFunc, domain.xMin, domain.xMax);
           newPlotData.push({ id: expr.id, data, color: expr.color, name: expr.value });
+        } else if (expr.value.trim()){ // If func is null but value is not empty, it implies parsing failed silently or returned null for an empty string.
+           currentError = "Invalid expression (empty or unparseable).";
         }
-        if (expr.error) {
-          setExpressions(prev => prev.map(e => e.id === expr.id ? { ...e, error: null } : e));
-        }
-      } catch (error) {
-        console.error(`Error parsing expression "${expr.value}":`, error);
-        setExpressions(prev => prev.map(e => e.id === expr.id ? { ...e, error: error instanceof Error ? error.message : 'Invalid expression' } : e));
+      } catch (error: any) {
+        console.error(`Error processing expression "${expr.value}":`, error);
+        currentError = error.message || 'Invalid expression syntax.';
+        hasErrors = true;
       }
+      return { ...expr, error: currentError };
     });
+
     setPlotData(newPlotData);
+    if (hasErrors || expressions.some((e, i) => e.error !== updatedExpressions[i].error)) {
+      setExpressions(updatedExpressions);
+    }
   }, [expressions, domain]);
 
   const handleExpressionChange = React.useCallback((id: string, value: string) => {
     setExpressions(prev =>
-      prev.map(expr => (expr.id === id ? { ...expr, value, error: null } : expr))
+      prev.map(expr => (expr.id === id ? { ...expr, value, error: null } : expr)) // Reset error on change
     );
   }, []);
   
@@ -105,16 +113,31 @@ export default function GraphingCalculatorPage() {
   }, [activeInputId]);
 
   const handleKeyboardInput = React.useCallback((char: string) => {
-    if (!activeInputId) return;
+    if (!activeInputId) {
+      if (expressions.length === 0) {
+        handleAddExpression(); // If no expressions and no active input, create one
+        // We need to wait for the state update to set the activeInputId then append char
+        // This is a bit tricky with immediate state. A useEffect could handle appending char post-creation.
+        // For simplicity now, let's assume user will click into the new field or we set it active and it'll catch next input.
+        return;
+      }
+      // If there are expressions but none active, make the first one active.
+      setActiveInputId(expressions[0].id);
+      // Append char to this newly activated input (if it's now set)
+      // Needs careful handling of state updates, potentially using a ref for the input value or delaying char append.
+      // Current simple approach: just activate. Next key press will go into it.
+      return;
+    }
     setExpressions(prev =>
       prev.map(expr => {
         if (expr.id === activeInputId) {
+          // A more sophisticated approach would involve cursor position
           return { ...expr, value: expr.value + char, error: null };
         }
         return expr;
       })
     );
-  }, [activeInputId]);
+  }, [activeInputId, expressions, handleAddExpression]);
   
   const handleDomainChange = React.useCallback((newDomain: { xMin: number, xMax: number }) => {
     if (newDomain.xMin < newDomain.xMax) {
@@ -184,7 +207,7 @@ export default function GraphingCalculatorPage() {
             Advanced Graphing Calculator
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Plot multiple functions, explore graphs interactively.
+            Plot multiple functions, explore graphs interactively. Example: try "x*sin(1/x)" for a challenge!
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 items-start">
