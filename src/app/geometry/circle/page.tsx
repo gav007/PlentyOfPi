@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function CircleToolPage() {
   return (
     <div className="container mx-auto px-4 py-12 md:py-20">
-      <Card className="max-w-4xl mx-auto shadow-xl">
+      <Card className="max-w-5xl mx-auto shadow-xl"> {/* Increased max-width */}
         <CardHeader className="text-center">
           <Circle className="w-12 h-12 mx-auto text-primary mb-2" />
           <CardTitle className="text-3xl font-bold text-primary">
