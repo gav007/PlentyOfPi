@@ -14,8 +14,8 @@ const KEYBOARD_LAYOUT = [
   ['0', '.', 'π', '+'],
   ['x', '^', '(', ')'],
   ['sqrt(', 'sin(', 'cos(', 'tan('],
-  ['ln(', 'log10(', 'e', 'abs('],
-  // Add more functions or constants as needed: e.g. log2(, exp( for e^x
+  ['ln(', 'log10(', 'abs(', 'e'],
+  ['exp(', ',', ';', '='], // Added exp, comma, semicolon, equals for functions or parameters
 ];
 
 export default function KeyboardPad({ onInput }: KeyboardPadProps) {
@@ -26,7 +26,11 @@ export default function KeyboardPad({ onInput }: KeyboardPadProps) {
           key={key}
           variant="outline"
           className="text-sm h-9 sm:h-10 aspect-auto p-1 font-medium hover:bg-accent focus-visible:ring-ring focus-visible:ring-1"
-          onClick={() => onInput(key === 'π' ? 'pi' : key === 'e' ? 'e' : key)} // mathjs uses 'pi', 'e'
+          onClick={() => onInput(
+            key === 'π' ? 'pi' : 
+            key === 'e' ? 'e' : 
+            key
+          )}
           aria-label={`Input ${key}`}
         >
           {key}
