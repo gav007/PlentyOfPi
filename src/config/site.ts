@@ -7,18 +7,20 @@ import {
   Orbit,
   Puzzle,
   Sigma,
-  Calculator,
+  Calculator, // Will be used for Graphing Calculator
   TestTubeDiagonal, 
   Scale,
   BookOpen,
   Settings,
-  FileCode, // For Python Foundations module
-  Target, // For Output Match
-  SearchCode, // For Syntax Spotter
-  Wrench, // For Debug It
-  ClipboardCheck, // For Assessment
-  BarChart3, // Keep for existing coming soon card
-  FileJson, // Keep for existing coming soon card
+  FileCode, 
+  Target, 
+  SearchCode, 
+  Wrench, 
+  ClipboardCheck, 
+  BarChart3, 
+  FileJson,
+  LineChart, // Potential icon for Graphing Calc if Calculator is taken
+  FunctionSquare // Alternative for Graphing Calc
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -29,7 +31,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Games',
-    href: '#', // Main item not a link if it has subItems
+    href: '#', 
     icon: Gamepad2,
     subItems: [
       {
@@ -50,11 +52,23 @@ export const navItems: NavItem[] = [
         icon: Puzzle,
         description: 'Convert decimal to two-digit hex values.',
       },
+      {
+        title: 'Fraction Duel',
+        href: '/quick-math/fraction-duel', // Path remains same, moved under Games
+        icon: TestTubeDiagonal,
+        description: 'Test your fraction arithmetic skills in a duel!',
+      },
+      {
+        title: 'Ratio Scales',
+        href: '/quick-math/ratio-scales', // Path remains same, moved under Games
+        icon: Scale,
+        description: 'Balance weights to understand ratios.',
+      },
     ],
   },
   {
     title: 'Tools',
-    href: '#', // Main item not a link if it has subItems
+    href: '#', 
     icon: Settings, 
     subItems: [
        {
@@ -66,29 +80,15 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    title: 'Quick Math',
-    href: '#', // Main item not a link if it has subItems
-    icon: Calculator,
-    subItems: [
-      {
-        title: 'Fraction Duel',
-        href: '/quick-math/fraction-duel',
-        icon: TestTubeDiagonal,
-        description: 'Test your fraction arithmetic skills in a duel!',
-      },
-      {
-        title: 'Ratio Scales',
-        href: '/quick-math/ratio-scales',
-        icon: Scale,
-        description: 'Balance weights to understand ratios.',
-      },
-    ],
+    title: 'Graphing Calculator', // New Top Level Item
+    href: '/graphing-calculator',
+    icon: Calculator, // Using Calculator icon as Quick Math is removed
   },
   {
     title: 'Lessons',
-    href: '/lessons', // Link to a lessons overview page
+    href: '/lessons', 
     icon: BookOpen,
-    disabled: false, // Enable lessons
+    disabled: false, 
     subItems: [
       {
         title: 'Python Foundations',
@@ -96,7 +96,6 @@ export const navItems: NavItem[] = [
         icon: FileCode,
         description: 'Learn core Python concepts step by step.',
       }
-      // Add other lesson modules here, e.g. Statistics when ready
     ]
   },
 ];
@@ -143,6 +142,17 @@ export const featureCards: FeatureCardItem[] = [
     ctaLabel: 'Start Plotting',
   },
   {
+    title: 'Graphing Calculator',
+    description: 'Plot functions, explore equations, and visualize math concepts with our powerful graphing calculator. (Coming Soon!)',
+    href: '/graphing-calculator',
+    icon: LineChart, 
+    imageSrc: 'https://picsum.photos/seed/graphingcalc/600/400',
+    imageAlt: 'Advanced graphing calculator interface',
+    dataAiHint: 'graph calculator',
+    isComingSoon: true,
+    ctaLabel: 'Explore (Soon)',
+  },
+  {
     title: 'Hex Boxes Challenge',
     description: 'Learn hexadecimal conversion by converting decimal numbers (0-255) to two-digit hex values. Select digits from a grid and test your understanding in challenge or learn mode.',
     href: '/hex-boxes',
@@ -172,7 +182,6 @@ export const featureCards: FeatureCardItem[] = [
     dataAiHint: 'balance scale',
     ctaLabel: 'Explore Ratios',
   },
-  // Python Foundations Gamified Cards - mark as active
   {
     title: 'Python: Output Match',
     description: 'Match Python code snippets to their correct output. A fun way to test your understanding of Python execution.',
@@ -181,7 +190,7 @@ export const featureCards: FeatureCardItem[] = [
     imageSrc: 'https://picsum.photos/seed/pyoutput/600/400',
     imageAlt: 'Python code and output comparison',
     dataAiHint: 'python code',
-    isComingSoon: false, // Activated
+    isComingSoon: false, 
     ctaLabel: 'Try Challenge',
   },
   {
@@ -192,18 +201,18 @@ export const featureCards: FeatureCardItem[] = [
     imageSrc: 'https://picsum.photos/seed/pysyntax/600/400',
     imageAlt: 'Python code with highlighted errors',
     dataAiHint: 'python syntax error',
-    isComingSoon: false, // Activated
+    isComingSoon: false, 
     ctaLabel: 'Spot Errors',
   },
   {
-    title: 'Python: Debug It!', // Updated title slightly for consistency
+    title: 'Python: Debug It!', 
     description: 'Fix broken Python code! Apply your knowledge to debug real-world-like scenarios and make the code run.',
     href: '/lessons/python-foundations/debug-it',
     icon: Wrench,
     imageSrc: 'https://picsum.photos/seed/pydebug/600/400',
     imageAlt: 'Python code with debugging tools',
     dataAiHint: 'python debugging',
-    isComingSoon: false, // Activated
+    isComingSoon: false, 
     ctaLabel: 'Debug Code',
   },
   {
