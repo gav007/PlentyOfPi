@@ -18,7 +18,8 @@ import type { PlotData, Expression } from '@/types/graphing';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { Card } from '@/components/ui/card'; // Added import
+import { RotateCcw } from 'lucide-react';
 
 interface GraphCanvasProps {
   plotData: PlotData[];
