@@ -11,27 +11,16 @@ import ArenaControls from '@/components/algorithm-arena/shared/ArenaControls';
 import StepByStepExplanation from '@/components/algorithm-arena/shared/StepByStepExplanation';
 import { Search as SearchIcon, RotateCcw } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button'; // Added import
 import { cn } from '@/lib/utils';
+import type { SearchAlgorithmType, SearchStep } from '@/types';
 
-type SearchAlgorithmType = 'linear' | 'binary';
+
 const SEARCH_ALGORITHMS: { value: SearchAlgorithmType; label: string; description: string, complexity: string, note?: string }[] = [
   { value: 'linear', label: 'Linear Search', description: 'Sequentially checks each element of the list until a match is found or the whole list has been searched.', complexity: 'O(n)' },
   { value: 'binary', label: 'Binary Search', description: 'Efficiently finds an item by repeatedly dividing the search interval in half. Requires a sorted array.', complexity: 'O(log n)', note: 'Binary Search requires the array to be sorted.' },
 ];
 
-interface SearchStep {
-  currentIndex?: number | null;
-  low?: number | null;
-  high?: number | null;
-  mid?: number | null;
-  foundIndex?: number | null;
-  discardedBefore?: number; // Elements discarded from the start
-  discardedAfter?: number; // Elements discarded from the end
-  explanation: string;
-  isFound?: boolean;
-  searchComplete?: boolean;
-  message?: string; // For found/not found messages
-}
 
 const INITIAL_ARRAY_SIZE = 15;
 const MIN_ARRAY_SIZE = 5;
@@ -81,7 +70,9 @@ function binarySearchSteps(arr: number[], target: number): SearchStep[] {
       steps.push({ low, high, mid, explanation: `${arr[mid]} > ${target}. Discarding right half. New range will be [${low}, ${mid - 1}].` });
       high = mid - 1;
     }
-    steps.push({ low, high, discardedBefore: low, discardedAfter: arr.length - 1 - high, explanation: `Updated search range to [${low}, ${high}].` });
+    if (low <= high) { // Add this check to avoid adding "Updated search range" if the loop is about to terminate
+        steps.push({ low, high, discardedBefore: low, discardedAfter: arr.length - 1 - high, explanation: `Updated search range to [${low}, ${high}].` });
+    }
   }
   steps.push({ low, high, explanation: `Target ${target} not found in the array. Search range [${low}, ${high}] became invalid.`, searchComplete: true, message: `Target ${target} not found.` });
   return steps;
@@ -106,18 +97,23 @@ export default function SearchVisualizer() {
   const algorithmDetails = SEARCH_ALGORITHMS.find(algo => algo.value === selectedAlgorithm);
 
   const generateAndSetSteps = useCallback(() => {
-    if (!parsedTarget) {
+    if (!parsedTarget && selectedAlgorithm) { // Ensure target is parsed for step generation if algorithm is chosen
         setSearchSteps([{ explanation: "Please enter a valid target value to search.", searchComplete: true, message: "Enter target." }]);
+        setCurrentStepIndex(0);
+        return;
+    }
+    if (!arrayData || arrayData.length === 0) { // Ensure arrayData is populated
+        setSearchSteps([{ explanation: "Array data not loaded.", searchComplete: true, message: "Array empty." }]);
         setCurrentStepIndex(0);
         return;
     }
     let steps: SearchStep[];
     switch (selectedAlgorithm) {
       case 'linear':
-        steps = linearSearchSteps([...arrayData], parsedTarget);
+        steps = linearSearchSteps([...arrayData], parsedTarget as number); // Assert parsedTarget is number
         break;
       case 'binary':
-        steps = binarySearchSteps([...arrayData], parsedTarget); // Array is already sorted by generateSearchArray
+        steps = binarySearchSteps([...arrayData], parsedTarget as number); // Assert parsedTarget is number
         break;
       default:
         steps = [{ explanation: "Select an algorithm.", searchComplete: true, message: "Algorithm?" }];
@@ -126,20 +122,22 @@ export default function SearchVisualizer() {
     setCurrentStepIndex(0);
   }, [selectedAlgorithm, arrayData, parsedTarget]);
 
-  const resetArrayAndSteps = useCallback(() => {
+  const initializeArray = useCallback(() => {
     const isBinary = selectedAlgorithm === 'binary';
     setArrayData(generateSearchArray(arraySize, isBinary));
   }, [arraySize, selectedAlgorithm]);
+  
+  useEffect(() => {
+    initializeArray();
+  }, [initializeArray]); // Re-run when arraySize or selectedAlgorithm changes
 
   useEffect(() => {
-    resetArrayAndSteps();
-  }, [selectedAlgorithm, arraySize, resetArrayAndSteps]);
-
-  useEffect(() => {
-    if(arrayData.length > 0) { // Only generate steps if arrayData is populated
+    // Regenerate steps whenever arrayData or selectedAlgorithm or parsedTarget changes.
+    // This ensures steps are always up-to-date with the current state.
+    if (arrayData.length > 0) { // Only generate steps if arrayData is populated
         generateAndSetSteps();
     }
-  }, [arrayData, selectedAlgorithm, generateAndSetSteps, parsedTarget]);
+  }, [arrayData, selectedAlgorithm, parsedTarget, generateAndSetSteps]); // Add parsedTarget
   
 
   useEffect(() => {
@@ -165,8 +163,9 @@ export default function SearchVisualizer() {
       setCurrentStepIndex(0);
       return;
     }
-    if (currentStepIndex >= searchSteps.length - 1) {
-      generateAndSetSteps(); // Regenerate steps which also resets index to 0
+    if (currentStepIndex >= searchSteps.length - 1 && searchSteps.length > 0) {
+      // If at the end of a completed search, reset steps and current index to replay
+      generateAndSetSteps(); 
     }
     setIsPlaying(true);
   };
@@ -184,12 +183,17 @@ export default function SearchVisualizer() {
   };
   const handleReset = () => {
     setIsPlaying(false);
-    resetArrayAndSteps(); // This will also trigger step regeneration
-    // No need to set targetValue/parsedTarget to empty if user wants to search same target in new array
+    initializeArray(); // Regenerate array, which will trigger step regeneration
+    // Target value remains, so user can search for the same target in a new array if they wish
+    // If you want to clear target:
+    // setTargetValue(''); 
+    // setParsedTarget(null);
   };
   
   const handleAlgorithmChange = (value: string) => {
     setSelectedAlgorithm(value as SearchAlgorithmType);
+    // Array will be regenerated by initializeArray effect if needed (e.g., for sorting)
+    // Steps will be regenerated by effect watching arrayData and selectedAlgorithm
   };
   
   const handleTargetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,6 +204,7 @@ export default function SearchVisualizer() {
   
   const handleSizeChange = (value: number[]) => {
     setArraySize(value[0]);
+    // initializeArray effect will handle regenerating the array
   };
   
   const handleSpeedChange = (value: number) => {
