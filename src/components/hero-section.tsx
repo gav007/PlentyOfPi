@@ -33,11 +33,11 @@ export default function HeroSection() {
             </div>
           </div>
           <Image
-            src="https://picsum.photos/seed/hero/1200/800"
+            src="https://picsum.photos/seed/pisymbol/1200/800"
             width="1200"
             height="800"
-            alt="Abstract representation of interconnected data points"
-            data-ai-hint="code logic"
+            alt="Abstract representation of a Pi symbol or mathematical concepts"
+            data-ai-hint="pi symbol"
             className="mx-auto aspect-video overflow-hidden rounded-2xl object-cover sm:w-full lg:order-last shadow-xl"
             priority
           />
