@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +20,7 @@ export default function LessonsPage() {
       icon: FileCode,
       imageSrc: 'https://picsum.photos/seed/pythonlessons/600/400',
       imageAlt: 'Python logo and code snippets',
-      dataAiHint: 'python learning',
+      dataAiHint: 'code',
     },
     {
       title: 'JavaScript Essentials',
@@ -28,7 +29,7 @@ export default function LessonsPage() {
       icon: CodeIcon, // JS Icon
       imageSrc: 'https://picsum.photos/seed/jslessons/600/400',
       imageAlt: 'JavaScript code examples',
-      dataAiHint: 'javascript learning',
+      dataAiHint: 'code',
     },
     // Add more lessons here as they become available
   ];

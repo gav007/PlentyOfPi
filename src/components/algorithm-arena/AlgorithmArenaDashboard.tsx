@@ -23,7 +23,7 @@ const arenaTools: ArenaTool[] = [
     icon: BarChartHorizontal,
     imageSrc: 'https://picsum.photos/seed/sortingalgo/600/400',
     imageAlt: 'Abstract representation of bars being sorted',
-    dataAiHint: 'sorting bars algorithm',
+    dataAiHint: 'logic symbols',
   },
   {
     title: 'Searching Visualizer',
@@ -32,7 +32,7 @@ const arenaTools: ArenaTool[] = [
     icon: Search,
     imageSrc: 'https://picsum.photos/seed/searchingalgo/600/400',
     imageAlt: 'Magnifying glass over a data array',
-    dataAiHint: 'data search algorithm',
+    dataAiHint: 'logic symbols',
   },
   {
     title: 'Graph Traversal',
@@ -41,7 +41,7 @@ const arenaTools: ArenaTool[] = [
     icon: GitFork,
     imageSrc: 'https://picsum.photos/seed/graphalgo/600/400',
     imageAlt: 'Network of connected nodes representing a graph',
-    dataAiHint: 'graph network algorithm',
+    dataAiHint: 'math symbols',
   },
   {
     title: 'Recursion Visualizer',
@@ -50,7 +50,7 @@ const arenaTools: ArenaTool[] = [
     icon: Repeat,
     imageSrc: 'https://picsum.photos/seed/recursionalgo/600/400',
     imageAlt: 'Recursive pattern or fractal design',
-    dataAiHint: 'recursion pattern algorithm',
+    dataAiHint: 'logic symbols',
   },
   {
     title: 'Game Theory Playground',
@@ -59,7 +59,7 @@ const arenaTools: ArenaTool[] = [
     icon: Users,
     imageSrc: 'https://picsum.photos/seed/gametheory/600/400',
     imageAlt: 'Abstract representation of strategic decision-making',
-    dataAiHint: 'strategy game theory',
+    dataAiHint: 'math logic',
   },
 ];
 

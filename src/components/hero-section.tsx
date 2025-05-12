@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,7 @@ export default function HeroSection() {
             width="1200"
             height="800"
             alt="Abstract representation of interconnected data points"
-            data-ai-hint="abstract tech"
+            data-ai-hint="code logic"
             className="mx-auto aspect-video overflow-hidden rounded-2xl object-cover sm:w-full lg:order-last shadow-xl"
             priority
           />
