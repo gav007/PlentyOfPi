@@ -20,7 +20,7 @@ import {
   BarChart3, 
   FileJson,
   LineChart,
-  FunctionSquare, // Equation icon was replaced by FunctionSquare as 'Equation' is not a valid Lucide icon
+  FunctionSquare,
   Code as CodeIcon, 
   Binary,
   Zap,
@@ -30,7 +30,6 @@ import {
   GitFork, // Icon for Graph Traversal
   Repeat, // Icon for Recursion
   Users, // Icon for Game Theory
-  // Equation icon was removed here
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -102,7 +101,7 @@ export const navItems: NavItem[] = [
       {
         title: 'Fourier Series Visualizer',
         href: '/tools/fourier-series',
-        icon: FunctionSquare, // Replaced Equation with FunctionSquare
+        icon: FunctionSquare, 
         description: 'Explore Fourier series and waveform synthesis.',
       },
       {
@@ -110,7 +109,7 @@ export const navItems: NavItem[] = [
         href: '/tools/algorithm-arena',
         icon: BrainCircuit,
         description: 'Explore algorithms and game theory interactively.',
-        subItems: [ // Nested subItems for Algorithm Arena
+        subItems: [ 
           {
             title: 'Sorting Visualizer',
             href: '/tools/algorithm-arena/sorting',
@@ -212,7 +211,7 @@ export const featureCards: FeatureCardItem[] = [
     title: 'Fourier Series Visualizer',
     description: 'Discover how complex periodic functions can be represented as a sum of simple sine waves. Adjust the number of terms and see the approximation change in real-time with animated epicycles.',
     href: '/tools/fourier-series',
-    icon: FunctionSquare, // Replaced Equation with FunctionSquare
+    icon: FunctionSquare,
     imageSrc: 'https://picsum.photos/seed/fourier/600/400',
     imageAlt: 'Animated epicycles forming a square wave',
     dataAiHint: 'math physics',
@@ -239,7 +238,7 @@ export const featureCards: FeatureCardItem[] = [
     ctaLabel: 'Start Plotting',
   },
   {
-    title: 'Prime Number Tester',
+    title: 'Prime Tester',
     description: 'Test numbers for primality, find their factors, and explore sequences of prime numbers. A great tool for understanding number theory basics.',
     href: '/tools/prime-tester',
     icon: Binary,
@@ -353,17 +352,6 @@ export const featureCards: FeatureCardItem[] = [
     dataAiHint: 'code',
     isComingSoon: false,
     ctaLabel: 'Debug JS Code',
-  },
-  {
-    title: 'Data Structures Visualizer',
-    description: 'Coming soon! Interactive visualizations of common data structures like arrays, linked lists, trees, and graphs. Understand their operations and complexities.',
-    href: '#', 
-    icon: FileJson,
-    imageSrc: 'https://picsum.photos/seed/datastructuresvis/600/400',
-    imageAlt: 'Abstract representation of data structures',
-    dataAiHint: 'logic symbols',
-    isComingSoon: true,
-    ctaLabel: 'Coming Soon',
   },
 ];
 
