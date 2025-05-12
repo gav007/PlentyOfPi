@@ -1,5 +1,5 @@
 
-import type { RecursionStep, CallStackFrame, HanoiPegsState } from '@/types/recursion-visualizer';
+import type { RecursionStep, CallStackFrame, HanoiPegsState, HanoiMove } from '@/types/recursion-visualizer';
 let stepIdCounter = 0;
 let callIdCounter = 0;
 
@@ -13,8 +13,8 @@ export function generateFactorialSteps(n: number): RecursionStep[] {
   const callStack: CallStackFrame[] = [];
 
   function factorialRecursive(num: number): number {
-    const callId = newCallId();
-    callStack.push({ id: callId, name: 'factorial', params: `${num}` });
+    const currentFrame = { id: newCallId(), name: 'factorial', params: `${num}` };
+    callStack.push(currentFrame);
     steps.push({
       id: newStepId(),
       stepTitle: `Calling factorial(${num})`,
@@ -30,16 +30,16 @@ export function generateFactorialSteps(n: number): RecursionStep[] {
             explanation: `Input ${num} is negative. Factorial is undefined for negative numbers.`,
             callStack: [...callStack],
             computation: `factorial(${num}) -> Undefined`,
-            finalResult: "Undefined"
         });
-        callStack.pop();
-         steps.push({
+        callStack.pop(); 
+        steps.push({
             id: newStepId(),
-            stepTitle: `Return from factorial(${num})`,
+            stepTitle: `Return from factorial(${num}) with Undefined`,
             explanation: `Returning "Undefined". Removed from call stack.`,
             callStack: [...callStack],
+            finalResult: "Undefined" 
         });
-        return NaN; // Or throw an error / handle as specified
+        return NaN; 
     }
     if (num === 0 || num === 1) {
       steps.push({
@@ -53,7 +53,7 @@ export function generateFactorialSteps(n: number): RecursionStep[] {
       callStack.pop();
       steps.push({
         id: newStepId(),
-        stepTitle: `Return from factorial(${num})`,
+        stepTitle: `Return from factorial(${num}) with 1`,
         explanation: `Returning 1. Removed from call stack.`,
         callStack: [...callStack],
       });
@@ -68,13 +68,12 @@ export function generateFactorialSteps(n: number): RecursionStep[] {
       });
       const resultFromRecursiveCall = factorialRecursive(num - 1);
       
-      // This state is after the recursive call has returned
-      callStack.push({ id: callId, name: 'factorial', params: `${num}` }); // Re-add current frame to stack for this step
+      // currentFrame for factorial(num) is still on stack here
        steps.push({
         id: newStepId(),
         stepTitle: `Calculating for factorial(${num})`,
         explanation: `factorial(${num - 1}) returned ${resultFromRecursiveCall}. Now calculating ${num} * ${resultFromRecursiveCall}.`,
-        callStack: [...callStack],
+        callStack: [...callStack], // currentFrame is still here
         computation: `factorial(${num}) = ${num} * ${resultFromRecursiveCall}`
       });
 
@@ -83,14 +82,14 @@ export function generateFactorialSteps(n: number): RecursionStep[] {
         id: newStepId(),
         stepTitle: `Return value for factorial(${num})`,
         explanation: `factorial(${num}) returns ${finalVal}.`,
-        callStack: [...callStack],
+        callStack: [...callStack], // currentFrame is still here
         computation: `factorial(${num}) = ${finalVal}`,
         returnValue: finalVal
       });
-      callStack.pop();
+      callStack.pop(); 
       steps.push({
         id: newStepId(),
-        stepTitle: `Return from factorial(${num})`,
+        stepTitle: `Return from factorial(${num}) with ${finalVal}`,
         explanation: `Returning ${finalVal}. Removed from call stack.`,
         callStack: [...callStack],
       });
@@ -99,8 +98,8 @@ export function generateFactorialSteps(n: number): RecursionStep[] {
   }
 
   const finalFactorialResult = factorialRecursive(n);
-  if (steps.length > 0) {
-    steps[steps.length - 1].finalResult = finalFactorialResult;
+  if (steps.length > 0 && steps[steps.length - 1].finalResult === undefined) { // Only set if not already set (e.g. by error case)
+    steps[steps.length - 1].finalResult = isNaN(finalFactorialResult) ? "Undefined" : finalFactorialResult;
   }
   return steps;
 }
@@ -113,8 +112,8 @@ export function generateFibonacciSteps(n: number): RecursionStep[] {
   const callStack: CallStackFrame[] = [];
 
   function fibonacciRecursive(num: number): number {
-    const callId = newCallId();
-    callStack.push({ id: callId, name: 'fib', params: `${num}` });
+    const currentFrame = { id: newCallId(), name: 'fib', params: `${num}` };
+    callStack.push(currentFrame);
     steps.push({
       id: newStepId(),
       stepTitle: `Calling fib(${num})`,
@@ -123,25 +122,25 @@ export function generateFibonacciSteps(n: number): RecursionStep[] {
       computation: `fib(${num}) = ?`
     });
 
-    if (num < 0) { // Fibonacci typically not defined for negative, handle gracefully
+    if (num < 0) { 
         steps.push({
             id: newStepId(),
             stepTitle: `Base Case for fib(${num})`,
             explanation: `Input ${num} is negative. Fibonacci sequence usually starts from 0 or 1.`,
             callStack: [...callStack],
-            computation: `fib(${num}) -> Undefined`, // Or handle as per common definitions
-            finalResult: "Undefined"
+            computation: `fib(${num}) -> Undefined`,
         });
-        callStack.pop();
+        callStack.pop(); 
         steps.push({
             id: newStepId(),
-            stepTitle: `Return from fib(${num})`,
+            stepTitle: `Return from fib(${num}) with Undefined`,
             explanation: `Returning "Undefined". Removed from call stack.`,
             callStack: [...callStack],
+            finalResult: "Undefined"
         });
         return NaN; 
     }
-    if (num <= 1) { // Base cases: F(0) = 0, F(1) = 1
+    if (num <= 1) { 
       steps.push({
         id: newStepId(),
         stepTitle: `Base Case for fib(${num})`,
@@ -150,14 +149,15 @@ export function generateFibonacciSteps(n: number): RecursionStep[] {
         computation: `fib(${num}) = ${num}`,
         returnValue: num
       });
+      const returnValue = num;
       callStack.pop();
       steps.push({
         id: newStepId(),
-        stepTitle: `Return from fib(${num})`,
-        explanation: `Returning ${num}. Removed from call stack.`,
+        stepTitle: `Return from fib(${num}) with ${returnValue}`,
+        explanation: `Returning ${returnValue}. Removed from call stack.`,
         callStack: [...callStack],
       });
-      return num;
+      return returnValue;
     } else {
       steps.push({
         id: newStepId(),
@@ -168,8 +168,7 @@ export function generateFibonacciSteps(n: number): RecursionStep[] {
       });
       const fibNMinus1 = fibonacciRecursive(num - 1);
       
-      // After fib(n-1) returns, this frame is back on top for the second call
-      callStack.push({ id: callId, name: 'fib', params: `${num}` });
+      // currentFrame for fib(num) is still on stack
       steps.push({
         id: newStepId(),
         stepTitle: `Recursive Step for fib(${num})`,
@@ -179,8 +178,7 @@ export function generateFibonacciSteps(n: number): RecursionStep[] {
       });
       const fibNMinus2 = fibonacciRecursive(num - 2);
 
-      // After fib(n-2) returns
-      callStack.push({ id: callId, name: 'fib', params: `${num}` });
+      // currentFrame for fib(num) is still on stack
       const sumResult = fibNMinus1 + fibNMinus2;
       steps.push({
         id: newStepId(),
@@ -193,7 +191,7 @@ export function generateFibonacciSteps(n: number): RecursionStep[] {
       callStack.pop();
       steps.push({
         id: newStepId(),
-        stepTitle: `Return from fib(${num})`,
+        stepTitle: `Return from fib(${num}) with ${sumResult}`,
         explanation: `Returning ${sumResult}. Removed from call stack.`,
         callStack: [...callStack],
       });
@@ -202,8 +200,8 @@ export function generateFibonacciSteps(n: number): RecursionStep[] {
   }
 
   const finalFibResult = fibonacciRecursive(n);
-   if (steps.length > 0) {
-    steps[steps.length - 1].finalResult = finalFibResult;
+  if (steps.length > 0 && steps[steps.length - 1].finalResult === undefined) {
+    steps[steps.length - 1].finalResult = isNaN(finalFibResult) ? "Undefined" : finalFibResult;
   }
   return steps;
 }
@@ -215,24 +213,24 @@ export function generateHanoiSteps(n: number, source: string, destination: strin
   const steps: RecursionStep[] = [];
   const callStack: CallStackFrame[] = [];
   let pegs: HanoiPegsState = { A: [], B: [], C: [] };
-  pegs[source as keyof HanoiPegsState] = [...initialDisks]; // Initialize the source peg
+  (pegs as any)[source] = [...initialDisks]; 
 
 
   function hanoiRecursive(numDisks: number, from: string, to: string, aux: string) {
-    const callId = newCallId();
-    callStack.push({ id: callId, name: 'hanoi', params: `${numDisks}, ${from}->${to} via ${aux}` });
+    const currentFrame = { id: newCallId(), name: 'hanoi', params: `${numDisks}, ${from}->${to} via ${aux}` };
+    callStack.push(currentFrame);
     steps.push({
       id: newStepId(),
       stepTitle: `Call hanoi(${numDisks}, ${from}, ${to}, ${aux})`,
       explanation: `Recursive call to move ${numDisks} disk(s) from ${from} to ${to} using ${aux}.`,
       callStack: [...callStack],
-      hanoiPegsState: { ...pegs } 
+      hanoiPegsState: JSON.parse(JSON.stringify(pegs))
     });
 
     if (numDisks === 1) {
-      const diskToMove = pegs[from as keyof HanoiPegsState].pop();
+      const diskToMove = (pegs as any)[from].pop();
       if (diskToMove !== undefined) {
-        pegs[to as keyof HanoiPegsState].push(diskToMove);
+        (pegs as any)[to].push(diskToMove);
       }
       steps.push({
         id: newStepId(),
@@ -240,7 +238,7 @@ export function generateHanoiSteps(n: number, source: string, destination: strin
         explanation: `Base case: Moving disk ${diskToMove} directly from peg ${from} to peg ${to}.`,
         callStack: [...callStack],
         hanoiMove: { disk: diskToMove || 0, fromPeg: from, toPeg: to },
-        hanoiPegsState: { ...pegs },
+        hanoiPegsState: JSON.parse(JSON.stringify(pegs)),
       });
       callStack.pop();
       steps.push({
@@ -248,39 +246,35 @@ export function generateHanoiSteps(n: number, source: string, destination: strin
         stepTitle: `Return from hanoi(1, ${from}, ${to}, ${aux})`,
         explanation: `Base case move completed. Returning.`,
         callStack: [...callStack],
-        hanoiPegsState: { ...pegs }
+        hanoiPegsState: JSON.parse(JSON.stringify(pegs))
       });
       return;
     }
 
-    // Move n-1 disks from source to auxiliary
     hanoiRecursive(numDisks - 1, from, aux, to);
     
-    // After recursive call returns, current frame is back
-    callStack.push({ id: callId, name: 'hanoi', params: `${numDisks}, ${from}->${to} via ${aux}` });
+    // currentFrame for hanoi(numDisks, from, to, aux) is on stack
     steps.push({
         id: newStepId(),
         stepTitle: `Returned from hanoi(${numDisks - 1}, ${from}, ${aux}, ${to})`,
-        explanation: `Now move largest disk ${numDisks} from ${from} to ${to}.`,
+        explanation: `Now move disk ${numDisks} from ${from} to ${to}.`,
         callStack: [...callStack],
-        hanoiPegsState: { ...pegs }
+        hanoiPegsState: JSON.parse(JSON.stringify(pegs))
     });
 
-    // Move the nth disk from source to destination
-    const diskToMoveN = pegs[from as keyof HanoiPegsState].pop();
+    const diskToMoveN = (pegs as any)[from].pop();
     if (diskToMoveN !== undefined) {
-      pegs[to as keyof HanoiPegsState].push(diskToMoveN);
+      (pegs as any)[to].push(diskToMoveN);
     }
      steps.push({
       id: newStepId(),
       stepTitle: `Move disk ${diskToMoveN} from ${from} to ${to}`,
-      explanation: `Moving largest disk (${diskToMoveN}) in current subproblem from ${from} to ${to}.`,
+      explanation: `Moving disk ${diskToMoveN} (largest in current subproblem) from ${from} to ${to}.`,
       callStack: [...callStack],
       hanoiMove: { disk: diskToMoveN || 0, fromPeg: from, toPeg: to },
-      hanoiPegsState: { ...pegs },
+      hanoiPegsState: JSON.parse(JSON.stringify(pegs)),
     });
 
-    // Move n-1 disks from auxiliary to destination
     hanoiRecursive(numDisks - 1, aux, to, from);
 
     callStack.pop();
@@ -289,7 +283,7 @@ export function generateHanoiSteps(n: number, source: string, destination: strin
         stepTitle: `Return from hanoi(${numDisks}, ${from}, ${to}, ${aux})`,
         explanation: `All ${numDisks} disks moved from ${from} to ${to}. Returning.`,
         callStack: [...callStack],
-        hanoiPegsState: { ...pegs }
+        hanoiPegsState: JSON.parse(JSON.stringify(pegs))
     });
   }
 
@@ -299,3 +293,4 @@ export function generateHanoiSteps(n: number, source: string, destination: strin
   }
   return steps;
 }
+
