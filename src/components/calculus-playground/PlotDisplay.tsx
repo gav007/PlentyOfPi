@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -30,7 +31,7 @@ interface PlotDisplayProps {
   showFullDerivativeCurve: boolean;
   domain: { xMin: number; xMax: number; yMin: number | 'auto'; yMax: number | 'auto' };
   onXValueChangeByClick: (newX: number) => void;
-  onDomainChange: (newDomain: Partial<DomainOptions>) => void; // New prop
+  onDomainChange: (newDomain: Partial<DomainOptions>) => void;
 }
 
 const formatTick = (tick: number, range: number): string => {
@@ -55,7 +56,7 @@ export default function PlotDisplay({
   showFullDerivativeCurve,
   domain,
   onXValueChangeByClick,
-  onDomainChange, // Destructure new prop
+  onDomainChange,
 }: PlotDisplayProps) {
   const chartContainerRef = React.useRef<HTMLDivElement>(null);
   const [chartLayout, setChartLayout] = React.useState<any>(null);
@@ -105,17 +106,19 @@ export default function PlotDisplay({
     return null;
   };
 
-  const yAxisDomainConfig: [number | 'auto', number | 'auto'] = [domain.yMin, domain.yMax];
+  const yAxisDomainConfig: [number | 'auto', number | 'auto'] = [
+    domain.yMin === 'auto' ? 'auto' : Number(domain.yMin), 
+    domain.yMax === 'auto' ? 'auto' : Number(domain.yMax)
+  ];
   
   const xRange = domain.xMax - domain.xMin;
   const yRangeEffective = (typeof domain.yMax === 'number' && typeof domain.yMin === 'number') ? (domain.yMax - domain.yMin) : 20;
 
 
-  // Zoom handler
   const handleWheelZoom = React.useCallback((event: WheelEvent) => {
     event.preventDefault();
-    if (!chartLayout || !chartLayout.xAxisMap || !chartLayout.xAxisMap[0] || !chartLayout.xAxisMap[0].scale) {
-        // console.warn("Chart layout or xAxisMap not available for zoom.");
+    if (!chartLayout || !chartLayout.xAxisMap || !chartLayout.xAxisMap[0] || !chartLayout.xAxisMap[0].scale || !chartLayout.offset) {
+        // console.warn("Chart layout, xAxisMap or offset not available for zoom.");
         return;
     }
     
@@ -123,9 +126,7 @@ export default function PlotDisplay({
     const chartRect = chartContainerRef.current?.getBoundingClientRect();
     if (!chartRect) return;
 
-    const mouseXInChartPixels = offsetX - chartLayout.offset.left; // Ensure 'offset' is part of your chartLayout if it exists
-                                                                 // Or, if offsetX is already relative to the chart SVG, this adjustment isn't needed.
-                                                                 // Let's assume offsetX is relative to chartContainerRef for simplicity if no specific chart-internal offset is available.
+    const mouseXInChartPixels = offsetX - chartLayout.offset.left; 
 
     const xCoord = chartLayout.xAxisMap[0].scale.invert(mouseXInChartPixels);
 
@@ -143,8 +144,7 @@ export default function PlotDisplay({
       onDomainChange({ 
         xMin: newXMin.toString(), 
         xMax: newXMax.toString(),
-        // Decide on Y-axis behavior: auto-scale or fixed ratio or independent Y zoom
-        yMin: 'auto', // Or implement Y zoom based on event.offsetY and yAxisMap
+        yMin: 'auto', 
         yMax: 'auto'
       });
     }
@@ -156,7 +156,7 @@ export default function PlotDisplay({
       container.addEventListener('wheel', handleWheelZoom, { passive: false });
       return () => container.removeEventListener('wheel', handleWheelZoom);
     }
-  }, [handleWheelZoom]); // Re-attach if handleWheelZoom changes (due to its own dependencies)
+  }, [handleWheelZoom]);
 
 
   return (
@@ -171,28 +171,19 @@ export default function PlotDisplay({
         <LineChart
             margin={{ top: 5, right: 30, left: 5, bottom: 5 }}
             onClick={handleChartClick}
-            onMouseMove={(e: any) => { // Capture layout info from Recharts event
-                if (e && e.chartX && e.chartY && e.xAxisMap && e.yAxisMap && e.chartWidth && e.chartHeight && e.offset) {
-                    // Only update if significantly different or not set, to avoid too many re-renders
+            onMouseMove={(e: any) => { 
+                if (e && e.xAxisMap && e.yAxisMap && e.offset) {
                     if (!chartLayout || 
-                        chartLayout.chartX !== e.chartX || 
-                        chartLayout.chartWidth !== e.chartWidth ||
-                        !chartLayout.xAxisMap || !chartLayout.yAxisMap ) { // Basic check
+                        chartLayout.offset?.left !== e.offset.left || // Example check
+                        !chartLayout.xAxisMap ) { 
                        setChartLayout({
-                           chartX: e.chartX, 
-                           chartY: e.chartY, 
-                           chartWidth: e.chartWidth, 
-                           chartHeight: e.chartHeight,
                            xAxisMap: e.xAxisMap,
                            yAxisMap: e.yAxisMap,
-                           offset: e.offset // Recharts provides an offset object {top, left, right, bottom, width, height}
+                           offset: e.offset 
                        });
                     }
                 }
             }}
-            // Reset chartLayout if domain changes significantly to ensure map is re-captured
-            // This is tricky, might need a key on LineChart based on domainOptions to force remount of chart internals
-            // For now, we assume onMouseMove will update it sufficiently.
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.5)" />
           <XAxis

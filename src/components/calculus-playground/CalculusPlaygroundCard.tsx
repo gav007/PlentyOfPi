@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -65,10 +66,34 @@ export default function CalculusPlaygroundCard() {
   const [functionStr, setFunctionStr] = React.useState<string>('x^2');
   const [xValue, setXValue] = React.useState<number>(1);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-  const [noPlottablePointsError, setNoPlottablePointsError] = React.useState<string | null>(null);
-
-
   const [domainOptions, setDomainOptions] = React.useState<DomainOptions>(INITIAL_DOMAIN_OPTIONS);
+
+  const compiledFunc = React.useMemo(() => {
+    try {
+      let processedFuncStr = functionStr.replace(/\barctan\b/g, 'atan');
+      const node = math.parse(processedFuncStr);
+      setErrorMessage(null); // Clear parsing error if successful
+      return node.compile();
+    } catch (e) {
+      setErrorMessage(e instanceof Error ? `Invalid function syntax: ${e.message}. Ensure valid syntax (e.g., use 'atan' for arctan, '*' for multiplication).` : 'Invalid function input.');
+      return null;
+    }
+  }, [functionStr]);
+
+  const evaluateAt = React.useCallback((x: number): number => {
+    if (!compiledFunc) return NaN;
+    try {
+      const result = compiledFunc.evaluate({ x, e: Math.E });
+      if (typeof result === 'object' && result.isComplex) {
+        // console.warn(`Complex result for f(${x}): ${result}`);
+        return NaN;
+      }
+      return (typeof result === 'number' && isFinite(result)) ? result : NaN;
+    } catch (error) {
+      console.error(`Error evaluating function '${functionStr}' at x=${x}:`, error);
+      return NaN;
+    }
+  }, [compiledFunc, functionStr]);
 
   const parsedDomain = React.useMemo(() => {
     let xMin = parseFloat(domainOptions.xMin);
@@ -100,39 +125,9 @@ export default function CalculusPlaygroundCard() {
     else if (xValue > parsedDomain.xMax) setXValue(parsedDomain.xMax);
   }, [parsedDomain.xMin, parsedDomain.xMax, xValue]);
 
-
   const [showFullDerivativeCurve, setShowFullDerivativeCurve] = React.useState<boolean>(false);
   const [showTangent, setShowTangent] = React.useState<boolean>(true);
   const [showArea, setShowArea] = React.useState<boolean>(true);
-
-  const compiledFunc = React.useMemo(() => {
-    try {
-      let processedFuncStr = functionStr.replace(/\barctan\b/g, 'atan');
-      const node = math.parse(processedFuncStr);
-      setErrorMessage(null); // Clear parsing error
-      setNoPlottablePointsError(null); // Clear plotting error
-      return node.compile();
-    } catch (e) {
-      setErrorMessage(e instanceof Error ? `Invalid function syntax: ${e.message}. Ensure valid syntax (e.g., use 'atan' for arctan, '*' for multiplication).` : 'Invalid function input.');
-      setNoPlottablePointsError(null);
-      return null;
-    }
-  }, [functionStr]);
-
-  const evaluateAt = React.useCallback((x: number): number => {
-    if (!compiledFunc) return NaN;
-    try {
-      const result = compiledFunc.evaluate({ x, e: Math.E });
-      if (typeof result === 'object' && result.isComplex) {
-        // console.warn(`Complex result for f(${x}): ${result}`);
-        return NaN;
-      }
-      return (typeof result === 'number' && isFinite(result)) ? result : NaN;
-    } catch (error) {
-      // console.error(`Error evaluating function "${functionStr}" at x=${x}:`, error);
-      return NaN;
-    }
-  }, [compiledFunc, functionStr]);
 
   const fx = React.useMemo(() => evaluateAt(xValue), [evaluateAt, xValue]);
   const fpx = React.useMemo(() => numericalDerivative(evaluateAt, xValue), [evaluateAt, xValue]);
@@ -152,12 +147,27 @@ export default function CalculusPlaygroundCard() {
   
   React.useEffect(() => {
     const allNull = plotData.every(p => p.y === null);
-    if (allNull && compiledFunc && !errorMessage) { // Only show if no parsing error
-      setNoPlottablePointsError("The function resulted in no plottable points in the current x-domain. Try adjusting the x-axis scale, check for issues like log of zero, or ensure the y-axis scale ('auto' or manual) can display the function's range.");
-    } else {
-      setNoPlottablePointsError(null); // Clear if we have points or a parsing error exists
+    const noPlottableMessage = "The function resulted in no plottable points in the current x-domain. Try adjusting the x-axis scale or check for mathematical issues (e.g., log of zero, division by zero).";
+
+    if (allNull && compiledFunc && (!errorMessage || !errorMessage.includes("Invalid function syntax"))) { // Only show if not already a parsing error
+      setErrorMessage(prevError => {
+        if (prevError && prevError.includes("Invalid function syntax")) { // If parsing error exists, append
+            return prevError.includes(noPlottableMessage) ? prevError : `${prevError} Additionally, ${noPlottableMessage.toLowerCase()}`;
+        }
+        return noPlottableMessage; // Set as new error
+      });
+    } else if (!allNull && errorMessage && errorMessage.includes(noPlottableMessage)) {
+      // If plotData becomes valid, clear only the "no plottable points" message
+      setErrorMessage(prevError => {
+          if (prevError) {
+            let newError = prevError.replace(noPlottableMessage, "").replace("Additionally, ", "").trim();
+            return newError.length > 0 ? newError : null;
+          }
+          return null;
+      });
     }
-  }, [plotData, compiledFunc, errorMessage]);
+  }, [plotData, compiledFunc, errorMessage, setErrorMessage]);
+
 
   const effectiveDomain = React.useMemo(() => {
     let yMinResolved = parsedDomain.yMin;
@@ -238,24 +248,25 @@ export default function CalculusPlaygroundCard() {
 
   const handleDomainChangeFromInteraction = React.useCallback((newDomainConfig: Partial<DomainOptions>) => {
     setDomainOptions(prev => {
-      const updated: DomainOptions = { ...prev };
-      if (newDomainConfig.xMin !== undefined) updated.xMin = newDomainConfig.xMin;
-      if (newDomainConfig.xMax !== undefined) updated.xMax = newDomainConfig.xMax;
-      if (newDomainConfig.yMin !== undefined) updated.yMin = newDomainConfig.yMin;
-      if (newDomainConfig.yMax !== undefined) updated.yMax = newDomainConfig.yMax;
-      // Basic validation: ensure xMin < xMax
-      const xMinNum = parseFloat(updated.xMin);
-      const xMaxNum = parseFloat(updated.xMax);
-      if (!isNaN(xMinNum) && !isNaN(xMaxNum) && xMinNum >= xMaxNum) {
-          // If invalid, revert to previous or a default range
-          // For now, let's just log and not update if invalid to prevent bad state
-          console.warn("Attempted to set invalid x-domain from interaction:", updated);
+      const updated = { ...prev, ...newDomainConfig };
+      
+      const numXMin = parseFloat(updated.xMin);
+      const numXMax = parseFloat(updated.xMax);
+      if (!isNaN(numXMin) && !isNaN(numXMax) && numXMin >= numXMax) {
+          // console.warn("Attempted to set invalid x-domain from interaction:", updated);
           return prev; 
       }
-      // Similar validation could be added for yMin/yMax if they are numeric
+
+      const yMinVal = updated.yMin.toString().toLowerCase() === 'auto' ? 'auto' : parseFloat(updated.yMin.toString());
+      const yMaxVal = updated.yMax.toString().toLowerCase() === 'auto' ? 'auto' : parseFloat(updated.yMax.toString());
+
+      if (typeof yMinVal === 'number' && typeof yMaxVal === 'number' && yMinVal >= yMaxVal) {
+          // console.warn("Attempted to set invalid y-domain from interaction:", updated);
+          return prev;
+      }
       return updated;
     });
-  }, []);
+  }, [setDomainOptions]);
   
   const resetDomainOptions = () => {
     setDomainOptions(INITIAL_DOMAIN_OPTIONS);
@@ -278,17 +289,10 @@ export default function CalculusPlaygroundCard() {
         />
 
         {errorMessage && (
-          <Alert variant="destructive">
+          <Alert variant={errorMessage.includes("Invalid function syntax") ? "destructive" : "warning"}>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Function Error</AlertTitle>
+            <AlertTitle>{errorMessage.includes("Invalid function syntax") ? "Function Error" : "Plotting Issue"}</AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
-        )}
-        {noPlottablePointsError && !errorMessage && ( // Show only if no primary parsing error
-          <Alert variant="warning">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Plotting Issue</AlertTitle>
-            <AlertDescription>{noPlottablePointsError}</AlertDescription>
           </Alert>
         )}
 
