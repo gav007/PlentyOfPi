@@ -1,11 +1,10 @@
-
 'use client';
 
 import * as React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Send, Settings2 } from 'lucide-react';
+import { Send, Settings2, RefreshCw } from 'lucide-react'; // Added RefreshCw for reset
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export interface DomainOptions {
@@ -20,6 +19,7 @@ interface FunctionInputProps {
   onFunctionStrChange: (newStr: string) => void;
   domainOptions: DomainOptions;
   onDomainOptionsChange: (newOptions: DomainOptions) => void;
+  onResetDomainOptions: () => void; // New prop for resetting
 }
 
 export default function FunctionInput({
@@ -27,6 +27,7 @@ export default function FunctionInput({
   onFunctionStrChange,
   domainOptions,
   onDomainOptionsChange,
+  onResetDomainOptions, // New prop
 }: FunctionInputProps) {
   const [inputValue, setInputValue] = React.useState(functionStr);
   const [tempDomainOptions, setTempDomainOptions] = React.useState<DomainOptions>(domainOptions);
@@ -56,7 +57,7 @@ export default function FunctionInput({
     const newXMax = parseFloat(tempDomainOptions.xMax);
     
     if (!isNaN(newXMin) && !isNaN(newXMax) && newXMin >= newXMax) {
-      alert("X Min must be less than X Max.");
+      alert("X Min must be less than X Max."); // Consider using a non-blocking toast/alert
       return;
     }
 
@@ -74,11 +75,11 @@ export default function FunctionInput({
   };
   
   const handleResetDomainToDefaults = () => {
-    const defaultOptions = { xMin: '-10', xMax: '10', yMin: 'auto', yMax: 'auto' };
-    setTempDomainOptions(defaultOptions);
-    // Optionally apply immediately, or wait for "Apply Scale" by user
-    // onDomainOptionsChange(defaultOptions); 
-    // setIsPopoverOpen(false);
+    onResetDomainOptions(); // Call the reset function passed from parent
+    // Popover will close if onDomainOptionsChange in parent updates domainOptions,
+    // which causes tempDomainOptions to reset via useEffect.
+    // Or close manually:
+    setIsPopoverOpen(false);
   };
 
 
@@ -94,6 +95,7 @@ export default function FunctionInput({
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="e.g., x^2, sin(x), sqrt(x)"
             className="text-base flex-grow"
+            aria-label="Function input field"
           />
           <Button type="submit" size="icon" aria-label="Plot function">
             <Send className="h-5 w-5" />
@@ -108,7 +110,7 @@ export default function FunctionInput({
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Graph Scale</h4>
                 <p className="text-sm text-muted-foreground">
-                  Set custom axis bounds. Use 'auto' for automatic Y-axis scaling.
+                  Set custom axis bounds. Use 'auto' for automatic Y-axis scaling. Scroll on graph to zoom X-axis.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -131,13 +133,15 @@ export default function FunctionInput({
               </div>
               <div className='flex gap-2'>
                 <Button onClick={handleApplyDomainChanges} className="w-full h-9">Apply Scale</Button>
-                <Button onClick={handleResetDomainToDefaults} variant="outline" className="w-full h-9">Reset</Button>
+                <Button onClick={handleResetDomainToDefaults} variant="outline" className="w-full h-9 flex items-center gap-1">
+                  <RefreshCw className="w-3.5 h-3.5"/> Reset View
+                </Button>
               </div>
             </PopoverContent>
           </Popover>
         </div>
         <p className="text-xs text-muted-foreground">
-          Supported: x, numbers, +, -, *, /, ^, sqrt(), sin(), cos(), tan(), ln(), log10(), exp(), abs(). Example: <code>2*x^3 + sin(x/2)</code>
+          Supported: x, numbers, +, -, *, /, ^, sqrt(), sin(), cos(), tan(), ln(), log10(), exp(), abs(), e, pi. Example: <code>2*x^3 + sin(pi*x/2)</code>
         </p>
       </form>
     </div>

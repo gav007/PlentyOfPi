@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -18,7 +17,6 @@ const PLOT_POINTS = 200; // Number of points to plot for f(x)
 function numericalDerivative(fn: (x: number) => number, x: number, h: number = 0.0001): number {
   if (h === 0) return NaN;
   try {
-    // Ensure x is finite before attempting calculations
     if (!isFinite(x)) return NaN;
     const f_x_plus_h = fn(x + h);
     const f_x_minus_h = fn(x - h);
@@ -31,7 +29,6 @@ function numericalDerivative(fn: (x: number) => number, x: number, h: number = 0
 
 function trapezoidalRule(fn: (x: number) => number, a: number, b: number, n: number = 100): number {
   if (n <= 0) return NaN;
-  // Ensure a and b are finite
   if (!isFinite(a) || !isFinite(b)) return NaN;
   if (a === b) return 0;
   const h = (b - a) / n;
@@ -60,14 +57,18 @@ function trapezoidalRule(fn: (x: number) => number, a: number, b: number, n: num
   }
 }
 
+const INITIAL_DOMAIN_OPTIONS: DomainOptions = {
+  xMin: '-10', xMax: '10', yMin: 'auto', yMax: 'auto',
+};
+
 export default function CalculusPlaygroundCard() {
   const [functionStr, setFunctionStr] = React.useState<string>('x^2');
   const [xValue, setXValue] = React.useState<number>(1);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [noPlottablePointsError, setNoPlottablePointsError] = React.useState<string | null>(null);
 
-  const [domainOptions, setDomainOptions] = React.useState<DomainOptions>({
-    xMin: '-10', xMax: '10', yMin: 'auto', yMax: 'auto',
-  });
+
+  const [domainOptions, setDomainOptions] = React.useState<DomainOptions>(INITIAL_DOMAIN_OPTIONS);
 
   const parsedDomain = React.useMemo(() => {
     let xMin = parseFloat(domainOptions.xMin);
@@ -106,17 +107,14 @@ export default function CalculusPlaygroundCard() {
 
   const compiledFunc = React.useMemo(() => {
     try {
-      // Pre-process function string for common mathjs compatibility
-      // e.g. arctan -> atan, ensure 'e' is math.e if not contextually available
       let processedFuncStr = functionStr.replace(/\barctan\b/g, 'atan');
-      // math.js typically handles 'e' as Euler's number in its parser context
-      // No explicit replacement for 'e' or 'ln' (as log) needed if math.js standard functions are used.
-      // 'abs' is standard.
       const node = math.parse(processedFuncStr);
-      setErrorMessage(null);
+      setErrorMessage(null); // Clear parsing error
+      setNoPlottablePointsError(null); // Clear plotting error
       return node.compile();
     } catch (e) {
-      setErrorMessage(e instanceof Error ? `Invalid function: ${e.message}. Ensure valid syntax (e.g., use 'atan' for arctan, '*' for multiplication).` : 'Invalid function input.');
+      setErrorMessage(e instanceof Error ? `Invalid function syntax: ${e.message}. Ensure valid syntax (e.g., use 'atan' for arctan, '*' for multiplication).` : 'Invalid function input.');
+      setNoPlottablePointsError(null);
       return null;
     }
   }, [functionStr]);
@@ -124,15 +122,17 @@ export default function CalculusPlaygroundCard() {
   const evaluateAt = React.useCallback((x: number): number => {
     if (!compiledFunc) return NaN;
     try {
-       // Provide 'e' explicitly in scope if mathjs compile doesn't pick it up contextually for some expressions
       const result = compiledFunc.evaluate({ x, e: Math.E });
-      // Check for complex numbers, which Recharts doesn't plot. Return NaN for them.
       if (typeof result === 'object' && result.isComplex) {
+        // console.warn(`Complex result for f(${x}): ${result}`);
         return NaN;
       }
       return (typeof result === 'number' && isFinite(result)) ? result : NaN;
-    } catch { return NaN; }
-  }, [compiledFunc]);
+    } catch (error) {
+      // console.error(`Error evaluating function "${functionStr}" at x=${x}:`, error);
+      return NaN;
+    }
+  }, [compiledFunc, functionStr]);
 
   const fx = React.useMemo(() => evaluateAt(xValue), [evaluateAt, xValue]);
   const fpx = React.useMemo(() => numericalDerivative(evaluateAt, xValue), [evaluateAt, xValue]);
@@ -149,6 +149,15 @@ export default function CalculusPlaygroundCard() {
     }
     return points;
   }, [evaluateAt, compiledFunc, parsedDomain.xMin, parsedDomain.xMax]);
+  
+  React.useEffect(() => {
+    const allNull = plotData.every(p => p.y === null);
+    if (allNull && compiledFunc && !errorMessage) { // Only show if no parsing error
+      setNoPlottablePointsError("The function resulted in no plottable points in the current x-domain. Try adjusting the x-axis scale, check for issues like log of zero, or ensure the y-axis scale ('auto' or manual) can display the function's range.");
+    } else {
+      setNoPlottablePointsError(null); // Clear if we have points or a parsing error exists
+    }
+  }, [plotData, compiledFunc, errorMessage]);
 
   const effectiveDomain = React.useMemo(() => {
     let yMinResolved = parsedDomain.yMin;
@@ -167,7 +176,6 @@ export default function CalculusPlaygroundCard() {
 
         if (typeof yMinResolved === 'number' && yMinResolved > dataMinY) yMinResolved = dataMinY - padding * 0.5;
         if (typeof yMaxResolved === 'number' && yMaxResolved < dataMaxY) yMaxResolved = dataMaxY + padding * 0.5;
-
 
         if (yMinResolved === 0 && yMaxResolved === 0 && dataMinY === 0 && dataMaxY === 0) {
             yMinResolved = -1; yMaxResolved = 1;
@@ -192,10 +200,8 @@ export default function CalculusPlaygroundCard() {
         if (yMinResolved === yMaxResolved) { yMinResolved -= 0.5; yMaxResolved += 0.5; }
     }
     
-    // Ensure yMin and yMax are numbers for the plot display
     const finalYMin = typeof yMinResolved === 'string' ? -10 : yMinResolved;
     const finalYMax = typeof yMaxResolved === 'string' ? 10 : yMaxResolved;
-
 
     return { xMin: parsedDomain.xMin, xMax: parsedDomain.xMax, yMin: finalYMin, yMax: finalYMax };
   }, [parsedDomain, plotData]);
@@ -214,11 +220,14 @@ export default function CalculusPlaygroundCard() {
   }, [evaluateAt, compiledFunc, showFullDerivativeCurve, effectiveDomain.xMin, effectiveDomain.xMax]);
 
   const areaDataForPlot = React.useMemo(() => {
-    if (!plotData || plotData.length === 0 || !showArea) return [];
-    return plotData.map((p) => ({
+    if (!plotData || plotData.length === 0 || !showArea) {
+      return [];
+    }
+    const data = plotData.map((p) => ({
       x: p.x,
       y: (p.y !== null && isFinite(p.y) && p.x >= Math.min(0, xValue) && p.x <= Math.max(0, xValue)) ? p.y : 0,
     }));
+    return data;
   }, [plotData, xValue, showArea]);
 
 
@@ -226,6 +235,32 @@ export default function CalculusPlaygroundCard() {
     const clampedX = Math.max(effectiveDomain.xMin, Math.min(effectiveDomain.xMax, newX));
     setXValue(clampedX);
   };
+
+  const handleDomainChangeFromInteraction = React.useCallback((newDomainConfig: Partial<DomainOptions>) => {
+    setDomainOptions(prev => {
+      const updated: DomainOptions = { ...prev };
+      if (newDomainConfig.xMin !== undefined) updated.xMin = newDomainConfig.xMin;
+      if (newDomainConfig.xMax !== undefined) updated.xMax = newDomainConfig.xMax;
+      if (newDomainConfig.yMin !== undefined) updated.yMin = newDomainConfig.yMin;
+      if (newDomainConfig.yMax !== undefined) updated.yMax = newDomainConfig.yMax;
+      // Basic validation: ensure xMin < xMax
+      const xMinNum = parseFloat(updated.xMin);
+      const xMaxNum = parseFloat(updated.xMax);
+      if (!isNaN(xMinNum) && !isNaN(xMaxNum) && xMinNum >= xMaxNum) {
+          // If invalid, revert to previous or a default range
+          // For now, let's just log and not update if invalid to prevent bad state
+          console.warn("Attempted to set invalid x-domain from interaction:", updated);
+          return prev; 
+      }
+      // Similar validation could be added for yMin/yMax if they are numeric
+      return updated;
+    });
+  }, []);
+  
+  const resetDomainOptions = () => {
+    setDomainOptions(INITIAL_DOMAIN_OPTIONS);
+  };
+
 
   return (
     <Card className="shadow-2xl">
@@ -239,13 +274,21 @@ export default function CalculusPlaygroundCard() {
           onFunctionStrChange={setFunctionStr}
           domainOptions={domainOptions}
           onDomainOptionsChange={setDomainOptions}
+          onResetDomainOptions={resetDomainOptions}
         />
 
         {errorMessage && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Function Error</AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
+        {noPlottablePointsError && !errorMessage && ( // Show only if no primary parsing error
+          <Alert variant="warning">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Plotting Issue</AlertTitle>
+            <AlertDescription>{noPlottablePointsError}</AlertDescription>
           </Alert>
         )}
 
@@ -261,6 +304,7 @@ export default function CalculusPlaygroundCard() {
           showFullDerivativeCurve={showFullDerivativeCurve}
           domain={effectiveDomain}
           onXValueChangeByClick={handleXValueChangeByClick}
+          onDomainChange={handleDomainChangeFromInteraction}
         />
 
         <SliderControl
