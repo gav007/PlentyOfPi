@@ -2,13 +2,15 @@
 'use client';
 
 import * as React from 'react';
+import { useId } from 'react'; // Import useId
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Settings2, RefreshCw, Trash2, Palette, AlertTriangle, PlusCircle } from 'lucide-react'; // Added PlusCircle
+import { Settings2, RefreshCw, Trash2, Palette, PlusCircle } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AlertTriangle } from 'lucide-react';
 
 
 export interface DomainOptions {
@@ -19,12 +21,11 @@ export interface DomainOptions {
 }
 
 export interface FunctionInputType {
-  id: string;
+  id: string; // This ID comes from CalculusPlaygroundCard (can be UUID for new, or static for initial)
   expression: string;
   color: string;
   integralBounds: { a: string; b: string };
   error?: string | null;
-  // Add integralValue if it's managed per function and displayed here
   integralValue?: number; 
 }
 
@@ -56,6 +57,8 @@ export default function FunctionInput({
 }: FunctionInputProps) {
   const [tempDomainOptions, setTempDomainOptions] = React.useState<DomainOptions>(domainOptions);
   const [isSettingsPopoverOpen, setIsSettingsPopoverOpen] = React.useState(false);
+
+  const componentBaseId = useId(); // Generate a base ID for this instance of FunctionInput
 
   React.useEffect(() => {
     setTempDomainOptions(domainOptions);
@@ -101,10 +104,10 @@ export default function FunctionInput({
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><Label htmlFor="xMin" className="text-xs">X Min</Label><Input id="xMin" name="xMin" value={tempDomainOptions.xMin} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="-10"/></div>
-                <div><Label htmlFor="xMax" className="text-xs">X Max</Label><Input id="xMax" name="xMax" value={tempDomainOptions.xMax} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="10"/></div>
-                <div><Label htmlFor="yMin" className="text-xs">Y Min</Label><Input id="yMin" name="yMin" value={tempDomainOptions.yMin} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="auto"/></div>
-                <div><Label htmlFor="yMax" className="text-xs">Y Max</Label><Input id="yMax" name="yMax" value={tempDomainOptions.yMax} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="auto"/></div>
+                <div><Label htmlFor={`${componentBaseId}-xMin`} className="text-xs">X Min</Label><Input id={`${componentBaseId}-xMin`} name="xMin" value={tempDomainOptions.xMin} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="-10"/></div>
+                <div><Label htmlFor={`${componentBaseId}-xMax`} className="text-xs">X Max</Label><Input id={`${componentBaseId}-xMax`} name="xMax" value={tempDomainOptions.xMax} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="10"/></div>
+                <div><Label htmlFor={`${componentBaseId}-yMin`} className="text-xs">Y Min</Label><Input id={`${componentBaseId}-yMin`} name="yMin" value={tempDomainOptions.yMin} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="auto"/></div>
+                <div><Label htmlFor={`${componentBaseId}-yMax`} className="text-xs">Y Max</Label><Input id={`${componentBaseId}-yMax`} name="yMax" value={tempDomainOptions.yMax} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="auto"/></div>
               </div>
               <div className='flex gap-2'>
                 <Button onClick={handleApplyDomainChanges} className="w-full h-9">Apply Scale</Button>
@@ -118,7 +121,13 @@ export default function FunctionInput({
       
       <TooltipProvider delayDuration={100}>
         <div className="space-y-2 max-h-60 overflow-y-auto pr-2 border rounded-md p-2 bg-muted/10">
-          {functions.map((func, index) => (
+          {functions.map((func, index) => {
+            const funcInputId = `${componentBaseId}-func-expr-${index}`;
+            const integralAId = `${componentBaseId}-integral-a-${index}`;
+            const integralBId = `${componentBaseId}-integral-b-${index}`;
+            const errorDescId = `${componentBaseId}-func-error-desc-${index}`;
+
+            return (
             <div key={func.id} className="p-2 border rounded-md bg-background shadow-sm space-y-2">
               <div className="flex items-center gap-2">
                  <Popover>
@@ -151,13 +160,15 @@ export default function FunctionInput({
                  </Popover>
 
                 <Input
-                  id={`function-input-${func.id}`}
+                  id={funcInputId}
                   type="text"
                   value={func.expression}
                   onChange={(e) => onUpdateFunction(func.id, { expression: e.target.value })}
                   placeholder={`f${index + 1}(x) e.g., x^2`}
                   className={cn("text-sm flex-grow h-8 focus-visible:ring-1", func.error ? "border-destructive focus-visible:ring-destructive text-destructive pr-7" : "")}
                   aria-label={`Function ${index + 1} expression`}
+                  aria-invalid={!!func.error}
+                  aria-describedby={func.error ? errorDescId : undefined}
                 />
                 {func.error && (
                   <Tooltip>
@@ -165,7 +176,7 @@ export default function FunctionInput({
                         <AlertTriangle className="w-4 h-4 text-destructive flex-shrink-0 -ml-7 mr-1" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs bg-destructive text-destructive-foreground p-1.5 text-xs">
-                      <p>{func.error}</p>
+                      <p id={errorDescId}>{func.error}</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -174,9 +185,9 @@ export default function FunctionInput({
                 </Button>
               </div>
               <div className="flex items-center gap-2 text-xs">
-                <Label htmlFor={`integral-a-${func.id}`} className="whitespace-nowrap">Integral from a=</Label>
+                <Label htmlFor={integralAId} className="whitespace-nowrap">Integral from a=</Label>
                 <Input
-                  id={`integral-a-${func.id}`}
+                  id={integralAId}
                   type="text" 
                   value={func.integralBounds.a}
                   onChange={(e) => onUpdateFunction(func.id, { integralBounds: { ...func.integralBounds, a: e.target.value }})}
@@ -184,9 +195,9 @@ export default function FunctionInput({
                   placeholder="0"
                   aria-label={`Integral lower bound for function ${index + 1}`}
                 />
-                <Label htmlFor={`integral-b-${func.id}`} className="whitespace-nowrap">to b=</Label>
+                <Label htmlFor={integralBId} className="whitespace-nowrap">to b=</Label>
                 <Input
-                  id={`integral-b-${func.id}`}
+                  id={integralBId}
                   type="text"
                   value={func.integralBounds.b}
                   onChange={(e) => onUpdateFunction(func.id, { integralBounds: { ...func.integralBounds, b: e.target.value }})}
@@ -196,7 +207,8 @@ export default function FunctionInput({
                 />
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       </TooltipProvider>
       <Button onClick={onAddFunction} variant="outline" className="w-full mt-2">
@@ -208,3 +220,4 @@ export default function FunctionInput({
     </div>
   );
 }
+

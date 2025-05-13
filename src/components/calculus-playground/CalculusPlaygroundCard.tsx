@@ -9,8 +9,8 @@ import PlotDisplay from './PlotDisplay';
 import SliderControl from './SliderControl';
 import ResultPanel from './ResultPanel';
 import TogglePanel from './TogglePanel';
-import { AlertCircle } from 'lucide-react'; // AlertCircle is from lucide
-import { Alert, AlertDescription, AlertTitle as UIAlertTitle } from '@/components/ui/alert'; // Alert components from ui
+import { AlertCircle } from 'lucide-react';
+import { Alert as UIAlert, AlertDescription, AlertTitle as UIAlertTitle } from '@/components/ui/alert'; // Renamed Alert from lucide to avoid conflict
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -58,7 +58,7 @@ function trapezoidalRule(fn: (x: number) => number, a: number, b: number, n: num
       sum += f_x_i;
     }
     const integralValue = sum * h;
-    return a > b ? -integralValue : integralValue; // Adjust sign if integrating backwards
+    return a > b ? -integralValue : integralValue; 
   } catch {
     return NaN;
   }
@@ -85,12 +85,14 @@ const getNextColor = (): string => {
   return color;
 };
 
+// Static ID for the initial function to ensure consistency between server and client render
+const INITIAL_FUNCTION_ID = "calculus-playground-initial-fn-0";
 
 export default function CalculusPlaygroundCard() {
   const { toast } = useToast();
   const [functions, setFunctions] = React.useState<FunctionInputType[]>([
     { 
-      id: crypto.randomUUID(), 
+      id: INITIAL_FUNCTION_ID, 
       expression: 'x^2', 
       color: getNextColor(), 
       integralBounds: { a: '0', b: '2' },
@@ -106,6 +108,9 @@ export default function CalculusPlaygroundCard() {
   const compiledFunctions = React.useMemo(() => {
     return functions.map(func => {
       try {
+        if (!func.expression.trim()) {
+          return { id: func.id, compiled: null, error: null }; // No error for empty expression
+        }
         let processedFuncStr = func.expression.replace(/\barctan\b/g, 'atan');
         const node = math.parse(processedFuncStr);
         return { id: func.id, compiled: node.compile(), error: null };
@@ -116,7 +121,6 @@ export default function CalculusPlaygroundCard() {
     });
   }, [functions]);
 
-  // Update function errors based on compilation
   React.useEffect(() => {
     setFunctions(prevFuncs => 
       prevFuncs.map(func => {
@@ -140,7 +144,6 @@ export default function CalculusPlaygroundCard() {
     }
   }, [compiledFunctions, functions]);
 
-  // Update integral values when functions or their bounds change
   React.useEffect(() => {
     setFunctions(prevFuncs =>
       prevFuncs.map((func, index) => {
@@ -149,10 +152,10 @@ export default function CalculusPlaygroundCard() {
         const compiled = compiledFunctions[index]?.compiled;
         
         if (compiled && !isNaN(lowerBound) && !isNaN(upperBound)) {
-          const integral = trapezoidalRule((x) => evaluateFunctionAt(index, x), lowerBound, upperBound);
+          const integral = trapezoidalRule((xVal) => evaluateFunctionAt(index, xVal), lowerBound, upperBound);
           return { ...func, integralValue: integral };
         }
-        return { ...func, integralValue: undefined }; // Or NaN if bounds are invalid
+        return { ...func, integralValue: undefined };
       })
     );
   }, [functions, compiledFunctions, evaluateFunctionAt]);
@@ -183,9 +186,8 @@ export default function CalculusPlaygroundCard() {
   const [showTangent, setShowTangent] = React.useState<boolean>(true);
   const [showArea, setShowArea] = React.useState<boolean>(true);
 
-  // For ReferenceDot and Tangent, let's use the first function
-  const firstFunctionFx = React.useMemo(() => evaluateFunctionAt(0, xValue), [evaluateFunctionAt, xValue, functions]);
-  const firstFunctionFpx = React.useMemo(() => numericalDerivative((x) => evaluateFunctionAt(0, x), xValue), [evaluateFunctionAt, xValue, functions]);
+  const firstFunctionFx = React.useMemo(() => functions.length > 0 ? evaluateFunctionAt(0, xValue) : NaN, [evaluateFunctionAt, xValue, functions]);
+  const firstFunctionFpx = React.useMemo(() => functions.length > 0 ? numericalDerivative((x) => evaluateFunctionAt(0, x), xValue) : NaN, [evaluateFunctionAt, xValue, functions]);
 
   const plotDataArray = React.useMemo(() => {
     return functions.map((func, index) => {
@@ -202,19 +204,19 @@ export default function CalculusPlaygroundCard() {
   }, [functions, evaluateFunctionAt, parsedDomain.xMin, parsedDomain.xMax]);
   
    React.useEffect(() => {
-    const allFunctionsHaveOnlyNullPoints = plotDataArray.every(
-      (plot) => plot.points.length > 0 && plot.points.every((p) => p.y === null)
+    const hasPlottablePoints = plotDataArray.some(
+      (plot) => plot.points.length > 0 && plot.points.some((p) => p.y !== null && isFinite(p.y as number))
     );
     const noPlottableMessage = "One or more functions resulted in no plottable points in the current x-domain. Try adjusting the x-axis scale or check for mathematical issues (e.g., log of zero, division by zero).";
 
-    if (allFunctionsHaveOnlyNullPoints && functions.some(f => compiledFunctions.find(cf => cf.id === f.id)?.compiled && !f.error)) {
+    if (!hasPlottablePoints && functions.some(f => compiledFunctions.find(cf => cf.id === f.id)?.compiled && !f.error && f.expression.trim() !== '')) {
       setGlobalErrorMessage(prevError => {
         if (prevError && prevError.includes("Syntax Error")) { 
             return prevError.includes(noPlottableMessage) ? prevError : `${prevError} Additionally, ${noPlottableMessage.toLowerCase()}`;
         }
         return noPlottableMessage;
       });
-    } else if (!allFunctionsHaveOnlyNullPoints && globalErrorMessage && globalErrorMessage.includes(noPlottableMessage)) {
+    } else if (hasPlottablePoints && globalErrorMessage && globalErrorMessage.includes(noPlottableMessage)) {
       setGlobalErrorMessage(prevError => {
           if (prevError) {
             let newError = prevError.replace(noPlottableMessage, "").replace("Additionally, ", "").trim();
@@ -231,7 +233,7 @@ export default function CalculusPlaygroundCard() {
     let yMaxResolved: number | 'auto' = parsedDomain.yMax;
 
     if (yMinResolved === 'auto' || yMaxResolved === 'auto') {
-      const allYValues = plotDataArray.flatMap(plot => plot.points.map(p => p.y).filter(y => y !== null && isFinite(y)) as number[]);
+      const allYValues = plotDataArray.flatMap(plot => plot.points.map(p => p.y).filter(y => y !== null && isFinite(y as number)) as number[]);
       
       if (allYValues.length > 0) {
         const dataMinY = Math.min(...allYValues);
@@ -266,9 +268,8 @@ export default function CalculusPlaygroundCard() {
     return { xMin: parsedDomain.xMin, xMax: parsedDomain.xMax, yMin: finalYMin, yMax: finalYMax };
   }, [parsedDomain, plotDataArray]);
 
-  // Derivative data for the FIRST function if toggled
   const firstFunctionDerivativePlotData = React.useMemo(() => {
-    if (!compiledFunctions[0]?.compiled || !showFullDerivativeCurve || effectiveDomain.xMin >= effectiveDomain.xMax) return [];
+    if (functions.length === 0 || !compiledFunctions[0]?.compiled || !showFullDerivativeCurve || effectiveDomain.xMin >= effectiveDomain.xMax) return [];
     const points: { x: number; y: number | null }[] = [];
     const step = (effectiveDomain.xMax - effectiveDomain.xMin) / PLOT_POINTS;
     for (let i = 0; i <= PLOT_POINTS; i++) {
@@ -277,7 +278,7 @@ export default function CalculusPlaygroundCard() {
       points.push({ x, y: isNaN(yPrime) ? null : yPrime });
     }
     return points;
-  }, [evaluateFunctionAt, compiledFunctions, showFullDerivativeCurve, effectiveDomain.xMin, effectiveDomain.xMax]);
+  }, [evaluateFunctionAt, compiledFunctions, showFullDerivativeCurve, effectiveDomain.xMin, effectiveDomain.xMax, functions.length]);
 
   const areaDataArray = React.useMemo(() => {
     return plotDataArray.map((plot, index) => {
@@ -289,7 +290,7 @@ export default function CalculusPlaygroundCard() {
       const b = parseFloat(func.integralBounds.b);
 
       if (isNaN(a) || isNaN(b)) {
-         return { id: plot.id, points: [], color: plot.color }; // No area if bounds invalid
+         return { id: plot.id, points: [], color: plot.color };
       }
 
       const lowerBound = Math.min(a,b);
@@ -332,14 +333,14 @@ export default function CalculusPlaygroundCard() {
   const resetDomainOptions = () => setDomainOptions(INITIAL_DOMAIN_OPTIONS);
 
   const handleAddFunction = () => {
-    if (functions.length >= 5) { // Limit number of functions
+    if (functions.length >= 5) {
         toast({title: "Function Limit", description: "Maximum of 5 functions allowed.", variant: "destructive"});
         return;
     }
     setFunctions(prev => [
       ...prev,
       { 
-        id: crypto.randomUUID(), 
+        id: crypto.randomUUID(), // crypto.randomUUID is fine for client-side additions
         expression: '', 
         color: getNextColor(), 
         integralBounds: { a: '0', b: '1' },
@@ -381,17 +382,16 @@ export default function CalculusPlaygroundCard() {
         />
 
         {globalErrorMessage && (
-          <Alert variant={globalErrorMessage.includes("Syntax Error") ? "destructive" : "warning"}>
+          <UIAlert variant={globalErrorMessage.includes("Syntax Error") ? "destructive" : "warning"}>
             <AlertCircle className="h-4 w-4" />
             <UIAlertTitle>{globalErrorMessage.includes("Syntax Error") ? "Global Error" : "Plotting Issue"}</UIAlertTitle>
             <AlertDescription>{globalErrorMessage}</AlertDescription>
-          </Alert>
+          </UIAlert>
         )}
 
         <PlotDisplay
           plotDataArray={plotDataArray}
           areaDataArray={areaDataArray}
-          // Pass data for the first function for tangent/dot
           firstFunctionPlotData={plotDataArray[0]?.points || []}
           firstFunctionDerivativePlotData={firstFunctionDerivativePlotData}
           xValue={xValue}
@@ -416,7 +416,7 @@ export default function CalculusPlaygroundCard() {
         <ResultPanel
           functions={functions}
           xValue={xValue}
-          firstFunctionFxValue={firstFunctionFx} // For the main f(x), f'(x) display
+          firstFunctionFxValue={firstFunctionFx}
           firstFunctionFpxValue={firstFunctionFpx}
         />
 
@@ -432,3 +432,4 @@ export default function CalculusPlaygroundCard() {
     </Card>
   );
 }
+
