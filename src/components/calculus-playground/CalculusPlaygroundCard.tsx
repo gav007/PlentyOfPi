@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -8,7 +9,8 @@ import PlotDisplay from './PlotDisplay';
 import SliderControl from './SliderControl';
 import ResultPanel from './ResultPanel';
 import TogglePanel from './TogglePanel';
-import { Alert, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react'; // AlertCircle is from lucide
+import { Alert, AlertDescription, AlertTitle as UIAlertTitle } from '@/components/ui/alert'; // Alert components from ui
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -72,7 +74,7 @@ const PREDEFINED_COLORS = [
   'hsl(var(--chart-4))', 
   'hsl(var(--destructive))',
   'hsl(var(--chart-5))',
-  'hsl(var(--chart-1))', // Added more distinct colors
+  'hsl(var(--chart-1))', 
   'hsl(var(--chart-3))', 
 ];
 
@@ -311,15 +313,21 @@ export default function CalculusPlaygroundCard() {
       const updated = { ...prev, ...newDomainConfig };
       const numXMin = parseFloat(updated.xMin);
       const numXMax = parseFloat(updated.xMax);
-      if (!isNaN(numXMin) && !isNaN(numXMax) && numXMin >= numXMax) return prev;
+      if (!isNaN(numXMin) && !isNaN(numXMax) && numXMin >= numXMax) {
+        toast({ title: "Invalid X Range", description: "X Min must be less than X Max.", variant: "destructive" });
+        return prev;
+      }
 
       const yMinVal = updated.yMin.toLowerCase() === 'auto' ? 'auto' : parseFloat(updated.yMin);
       const yMaxVal = updated.yMax.toLowerCase() === 'auto' ? 'auto' : parseFloat(updated.yMax);
-      if (typeof yMinVal === 'number' && typeof yMaxVal === 'number' && yMinVal >= yMaxVal) return prev;
+      if (typeof yMinVal === 'number' && typeof yMaxVal === 'number' && yMinVal >= yMaxVal) {
+        toast({ title: "Invalid Y Range", description: "Y Min must be less than Y Max if both are numbers.", variant: "destructive" });
+        return prev;
+      }
       
       return updated;
     });
-  }, [setDomainOptions]);
+  }, [setDomainOptions, toast]);
   
   const resetDomainOptions = () => setDomainOptions(INITIAL_DOMAIN_OPTIONS);
 
@@ -375,7 +383,7 @@ export default function CalculusPlaygroundCard() {
         {globalErrorMessage && (
           <Alert variant={globalErrorMessage.includes("Syntax Error") ? "destructive" : "warning"}>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{globalErrorMessage.includes("Syntax Error") ? "Global Error" : "Plotting Issue"}</AlertTitle>
+            <UIAlertTitle>{globalErrorMessage.includes("Syntax Error") ? "Global Error" : "Plotting Issue"}</UIAlertTitle>
             <AlertDescription>{globalErrorMessage}</AlertDescription>
           </Alert>
         )}
