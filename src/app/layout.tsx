@@ -1,20 +1,18 @@
+
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google'; // Import Inter
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import Header from '@/components/layout/header';
-import { initSentry } from '@/lib/sentry'; // Import Sentry init
+import { initSentry } from '@/lib/sentry';
 
-// Initialize Sentry
-if (typeof window !== 'undefined') { // Ensure Sentry only initializes on client-side for Next.js App Router
+if (typeof window !== 'undefined') {
     initSentry();
 }
 
-
-// Initialize Inter font
 const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-inter', // Define CSS variable for Inter
+  variable: '--font-inter', 
 });
 
 export const metadata: Metadata = {
@@ -28,9 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      {/* Apply Inter font variable to body */}
-      <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen`}>
+    <html lang="en" suppressHydrationWarning className={inter.variable}> {/* Added inter.variable to html tag */}
+      <body className={`font-sans antialiased flex flex-col min-h-screen`}> {/* Removed font-sans from here as it's on html now */}
         <Header />
         <main className="flex-grow">
           {children}

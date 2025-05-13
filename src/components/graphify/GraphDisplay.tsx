@@ -1,160 +1,140 @@
 
 'use client';
 
-import type { PlotData, GraphViewSettings } from '@/types/graphify';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ReferenceLine,
-  TooltipProps,
-} from 'recharts';
-import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import * as React from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import type { FunctionDefinition, GraphViewSettings } from '@/types/graphify';
+// functionPlot is imported dynamically
+// import functionPlot from 'function-plot'; // Standard import if not dynamic
 
 interface GraphDisplayProps {
-  plotDataArray: PlotData[];
+  functions: FunctionDefinition[];
   viewSettings: GraphViewSettings;
-  onPan?: (dxPercent: number, dyPercent: number) => void; // For future drag-to-pan
+  onPan: (dxPercent: number, dyPercent: number) => void;
 }
 
-export default function GraphDisplay({ plotDataArray, viewSettings, onPan }: GraphDisplayProps) {
-  const chartRef = React.useRef<any>(null);
-  const dragStartRef = React.useRef<{ x: number, y: number } | null>(null);
+export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDisplayProps) {
+  const graphRef = useRef<HTMLDivElement>(null);
+  const plotInstanceRef = useRef<any>(null); // To store the function-plot instance
+  const [isPlotLibLoaded, setIsPlotLibLoaded] = useState(false);
 
-  const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
-    if (active && payload && payload.length && label !== undefined) {
-      return (
-        <div className="bg-background/90 backdrop-blur-sm p-2 border border-border rounded-md shadow-lg text-xs">
-          <p className="font-semibold mb-1">x: {Number(label).toFixed(3)}</p>
-          {payload.map((entry: any, index: number) => (
-            <div key={index} style={{ color: entry.stroke }} className="flex items-center gap-1.5">
-               <span className="w-2 h-2 rounded-full inline-block" style={{backgroundColor: entry.stroke}}></span>
-              {`${entry.name || `f${plotDataArray.findIndex(p => p.id === entry.payload?.id) + 1}(x)`}: ${Number(entry.value).toFixed(3)}`}
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-  
-  // Combine all points for domain calculation if Y is auto-scaled
-  const allPoints = React.useMemo(() => {
-    if (!viewSettings.autoScaleY) return [];
-    return plotDataArray.reduce((acc, series) => acc.concat(series.points), [] as { x: number, y: number | null }[]);
-  }, [plotDataArray, viewSettings.autoScaleY]);
+  useEffect(() => {
+    import('function-plot').then(module => {
+      window.functionPlot = module.default; // Make it globally available for function-plot or store in ref
+      setIsPlotLibLoaded(true);
+    }).catch(err => console.error("Failed to load function-plot:", err));
+  }, []);
 
-  const yDomain = React.useMemo((): [number | string, number | string] => {
-    if (viewSettings.autoScaleY) {
-      const yValues = allPoints.map(p => p.y).filter(y => y !== null && isFinite(y)) as number[];
-      if (yValues.length > 0) {
-        let dataMinY = Math.min(...yValues);
-        let dataMaxY = Math.max(...yValues);
-        const range = dataMaxY - dataMinY;
-        const padding = range === 0 ? 1 : range * 0.1;
-        dataMinY -= padding;
-        dataMaxY += padding;
-        if (dataMinY === dataMaxY) { // If range was 0, e.g. y=5
-          dataMinY -= 1;
-          dataMaxY += 1;
+  const drawGraph = useCallback(() => {
+    if (!graphRef.current || !isPlotLibLoaded || !window.functionPlot) return;
+
+    const dataToPlot = functions
+      .filter(f => f.isVisible && f.expression.trim() !== '' && !f.error)
+      .map(f => ({
+        fn: f.expression,
+        color: f.color,
+        graphType: 'polyline' as const, // Explicitly type
+        sampler: 'builtIn' as const,    // Explicitly type
+      }));
+
+    try {
+      const options: any = { // function-plot options type is complex
+        target: graphRef.current,
+        width: graphRef.current.clientWidth,
+        height: graphRef.current.clientHeight,
+        xAxis: {
+          label: viewSettings.xAxis?.label || 'x-axis',
+          domain: [viewSettings.xMin, viewSettings.xMax],
+        },
+        yAxis: {
+          label: viewSettings.yAxis?.label || 'y-axis',
+          domain: viewSettings.autoScaleY ? null : [viewSettings.yMin, viewSettings.yMax], // Let function-plot auto-scale Y if autoScaleY
+        },
+        grid: viewSettings.grid ?? true,
+        data: dataToPlot,
+        disableZoom: true, // We'll handle zoom/pan via our controls + this component
+        plugins: [
+          // @ts-ignore functionPlot types might not have this plugin structure explicitly
+          window.functionPlot.plugins.zoom(), // For programmatic zoom, not necessarily user drag/wheel on canvas
+        ],
+        tip: { // Tooltip configuration
+          xLine: true,
+          yLine: true,
+          renderer: function (x: number, y: number, index: number) {
+            const func = dataToPlot[index];
+            return `(${x.toFixed(3)}, ${y.toFixed(3)}) on ${func.fn}`;
+          }
         }
-        return [dataMinY, dataMaxY];
-      }
-      return ['auto', 'auto']; // Fallback if no valid points
-    }
-    return [viewSettings.yMin, viewSettings.yMax];
-  }, [viewSettings.yMin, viewSettings.yMax, viewSettings.autoScaleY, allPoints]);
+      };
+      
+      plotInstanceRef.current = window.functionPlot(options);
 
+      // Add custom event listeners for pan if function-plot's internal ones are not sufficient or disabled
+      // This is a simplified example; robust pan/zoom might need more sophisticated event handling.
+      // The `functionPlot.plugins.zoom()` might already provide some level of interaction.
+      // If more control is needed, attach listeners to `graphRef.current`.
+      
+    } catch (error) {
+      console.error("Error rendering graph with function-plot:", error);
+      // Display an error message on the canvas or a fallback UI
+      if (graphRef.current) {
+        graphRef.current.innerHTML = `<p style="color:red;text-align:center;padding-top:20px;">Error rendering graph. Check console.</p>`;
+      }
+    }
+  }, [functions, viewSettings, isPlotLibLoaded]);
+
+
+  useEffect(() => {
+    drawGraph();
+  }, [drawGraph]); // Redraw when functions or viewSettings change
+
+  // Resize observer for responsive graph
+  useEffect(() => {
+    if (!graphRef.current) return;
+    const resizeObserver = new ResizeObserver(() => {
+      drawGraph();
+    });
+    resizeObserver.observe(graphRef.current);
+    return () => resizeObserver.disconnect();
+  }, [drawGraph]);
+
+
+  // Manual Pan logic (example, can be more sophisticated)
+  const dragStartRef = useRef<{ x: number, y: number } | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (chartRef.current && chartRef.current.container && onPan) {
-        const chartRect = chartRef.current.container.getBoundingClientRect();
-        dragStartRef.current = { x: e.clientX - chartRect.left, y: e.clientY - chartRect.top };
-    }
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
   };
-  
+
   const handleMouseMove = (e: React.MouseEvent) => {
-      if (dragStartRef.current && chartRef.current && chartRef.current.container && onPan) {
-        const chartRect = chartRef.current.container.getBoundingClientRect();
-        const currentX = e.clientX - chartRect.left;
-        const currentY = e.clientY - chartRect.top;
-  
-        const dx = currentX - dragStartRef.current.x;
-        const dy = currentY - dragStartRef.current.y;
-        
-        if (chartRect.width > 0 && chartRect.height > 0) {
-            onPan(-dx / chartRect.width, dy / chartRect.height);
-        }
-  
-        dragStartRef.current = { x: currentX, y: currentY };
+    if (dragStartRef.current && graphRef.current) {
+      const dx = e.clientX - dragStartRef.current.x;
+      const dy = e.clientY - dragStartRef.current.y;
+
+      const plotWidth = graphRef.current.clientWidth;
+      const plotHeight = graphRef.current.clientHeight;
+
+      if (plotWidth > 0 && plotHeight > 0) {
+        onPan(-dx / plotWidth, dy / plotHeight); // Pass percentage change
       }
+      dragStartRef.current = { x: e.clientX, y: e.clientY };
+    }
   };
   
   const handleMouseUpOrLeave = () => {
     dragStartRef.current = null;
   };
 
-
   return (
     <div 
-      className="w-full aspect-[16/10] min-h-[300px] md:min-h-[400px] bg-background rounded-md shadow-lg border cursor-grab active:cursor-grabbing"
-      onMouseDown={onPan ? handleMouseDown : undefined}
-      onMouseMove={onPan ? handleMouseMove : undefined}
-      onMouseUp={onPan ? handleMouseUpOrLeave : undefined}
-      onMouseLeave={onPan ? handleMouseUpOrLeave : undefined}
-      // Note: Wheel zoom is handled by GraphControls and updates viewSettings
+      className="w-full h-full bg-background rounded-md shadow-lg border cursor-grab active:cursor-grabbing"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUpOrLeave}
+      onMouseLeave={handleMouseUpOrLeave}
     >
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart 
-          ref={chartRef}
-          margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-          // Note: onClick for point selection or specific interactions could be added here
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.7)" />
-          <XAxis
-            type="number"
-            dataKey="x" // Generic dataKey, actual data comes from Line components
-            domain={[viewSettings.xMin, viewSettings.xMax]}
-            allowDataOverflow
-            stroke="hsl(var(--muted-foreground))"
-            tickFormatter={(tick) => Number(tick).toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:1})}
-            label={{ value: 'x', position: 'insideBottomRight', offset: -10, fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-          />
-          <YAxis
-            type="number"
-            domain={yDomain}
-            allowDataOverflow
-            stroke="hsl(var(--muted-foreground))"
-            tickFormatter={(tick) => Number(tick).toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:1})}
-            label={{ value: 'y', angle: -90, position: 'insideLeft', offset: 10, fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" strokeWidth={0.75} ifOverflow="visible"/>
-          <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeWidth={0.75} ifOverflow="visible"/>
-
-          {plotDataArray.map((series) => (
-            series.points && series.points.length > 0 && (
-              <Line
-                key={series.id}
-                type="monotone"
-                dataKey="y"
-                data={series.points}
-                stroke={series.color}
-                strokeWidth={2}
-                dot={false}
-                name={series.expression || `f${plotDataArray.findIndex(p => p.id === series.id) + 1}(x)`}
-                connectNulls={false} // Do not connect across undefined points (NaNs)
-                isAnimationActive={false}
-              />
-            )
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+      <div ref={graphRef} style={{ width: '100%', height: '100%' }}>
+        {!isPlotLibLoaded && <p className="text-center text-muted-foreground p-4">Loading graphing library...</p>}
+      </div>
     </div>
   );
 }

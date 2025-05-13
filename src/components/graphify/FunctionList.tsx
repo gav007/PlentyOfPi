@@ -21,9 +21,10 @@ export default function FunctionList({
   onAddFunction,
 }: FunctionListProps) {
   return (
-    <div className="space-y-2">
-      <ScrollArea className="h-[calc(100%-2.5rem)] max-h-[250px] pr-3 border rounded-md bg-card">
-        <div className="divide-y divide-border">
+    <div className="flex flex-col h-full">
+      <ScrollArea className="flex-grow max-h-[200px] sm:max-h-[250px] pr-2 border rounded-md bg-card">
+        {/* Removed outer divide-y, FunctionInputItem handles its own border-b */}
+        <div> 
           {functions.map((func) => (
             <FunctionInputItem
               key={func.id}
@@ -35,7 +36,7 @@ export default function FunctionList({
           ))}
         </div>
       </ScrollArea>
-      <Button onClick={onAddFunction} variant="outline" className="w-full text-sm">
+      <Button onClick={onAddFunction} variant="outline" className="w-full text-sm mt-2 h-9">
         <PlusCircle className="mr-2 h-4 w-4" /> Add Function
       </Button>
     </div>

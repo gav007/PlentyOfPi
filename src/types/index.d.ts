@@ -1,12 +1,10 @@
 
 import type { LucideIcon } from 'lucide-react';
-export type { LessonModule, LabItem, QuizItem, QuizQuestion } from './lessons'; // Re-export lesson types
-export type { OutputMatchQuestion, SyntaxSpotterProblem, DebugItChallenge, MathBattleProblem } from './python-games'; // Re-export python game types
-export type { JSModule, JSLessonItem, JSLabItem, JSQuizItem, JSQuizQuestion } from './javascript-lessons'; // Re-export JS lesson types
-export type { OutputMatchQuestionJS, SyntaxSpotterProblemJS, DebugItChallengeJS } from './javascript-games'; // Re-export JS game types
-// Removed: export type { Expression, ExpressionPlotData, GraphDomain, GraphRange } from './graphing'; 
-// Graphify types will be in 'src/types/graphify.d.ts' and imported directly where needed.
-
+export type { LessonModule, LabItem, QuizItem, QuizQuestion } from './lessons';
+export type { OutputMatchQuestion, SyntaxSpotterProblem, DebugItChallenge, MathBattleProblem } from './python-games';
+export type { JSModule, JSLessonItem, JSLabItem, JSQuizItem, JSQuizQuestion } from './javascript-lessons';
+export type { OutputMatchQuestionJS, SyntaxSpotterProblemJS, DebugItChallengeJS } from './javascript-games';
+export type { FunctionDefinition, Point, PlotData, GraphViewSettings, GraphSet } from './graphify'; // Export Graphify types
 
 export type NavItem = {
   title: string;
@@ -59,7 +57,7 @@ export interface GameState {
   startTimePerTurn: number | null; 
 }
 
-// Types for Graph Traversal Visualizer - RETAINED IF OTHER GRAPH TOOLS EXIST, REMOVE IF NOT
+// Types for Graph Traversal Visualizer
 export interface GraphNode { 
   id: string; 
   x: number; 
@@ -77,3 +75,33 @@ export interface GraphData {
   edges: GraphEdge[]; 
 }
     
+// Types for Recursion Visualizer
+export interface CallStackFrame {
+  id: string;
+  name: string;
+  params: string;
+}
+
+export interface HanoiMove {
+  disk: number;
+  fromPeg: string;
+  toPeg: string;
+}
+
+export interface HanoiPegsState {
+  A: number[];
+  B: number[];
+  C: number[];
+}
+
+export interface RecursionStep {
+  id: string; // Unique ID for React key
+  stepTitle: string;
+  explanation: string;
+  callStack: CallStackFrame[];
+  computation?: string; // e.g., "factorial(3) = 3 * factorial(2)"
+  returnValue?: number | string; // Value returned by this specific call
+  hanoiMove?: HanoiMove;
+  hanoiPegsState?: HanoiPegsState; // State of pegs *after* the move
+  finalResult?: number | string; // Overall final result of the initial call
+}

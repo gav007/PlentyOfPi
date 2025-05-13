@@ -9,8 +9,7 @@ export const metadata: Metadata = {
 
 export default function GraphifyPage() {
   return (
-    <div className="container mx-auto min-h-screen">
-      <GraphifyLayout />
-    </div>
+    // Container removed, GraphifyLayout handles its own padding and flex growth
+    <GraphifyLayout />
   );
 }
