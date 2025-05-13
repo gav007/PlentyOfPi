@@ -4,7 +4,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import type { FunctionDefinition, GraphViewSettings } from '@/types/graphify';
 // functionPlot is imported dynamically
-// import functionPlot from 'function-plot'; // Standard import if not dynamic
 
 interface GraphDisplayProps {
   functions: FunctionDefinition[];
@@ -15,29 +14,32 @@ interface GraphDisplayProps {
 export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDisplayProps) {
   const graphRef = useRef<HTMLDivElement>(null);
   const plotInstanceRef = useRef<any>(null); // To store the function-plot instance
+  const functionPlotRef = useRef<any>(null); // Ref to store the functionPlot library
   const [isPlotLibLoaded, setIsPlotLibLoaded] = useState(false);
 
   useEffect(() => {
     import('function-plot').then(module => {
-      window.functionPlot = module.default; // Make it globally available for function-plot or store in ref
+      functionPlotRef.current = module.default; // Store in ref
       setIsPlotLibLoaded(true);
     }).catch(err => console.error("Failed to load function-plot:", err));
   }, []);
 
   const drawGraph = useCallback(() => {
-    if (!graphRef.current || !isPlotLibLoaded || !window.functionPlot) return;
+    if (!graphRef.current || !isPlotLibLoaded || !functionPlotRef.current) return;
+
+    const fp = functionPlotRef.current; // Use the ref
 
     const dataToPlot = functions
       .filter(f => f.isVisible && f.expression.trim() !== '' && !f.error)
       .map(f => ({
         fn: f.expression,
         color: f.color,
-        graphType: 'polyline' as const, // Explicitly type
-        sampler: 'builtIn' as const,    // Explicitly type
+        graphType: 'polyline' as const, 
+        sampler: 'builtIn' as const,    
       }));
 
     try {
-      const options: any = { // function-plot options type is complex
+      const options: any = { 
         target: graphRef.current,
         width: graphRef.current.clientWidth,
         height: graphRef.current.clientHeight,
@@ -47,16 +49,13 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
         },
         yAxis: {
           label: viewSettings.yAxis?.label || 'y-axis',
-          domain: viewSettings.autoScaleY ? null : [viewSettings.yMin, viewSettings.yMax], // Let function-plot auto-scale Y if autoScaleY
+          domain: viewSettings.autoScaleY ? null : [viewSettings.yMin, viewSettings.yMax],
         },
         grid: viewSettings.grid ?? true,
         data: dataToPlot,
-        disableZoom: true, // We'll handle zoom/pan via our controls + this component
-        plugins: [
-          // @ts-ignore functionPlot types might not have this plugin structure explicitly
-          window.functionPlot.plugins.zoom(), // For programmatic zoom, not necessarily user drag/wheel on canvas
-        ],
-        tip: { // Tooltip configuration
+        disableZoom: true, 
+        plugins: [], // Initialize with an empty array
+        tip: { 
           xLine: true,
           yLine: true,
           renderer: function (x: number, y: number, index: number) {
@@ -66,16 +65,24 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
         }
       };
       
-      plotInstanceRef.current = window.functionPlot(options);
-
-      // Add custom event listeners for pan if function-plot's internal ones are not sufficient or disabled
-      // This is a simplified example; robust pan/zoom might need more sophisticated event handling.
-      // The `functionPlot.plugins.zoom()` might already provide some level of interaction.
-      // If more control is needed, attach listeners to `graphRef.current`.
+      // Safely add zoom plugin if available
+      if (fp.plugins && typeof fp.plugins.zoom === 'function') {
+        options.plugins.push(fp.plugins.zoom());
+      } else {
+        console.warn("function-plot zoom plugin not available or not a function.");
+      }
+      
+      // Safely add pan plugin if available (example, if you decide to use it)
+      // if (fp.plugins && typeof fp.plugins.pan === 'function') {
+      //   options.plugins.push(fp.plugins.pan());
+      // } else {
+      //   console.warn("function-plot pan plugin not available or not a function.");
+      // }
+      
+      plotInstanceRef.current = fp(options);
       
     } catch (error) {
       console.error("Error rendering graph with function-plot:", error);
-      // Display an error message on the canvas or a fallback UI
       if (graphRef.current) {
         graphRef.current.innerHTML = `<p style="color:red;text-align:center;padding-top:20px;">Error rendering graph. Check console.</p>`;
       }
@@ -84,21 +91,21 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
 
 
   useEffect(() => {
-    drawGraph();
-  }, [drawGraph]); // Redraw when functions or viewSettings change
+    if(isPlotLibLoaded) { // Ensure lib is loaded before first draw
+        drawGraph();
+    }
+  }, [drawGraph, isPlotLibLoaded]); 
 
-  // Resize observer for responsive graph
   useEffect(() => {
-    if (!graphRef.current) return;
+    if (!graphRef.current || !isPlotLibLoaded) return; // Add isPlotLibLoaded check
     const resizeObserver = new ResizeObserver(() => {
       drawGraph();
     });
     resizeObserver.observe(graphRef.current);
     return () => resizeObserver.disconnect();
-  }, [drawGraph]);
+  }, [drawGraph, isPlotLibLoaded]); // Add isPlotLibLoaded check
 
 
-  // Manual Pan logic (example, can be more sophisticated)
   const dragStartRef = useRef<{ x: number, y: number } | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -114,7 +121,7 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
       const plotHeight = graphRef.current.clientHeight;
 
       if (plotWidth > 0 && plotHeight > 0) {
-        onPan(-dx / plotWidth, dy / plotHeight); // Pass percentage change
+        onPan(-dx / plotWidth, dy / plotHeight); 
       }
       dragStartRef.current = { x: e.clientX, y: e.clientY };
     }
