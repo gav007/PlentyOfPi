@@ -18,7 +18,7 @@ export default function AnswerOptions({ choices, onSelect, disabled }: AnswerOpt
         <Button
           key={index}
           variant="outline"
-          className="h-auto p-3 sm:p-4 shadow-sm hover:shadow-md focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-150 ease-in-out bg-card flex flex-col items-center justify-center text-lg"
+          className="h-auto min-h-[4rem] p-3 sm:p-4 shadow-sm hover:shadow-md focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-150 ease-in-out bg-card flex flex-col items-center justify-center text-lg"
           onClick={() => onSelect(choice)}
           disabled={disabled}
           aria-label={`Select answer ${choice.num}/${choice.den}`}

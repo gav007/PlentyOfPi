@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { JSQuizItem, JSQuizQuestion } from '@/types/javascript-lessons'; // Adjusted import
@@ -76,9 +77,23 @@ export default function JSQuizPageContent({ quiz, moduleTitle, prevLink, nextLin
               className="space-y-2"
             >
               {Object.entries(q.options).map(([key, text]) => (
-                <div key={key} className="flex items-center space-x-2">
-                  <RadioGroupItem value={key} id={`q${index}-opt${key}`} />
-                  <Label htmlFor={`q${index}-opt${key}`} className="font-normal text-sm text-muted-foreground cursor-pointer">
+                <div 
+                  key={key} 
+                  className={cn(
+                    "flex items-center space-x-3 p-3 border rounded-md transition-colors",
+                    submitted ? "cursor-not-allowed" : "cursor-pointer hover:bg-accent/50 focus-within:ring-2 focus-within:ring-ring",
+                     selectedAnswers[index] === key && !submitted ? "bg-primary/10 border-primary" : "border-input"
+                  )}
+                  onClick={() => !submitted && handleOptionChange(index, key)}
+                >
+                  <RadioGroupItem value={key} id={`q${index}-opt${key}`} className="flex-shrink-0" />
+                  <Label 
+                    htmlFor={`q${index}-opt${key}`} 
+                    className={cn(
+                      "font-normal text-sm flex-1 py-1",
+                       submitted ? "text-muted-foreground" : "text-foreground cursor-pointer"
+                    )}
+                  >
                     {text}
                   </Label>
                 </div>

@@ -24,7 +24,7 @@ export default function Options({ options, selectedOption, correctOption, onSele
             key={index}
             variant="outline"
             className={cn(
-              "w-full justify-start text-left h-auto py-3 px-4 font-mono text-sm",
+              "w-full justify-start text-left h-auto py-3 px-4 font-mono text-sm min-h-[3rem]", // Added min-h-[3rem] for better touch height
               "hover:bg-accent/80",
               disabled && "cursor-not-allowed opacity-70",
               isSelected && !correctOption && "ring-2 ring-primary bg-primary/10", // Highlight selection before submission
