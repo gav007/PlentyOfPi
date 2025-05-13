@@ -1,10 +1,11 @@
+
 'use client';
 
 import * as React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Send, Settings2, RefreshCw, Trash2, Palette, AlertTriangle } from 'lucide-react';
+import { Settings2, RefreshCw, Trash2, Palette, AlertTriangle, PlusCircle } from 'lucide-react'; // Added PlusCircle
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -23,6 +24,8 @@ export interface FunctionInputType {
   color: string;
   integralBounds: { a: string; b: string };
   error?: string | null;
+  // Add integralValue if it's managed per function and displayed here
+  integralValue?: number; 
 }
 
 interface FunctionInputProps {
@@ -171,14 +174,15 @@ export default function FunctionInput({
                 </Button>
               </div>
               <div className="flex items-center gap-2 text-xs">
-                <Label htmlFor={`integral-a-${func.id}`} className="whitespace-nowrap">∫ from a=</Label>
+                <Label htmlFor={`integral-a-${func.id}`} className="whitespace-nowrap">Integral from a=</Label>
                 <Input
                   id={`integral-a-${func.id}`}
-                  type="text" // Changed to text to allow '-', '.', etc. during typing
+                  type="text" 
                   value={func.integralBounds.a}
                   onChange={(e) => onUpdateFunction(func.id, { integralBounds: { ...func.integralBounds, a: e.target.value }})}
                   className="h-7 w-20 text-xs"
                   placeholder="0"
+                  aria-label={`Integral lower bound for function ${index + 1}`}
                 />
                 <Label htmlFor={`integral-b-${func.id}`} className="whitespace-nowrap">to b=</Label>
                 <Input
@@ -188,6 +192,7 @@ export default function FunctionInput({
                   onChange={(e) => onUpdateFunction(func.id, { integralBounds: { ...func.integralBounds, b: e.target.value }})}
                   className="h-7 w-20 text-xs"
                   placeholder="x"
+                  aria-label={`Integral upper bound for function ${index + 1}`}
                 />
               </div>
             </div>
