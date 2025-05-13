@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
-      {/* Ensure no whitespace text node here */}
+      {/* Ensure no whitespace text node here by removing any comments or actual spaces */}
       <body className={`font-sans antialiased flex flex-col min-h-screen`}>
         <Header />
         <main className="flex-grow">
@@ -38,3 +38,4 @@ export default function RootLayout({
     </html>
   );
 }
+
