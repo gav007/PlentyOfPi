@@ -1,12 +1,16 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sigma, BarChart2, AreaChart } from 'lucide-react'; 
-import type { FunctionInputType } from './FunctionInput';
+// Assuming CurrentFunctionInputType does not have integralValue anymore
+import type { CurrentFunctionInputType } from './CalculusPlaygroundCard';
+
 
 interface ResultPanelProps {
-  functions: FunctionInputType[];
-  xValue: number; // For the main f(x) and f'(x) display (applies to first function)
+  functions: CurrentFunctionInputType[];
+  integralValuesMap: Map<string, number | undefined>; // New prop for integral values
+  xValue: number;
   firstFunctionFxValue: number;
   firstFunctionFpxValue: number;
 }
@@ -18,7 +22,7 @@ const formatValue = (val: number | undefined, precision: number = 3): string => 
   return val.toFixed(precision);
 };
 
-export default function ResultPanel({ functions, xValue, firstFunctionFxValue, firstFunctionFpxValue }: ResultPanelProps) {
+export default function ResultPanel({ functions, integralValuesMap, xValue, firstFunctionFxValue, firstFunctionFpxValue }: ResultPanelProps) {
   const firstFunction = functions[0];
 
   return (
@@ -27,7 +31,6 @@ export default function ResultPanel({ functions, xValue, firstFunctionFxValue, f
         <CardTitle className="text-lg">Calculated Values</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Display for the first function at current xValue from slider */}
         {firstFunction && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-center sm:text-left border-b pb-3 mb-3">
             <div className="p-2 bg-background/50 rounded-lg shadow-sm">
@@ -47,23 +50,28 @@ export default function ResultPanel({ functions, xValue, firstFunctionFxValue, f
           </div>
         )}
 
-        {/* Display for definite integrals of all functions */}
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-1">
             <AreaChart className="w-4 h-4" /> Definite Integrals ∫f(x)dx:
           </h4>
-          {functions.map((func, index) => (
-            <div key={func.id} className="p-2 bg-background/50 rounded-lg shadow-sm flex justify-between items-center text-xs">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: func.color }} />
-                <span>
-                  f<sub>{index + 1}</sub>(x) from <span className="font-mono">{func.integralBounds.a || 'N/A'}</span> to <span className="font-mono">{func.integralBounds.b || 'N/A'}</span>:
-                </span>
+          {functions.map((func, index) => {
+            const integralValue = integralValuesMap.get(func.id);
+            return (
+              <div key={func.id} className="p-2 bg-background/50 rounded-lg shadow-sm flex justify-between items-center text-xs">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: func.color }} />
+                  <span>
+                    f<sub>{index + 1}</sub>(x) from <span className="font-mono">{func.integralBounds.a || 'N/A'}</span> to <span className="font-mono">{func.integralBounds.b || 'N/A'}</span>:
+                  </span>
+                </div>
+                <span className="font-mono text-sm" style={{color: func.color || 'hsl(var(--foreground))'}}>{formatValue(integralValue, 3)}</span>
               </div>
-              <span className="font-mono text-sm" style={{color: func.color || 'hsl(var(--foreground))'}}>{formatValue(func.integralValue, 3)}</span>
-            </div>
-          ))}
-          {functions.every(f => f.integralValue === undefined || isNaN(f.integralValue)) && functions.length > 0 && (
+            );
+          })}
+          {functions.every(f => {
+             const val = integralValuesMap.get(f.id);
+             return val === undefined || isNaN(val);
+           }) && functions.length > 0 && (
             <p className="text-xs text-muted-foreground italic text-center">Enter valid numeric bounds (a, b) for integrals.</p>
           )}
         </div>

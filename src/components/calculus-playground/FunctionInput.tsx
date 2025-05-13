@@ -2,16 +2,16 @@
 'use client';
 
 import * as React from 'react';
-import { useId } from 'react'; // Import useId
+import { useId } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Settings2, RefreshCw, Trash2, Palette, PlusCircle } from 'lucide-react';
+import { Settings2, RefreshCw, Trash2, PlusCircle } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertTriangle } from 'lucide-react';
-
+import type { CurrentFunctionInputType } from './CalculusPlaygroundCard'; // Use the type from parent
 
 export interface DomainOptions {
   xMin: string;
@@ -20,19 +20,25 @@ export interface DomainOptions {
   yMax: string;
 }
 
-export interface FunctionInputType {
-  id: string; // This ID comes from CalculusPlaygroundCard (can be UUID for new, or static for initial)
-  expression: string;
-  color: string;
-  integralBounds: { a: string; b: string };
-  error?: string | null;
-  integralValue?: number; 
+// This type now reflects that parsing error is handled externally
+// export interface FunctionInputType {
+//   id: string; 
+//   expression: string;
+//   color: string;
+//   integralBounds: { a: string; b: string };
+// }
+// Using CurrentFunctionInputType from CalculusPlaygroundCard directly
+
+interface CompilationResultItem {
+  id: string;
+  error: string | null;
 }
 
 interface FunctionInputProps {
-  functions: FunctionInputType[];
+  functions: CurrentFunctionInputType[];
+  compilationResultsList: CompilationResultItem[]; // To get parsing errors
   onAddFunction: () => void;
-  onUpdateFunction: (id: string, updates: Partial<Omit<FunctionInputType, 'id'>>) => void;
+  onUpdateFunction: (id: string, updates: Partial<Omit<CurrentFunctionInputType, 'id'>>) => void;
   onDeleteFunction: (id: string) => void;
   domainOptions: DomainOptions;
   onDomainOptionsChange: (newOptions: DomainOptions) => void;
@@ -48,6 +54,7 @@ const PREDEFINED_COLORS_PICKER = [
 
 export default function FunctionInput({
   functions,
+  compilationResultsList,
   onAddFunction,
   onUpdateFunction,
   onDeleteFunction,
@@ -58,7 +65,7 @@ export default function FunctionInput({
   const [tempDomainOptions, setTempDomainOptions] = React.useState<DomainOptions>(domainOptions);
   const [isSettingsPopoverOpen, setIsSettingsPopoverOpen] = React.useState(false);
 
-  const componentBaseId = useId(); // Generate a base ID for this instance of FunctionInput
+  const componentBaseId = useId(); 
 
   React.useEffect(() => {
     setTempDomainOptions(domainOptions);
@@ -125,7 +132,10 @@ export default function FunctionInput({
             const funcInputId = `${componentBaseId}-func-expr-${index}`;
             const integralAId = `${componentBaseId}-integral-a-${index}`;
             const integralBId = `${componentBaseId}-integral-b-${index}`;
+            
+            const compilationError = compilationResultsList.find(cr => cr.id === func.id)?.error || null;
             const errorDescId = `${componentBaseId}-func-error-desc-${index}`;
+
 
             return (
             <div key={func.id} className="p-2 border rounded-md bg-background shadow-sm space-y-2">
@@ -165,18 +175,18 @@ export default function FunctionInput({
                   value={func.expression}
                   onChange={(e) => onUpdateFunction(func.id, { expression: e.target.value })}
                   placeholder={`f${index + 1}(x) e.g., x^2`}
-                  className={cn("text-sm flex-grow h-8 focus-visible:ring-1", func.error ? "border-destructive focus-visible:ring-destructive text-destructive pr-7" : "")}
+                  className={cn("text-sm flex-grow h-8 focus-visible:ring-1", compilationError ? "border-destructive focus-visible:ring-destructive text-destructive pr-7" : "")}
                   aria-label={`Function ${index + 1} expression`}
-                  aria-invalid={!!func.error}
-                  aria-describedby={func.error ? errorDescId : undefined}
+                  aria-invalid={!!compilationError}
+                  aria-describedby={compilationError ? errorDescId : undefined}
                 />
-                {func.error && (
+                {compilationError && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                         <AlertTriangle className="w-4 h-4 text-destructive flex-shrink-0 -ml-7 mr-1" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs bg-destructive text-destructive-foreground p-1.5 text-xs">
-                      <p id={errorDescId}>{func.error}</p>
+                      <p id={errorDescId}>{compilationError}</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -220,4 +230,3 @@ export default function FunctionInput({
     </div>
   );
 }
-
