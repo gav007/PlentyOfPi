@@ -3,6 +3,13 @@ import { Inter } from 'next/font/google'; // Import Inter
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import Header from '@/components/layout/header';
+import { initSentry } from '@/lib/sentry'; // Import Sentry init
+
+// Initialize Sentry
+if (typeof window !== 'undefined') { // Ensure Sentry only initializes on client-side for Next.js App Router
+    initSentry();
+}
+
 
 // Initialize Inter font
 const inter = Inter({

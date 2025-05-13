@@ -1,0 +1,83 @@
+name: Build, Lint, and Test
+
+on:
+  push:
+    branches:
+      - main # Or your primary development branch
+  pull_request:
+    branches:
+      - main # Or your primary development branch
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x] # Test on common LTS versions
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm' # or 'yarn'
+
+      - name: Install dependencies
+        run: npm ci # or yarn install --frozen-lockfile
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+        env:
+          # Provide dummy Firebase env vars for build if they are strictly required at build time
+          # Best practice is to design components so they don't fail build if env vars are missing
+          NEXT_PUBLIC_FIREBASE_API_KEY: "dummy_key_for_build"
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "dummy.firebaseapp.com"
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: "dummy-project"
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "dummy.appspot.com"
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "000000000000"
+          NEXT_PUBLIC_FIREBASE_APP_ID: "dummy_app_id_for_build"
+          # NEXT_PUBLIC_SENTRY_DSN: "" # Optional, if Sentry is set up to not fail build
+
+  # Placeholder for Firebase Deployment job (add after configuring Firebase CLI secrets)
+  # deploy_to_firebase:
+  #   needs: build_and_test
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push' # Deploy only on push to main
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '18.x' # Or your preferred version for deployment
+  #
+  #     - name: Install dependencies
+  #       run: npm ci
+  #
+  #     - name: Build project
+  #       run: npm run build
+  #       env:
+  #         NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+  #         NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+  #         NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  #         # ... Add other required public Firebase env vars from secrets
+  #         # NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.SENTRY_DSN }} # Optional
+  #
+  #     - name: Deploy to Firebase Hosting
+  #       uses: FirebaseExtended/action-hosting-deploy@v0
+  #       with:
+  #         repoToken: '${{ secrets.GITHUB_TOKEN }}'
+  #         firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_YOUR_PROJECT_ID }}' # Service account JSON key
+  #         channelId: live # Or 'preview' for PRs, etc.
+  #         projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'

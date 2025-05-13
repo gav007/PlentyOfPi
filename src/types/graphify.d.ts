@@ -1,10 +1,10 @@
 
-export interface FunctionDefinition {
+export interface Expression {
   id: string;
-  expression: string;
+  value: string;
   color: string;
   isVisible: boolean;
-  error?: string | null;
+  error?: string | null; // Add error field
 }
 
 export interface Point {
@@ -16,7 +16,9 @@ export interface PlotData {
   id: string;
   points: Point[];
   color: string;
-  expression: string; // Keep original expression for display/tooltip
+  expression: string; 
+  fn?: (x: number) => number | null; // Optional: store compiled function for direct use in canvas
+  fnType?: string; // To handle different function-plot types
 }
 
 export interface GraphViewSettings {
@@ -24,5 +26,5 @@ export interface GraphViewSettings {
   xMax: number;
   yMin: number;
   yMax: number;
-  autoScaleY?: boolean; // For Y-axis auto-scaling
+  autoScaleY?: boolean; 
 }
