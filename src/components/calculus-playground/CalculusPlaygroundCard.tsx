@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -8,13 +9,13 @@ import PlotDisplay from './PlotDisplay';
 import SliderControl from './SliderControl';
 import ResultPanel from './ResultPanel';
 import TogglePanel from './TogglePanel';
-import { AlertCircle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { Alert as UIAlert, AlertDescription, AlertTitle as UIAlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const PLOT_POINTS = 200;
+const PLOT_POINTS = 200; // Number of points for plotting the function graph
 
 function numericalDerivative(fn: (x: number) => number, x: number, h: number = 0.0001): number {
   if (h === 0) return NaN;
@@ -86,13 +87,13 @@ const getNextColor = (): string => {
   return color;
 };
 
-const INITIAL_FUNCTION_ID = "calculus-playground-initial-fn-0"; // Static ID
+const INITIAL_FUNCTION_ID_PREFIX = "calculus-playground-fn-";
 
 export default function CalculusPlaygroundCard() {
   const { toast } = useToast();
   const [functions, setFunctions] = React.useState<FunctionInputType[]>([
     { 
-      id: INITIAL_FUNCTION_ID, 
+      id: `${INITIAL_FUNCTION_ID_PREFIX}${React.useId()}`, // Use useId for initial function as well
       expression: 'x^2', 
       color: getNextColor(), 
       integralBounds: { a: '0', b: '2' },
@@ -121,13 +122,14 @@ export default function CalculusPlaygroundCard() {
         return { id: func.id, compiled: null, error: errorMsg.substring(0, 100) + (errorMsg.length > 100 ? '...' : '') };
       }
     });
-    if (hasAnyCompilationError && (!globalErrorMessage || !globalErrorMessage.includes("Syntax Error"))) {
+
+    if (hasAnyCompilationError) {
+        const firstError = results.find(r => r.error)?.error || "Syntax Error in one or more functions.";
         setGlobalErrorMessage(prev => {
-            const syntaxErrorPart = results.find(r => r.error)?.error || "Syntax Error in one or more functions.";
-            if (prev && prev.includes("no plottable points")) return `${syntaxErrorPart} Additionally, ${prev.substring(prev.indexOf("no plottable points"))}`;
-            return syntaxErrorPart;
+            if (prev && prev.includes("no plottable points")) return `${firstError} Additionally, ${prev.substring(prev.indexOf("no plottable points"))}`;
+            return firstError;
         });
-    } else if (!hasAnyCompilationError && globalErrorMessage && globalErrorMessage.includes("Syntax Error")) {
+    } else if (globalErrorMessage && globalErrorMessage.includes("Syntax Error")) {
         setGlobalErrorMessage(prev => prev ? prev.replace(/Syntax Error:.*?(\. Additionally,|$)/, '').trim() : null);
     }
     return results;
@@ -148,7 +150,7 @@ export default function CalculusPlaygroundCard() {
     const compiledEntry = compiledFunctions[funcIndex];
     if (!compiledEntry || !compiledEntry.compiled) return NaN;
     try {
-      const result = compiledEntry.compiled.evaluate({ x, e: Math.E });
+      const result = compiledEntry.compiled.evaluate({ x, e: Math.E, pi: Math.PI });
       if (typeof result === 'object' && result.isComplex) return NaN; 
       return (typeof result === 'number' && isFinite(result)) ? result : NaN;
     } catch (error) {
@@ -171,8 +173,7 @@ export default function CalculusPlaygroundCard() {
         return { ...func, integralValue: undefined }; 
       })
     );
-  }, [functions, compiledFunctions, evaluateFunctionAt]);
-
+  }, [functions, compiledFunctions, evaluateFunctionAt]); // functions dependency might cause loop if not careful - it's setting functions
 
   const parsedDomain = React.useMemo(() => {
     let xMin = parseFloat(domainOptions.xMin);
@@ -190,7 +191,6 @@ export default function CalculusPlaygroundCard() {
     return { xMin, xMax, yMin: yMinProcessed, yMax: yMaxProcessed };
   }, [domainOptions]);
 
-  // Effect to clamp xValue if domainOptions change (source of truth for manual X range)
   React.useEffect(() => {
     const currentXMin = parseFloat(domainOptions.xMin);
     const currentXMax = parseFloat(domainOptions.xMax);
@@ -263,6 +263,9 @@ export default function CalculusPlaygroundCard() {
     if (yMinResolved === 'auto' || yMaxResolved === 'auto') {
       const allYValues = plotDataArray.flatMap(plot => plot.points.map(p => p.y).filter(y => y !== null && isFinite(y as number)) as number[]);
       
+      if (firstFunctionFx !== null && isFinite(firstFunctionFx)) allYValues.push(firstFunctionFx);
+
+
       if (allYValues.length > 0) {
         const dataMinY = Math.min(...allYValues);
         const dataMaxY = Math.max(...allYValues);
@@ -277,10 +280,10 @@ export default function CalculusPlaygroundCard() {
 
         if (yMinResolved === 0 && yMaxResolved === 0 && dataMinY === 0 && dataMaxY === 0) {
             yMinResolved = -1; yMaxResolved = 1;
-        } else if (yMinResolved >= yMaxResolved) {
-             yMinResolved = dataMinY - padding;
-             yMaxResolved = dataMaxY + padding;
-             if (yMinResolved >= yMaxResolved) { 
+        } else if (yMinResolved >= yMaxResolved) { // Catch all for invalid range
+             yMinResolved = dataMinY - (Math.abs(dataMinY * 0.1) || 1); // ensure some padding
+             yMaxResolved = dataMaxY + (Math.abs(dataMaxY * 0.1) || 1);
+             if (yMinResolved >= yMaxResolved) { // Final fallback
                  yMinResolved = (yMinResolved + yMaxResolved)/2 - 1;
                  yMaxResolved = yMinResolved + 2;
              }
@@ -294,7 +297,7 @@ export default function CalculusPlaygroundCard() {
     const finalYMax = typeof yMaxResolved === 'string' ? 10 : yMaxResolved;
 
     return { xMin: parsedDomain.xMin, xMax: parsedDomain.xMax, yMin: finalYMin, yMax: finalYMax };
-  }, [parsedDomain, plotDataArray]);
+  }, [parsedDomain, plotDataArray, firstFunctionFx]);
 
   const firstFunctionDerivativePlotData = React.useMemo(() => {
     if (functions.length === 0 || !compiledFunctions[0]?.compiled || !showFullDerivativeCurve || effectiveDomain.xMin >= effectiveDomain.xMax) return [];
@@ -314,8 +317,9 @@ export default function CalculusPlaygroundCard() {
         return { id: plot.id, points: [], color: plot.color };
       }
       const func = functions[index];
-      // Use xValue for dynamic area shading for the *first* function
-      // For other functions, use their fixed integralBounds
+      
+      // For area shading for the FIRST function, use xValue from slider.
+      // For OTHER functions, use their fixed integralBounds.a as the start and integralBounds.b as the end.
       const a = index === 0 ? 0 : parseFloat(func.integralBounds.a);
       const b = index === 0 ? xValue : parseFloat(func.integralBounds.b);
 
@@ -361,7 +365,7 @@ export default function CalculusPlaygroundCard() {
       
       return updated;
     });
-  }, [setDomainOptions, toast]);
+  }, [toast]); // Removed setDomainOptions from dependency array, as it is stable
   
   const resetDomainOptions = () => {
       setDomainOptions(INITIAL_DOMAIN_OPTIONS);
@@ -376,7 +380,7 @@ export default function CalculusPlaygroundCard() {
     setFunctions(prev => [
       ...prev,
       { 
-        id: `calculus-playground-fn-${Date.now()}-${Math.random()}`, 
+        id: `${INITIAL_FUNCTION_ID_PREFIX}${React.useId()}`, // Use useId for new functions
         expression: '', 
         color: getNextColor(), 
         integralBounds: { a: '0', b: '1' },
@@ -401,10 +405,13 @@ export default function CalculusPlaygroundCard() {
   };
 
   const handleSliderChange = React.useCallback((newValue: number) => {
-      if (Math.abs(xValue - newValue) > 1e-9) { // Tolerance to prevent rapid updates
+      // This check ensures we only update if there's a meaningful change,
+      // which is important if SliderControl's internal state also updates the parent.
+      // The primary loop prevention should be in SliderControl's own logic.
+      if (Math.abs(xValue - newValue) > 1e-9) { 
           setXValue(newValue);
       }
-  }, [xValue]); // Removed setXValue from dependency array as it's stable
+  }, [xValue]); // xValue in dependency array is correct as it's used in the condition.
 
 
   return (
@@ -426,8 +433,8 @@ export default function CalculusPlaygroundCard() {
 
         {globalErrorMessage && (
           <UIAlert variant={globalErrorMessage.includes("Syntax Error") ? "destructive" : "warning"}>
-            <AlertCircle className="h-4 w-4" />
-            <UIAlertTitle>{globalErrorMessage.includes("Syntax Error") ? "Global Error" : "Plotting Issue"}</UIAlertTitle>
+            <AlertTriangle className="h-4 w-4" />
+            <UIAlertTitle>{globalErrorMessage.includes("Syntax Error") ? "Input Error" : "Plotting Issue"}</UIAlertTitle>
             <AlertDescription>{globalErrorMessage}</AlertDescription>
           </UIAlert>
         )}
@@ -450,7 +457,7 @@ export default function CalculusPlaygroundCard() {
 
         <SliderControl
           value={xValue}
-          onValueChange={handleSliderChange}
+          onValueChange={handleSliderChange} // Simplified callback
           min={effectiveDomain.xMin}
           max={effectiveDomain.xMax}
           step={(effectiveDomain.xMax - effectiveDomain.xMin) / PLOT_POINTS || 0.01}
