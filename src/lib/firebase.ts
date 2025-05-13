@@ -1,7 +1,7 @@
 
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 // import { getAnalytics } from "firebase/analytics"; // Optional
 
 const firebaseConfig = {
@@ -19,31 +19,48 @@ let auth: Auth;
 let db: Firestore;
 
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  console.error(
-    "FIREBASE CONFIGURATION ERROR: Missing Firebase API Key or Project ID. \n" +
-    "Please ensure all NEXT_PUBLIC_FIREBASE_... environment variables are correctly set in your .env.local file (for local development) or in your hosting environment variables. \n" +
-    "Firebase services will not function correctly until these are provided. \n" +
-    "Refer to your Firebase project settings in the Firebase console (Project settings > General > Your apps > SDK setup and configuration) to find these values."
+  console.warn( // Changed from console.error
+    "FIREBASE CONFIGURATION WARNING: Missing Firebase API Key or Project ID.\n" +
+    "Essential Firebase environment variables (NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_PROJECT_ID) are not set.\n" +
+    "The application will attempt to initialize with a mock/fallback configuration for basic functionality or build purposes, but full Firebase services will be unavailable or may result in errors (e.g., auth/invalid-api-key when attempting operations).\n" +
+    "Please set these variables in your .env.local file (for local development) or in your hosting environment for full functionality.\n" +
+    "Refer to README.md and your Firebase project settings."
   );
+
   // Initialize with mock values to prevent hard crashes if parts of the app try to import auth/db
-  // but cannot function without a properly configured Firebase app.
-  // This is primarily for a better developer experience during setup.
+  // This is primarily for a better developer experience during setup or for build environments.
   if (!getApps().length) {
     app = initializeApp({ 
       apiKey: "mock-key-for-init-please-set-real-key", 
       authDomain: "mock.firebaseapp.com",
       projectId: "mock-project-for-init-please-set-real-id",
+      storageBucket: "mock.appspot.com", // Added
+      messagingSenderId: "000000000000", // Added
+      appId: "mock-app-id-for-init", // Added
+      measurementId: "mock-measurement-id" // Added, optional
     });
   } else {
     app = getApp();
   }
-  // These will likely still fail or be non-functional if Firebase attempts operations,
+  
+  // These will likely still fail for actual Firebase operations or be non-functional,
   // but importing them might not crash the entire app immediately.
-  auth = getAuth(app); 
-  db = getFirestore(app);
+  try {
+    auth = getAuth(app); 
+    db = getFirestore(app);
+  } catch (e) {
+    console.error(
+        "Fallback Firebase initialization for auth/db failed even with mock app. " +
+        "This may lead to runtime errors if Firebase services are used. Error:", e
+    );
+    // To prevent crashes, assign placeholder objects that won't work but allow type consistency.
+    // This is an extreme fallback.
+    auth = {} as Auth;
+    db = {} as Firestore;
+  }
 
 } else {
-  // Initialize Firebase
+  // Initialize Firebase normally
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
   db = getFirestore(app);
