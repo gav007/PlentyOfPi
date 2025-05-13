@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -10,7 +9,7 @@ import SliderControl from './SliderControl';
 import ResultPanel from './ResultPanel';
 import TogglePanel from './TogglePanel';
 import { AlertCircle } from 'lucide-react';
-import { Alert as UIAlert, AlertDescription, AlertTitle as UIAlertTitle } from '@/components/ui/alert'; // Renamed Alert from lucide to avoid conflict
+import { Alert as UIAlert, AlertDescription, AlertTitle as UIAlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +24,8 @@ function numericalDerivative(fn: (x: number) => number, x: number, h: number = 0
     const f_x_minus_h = fn(x - h);
     if (isNaN(f_x_plus_h) || isNaN(f_x_minus_h) || !isFinite(f_x_plus_h) || !isFinite(f_x_minus_h)) return NaN;
     return (f_x_plus_h - f_x_minus_h) / (2 * h);
-  } catch {
+  } catch (error) {
+    // console.error(`Numerical derivative error for x=${x}, h=${h}:`, error);
     return NaN;
   }
 }
@@ -59,7 +59,8 @@ function trapezoidalRule(fn: (x: number) => number, a: number, b: number, n: num
     }
     const integralValue = sum * h;
     return a > b ? -integralValue : integralValue; 
-  } catch {
+  } catch (error) {
+    // console.error(`Trapezoidal rule error for a=${a}, b=${b}, n=${n}:`, error);
     return NaN;
   }
 }
@@ -85,8 +86,7 @@ const getNextColor = (): string => {
   return color;
 };
 
-// Static ID for the initial function to ensure consistency between server and client render
-const INITIAL_FUNCTION_ID = "calculus-playground-initial-fn-0";
+const INITIAL_FUNCTION_ID = "calculus-playground-initial-fn-0"; // Static ID
 
 export default function CalculusPlaygroundCard() {
   const { toast } = useToast();
@@ -106,20 +106,32 @@ export default function CalculusPlaygroundCard() {
 
 
   const compiledFunctions = React.useMemo(() => {
-    return functions.map(func => {
+    let hasAnyCompilationError = false;
+    const results = functions.map(func => {
       try {
         if (!func.expression.trim()) {
-          return { id: func.id, compiled: null, error: null }; // No error for empty expression
+          return { id: func.id, compiled: null, error: null };
         }
         let processedFuncStr = func.expression.replace(/\barctan\b/g, 'atan');
         const node = math.parse(processedFuncStr);
         return { id: func.id, compiled: node.compile(), error: null };
       } catch (e) {
+        hasAnyCompilationError = true;
         const errorMsg = e instanceof Error ? `Syntax Error: ${e.message}` : 'Invalid function input.';
         return { id: func.id, compiled: null, error: errorMsg.substring(0, 100) + (errorMsg.length > 100 ? '...' : '') };
       }
     });
-  }, [functions]);
+    if (hasAnyCompilationError && (!globalErrorMessage || !globalErrorMessage.includes("Syntax Error"))) {
+        setGlobalErrorMessage(prev => {
+            const syntaxErrorPart = results.find(r => r.error)?.error || "Syntax Error in one or more functions.";
+            if (prev && prev.includes("no plottable points")) return `${syntaxErrorPart} Additionally, ${prev.substring(prev.indexOf("no plottable points"))}`;
+            return syntaxErrorPart;
+        });
+    } else if (!hasAnyCompilationError && globalErrorMessage && globalErrorMessage.includes("Syntax Error")) {
+        setGlobalErrorMessage(prev => prev ? prev.replace(/Syntax Error:.*?(\. Additionally,|$)/, '').trim() : null);
+    }
+    return results;
+  }, [functions, globalErrorMessage]); 
 
   React.useEffect(() => {
     setFunctions(prevFuncs => 
@@ -132,17 +144,18 @@ export default function CalculusPlaygroundCard() {
 
 
   const evaluateFunctionAt = React.useCallback((funcIndex: number, x: number): number => {
+    if (funcIndex < 0 || funcIndex >= compiledFunctions.length) return NaN;
     const compiledEntry = compiledFunctions[funcIndex];
     if (!compiledEntry || !compiledEntry.compiled) return NaN;
     try {
       const result = compiledEntry.compiled.evaluate({ x, e: Math.E });
-      if (typeof result === 'object' && result.isComplex) return NaN;
+      if (typeof result === 'object' && result.isComplex) return NaN; 
       return (typeof result === 'number' && isFinite(result)) ? result : NaN;
     } catch (error) {
-      console.error(`Error evaluating function '${functions[funcIndex]?.expression}' at x=${x}:`, error);
+      // console.error(`Error evaluating function '${functions[funcIndex]?.expression}' at x=${x}:`, error);
       return NaN;
     }
-  }, [compiledFunctions, functions]);
+  }, [compiledFunctions]);
 
   React.useEffect(() => {
     setFunctions(prevFuncs =>
@@ -155,7 +168,7 @@ export default function CalculusPlaygroundCard() {
           const integral = trapezoidalRule((xVal) => evaluateFunctionAt(index, xVal), lowerBound, upperBound);
           return { ...func, integralValue: integral };
         }
-        return { ...func, integralValue: undefined };
+        return { ...func, integralValue: undefined }; 
       })
     );
   }, [functions, compiledFunctions, evaluateFunctionAt]);
@@ -177,10 +190,25 @@ export default function CalculusPlaygroundCard() {
     return { xMin, xMax, yMin: yMinProcessed, yMax: yMaxProcessed };
   }, [domainOptions]);
 
+  // Effect to clamp xValue if domainOptions change (source of truth for manual X range)
   React.useEffect(() => {
-    if (xValue < parsedDomain.xMin) setXValue(parsedDomain.xMin);
-    else if (xValue > parsedDomain.xMax) setXValue(parsedDomain.xMax);
-  }, [parsedDomain.xMin, parsedDomain.xMax, xValue]);
+    const currentXMin = parseFloat(domainOptions.xMin);
+    const currentXMax = parseFloat(domainOptions.xMax);
+    let needsUpdate = false;
+    let newClampedXValue = xValue;
+
+    if (!isNaN(currentXMin) && xValue < currentXMin) {
+        newClampedXValue = currentXMin;
+        needsUpdate = true;
+    } else if (!isNaN(currentXMax) && xValue > currentXMax) {
+        newClampedXValue = currentXMax;
+        needsUpdate = true;
+    }
+    if (needsUpdate && Math.abs(xValue - newClampedXValue) > 1e-9) { 
+        setXValue(newClampedXValue);
+    }
+  }, [domainOptions.xMin, domainOptions.xMax, xValue]);
+
 
   const [showFullDerivativeCurve, setShowFullDerivativeCurve] = React.useState<boolean>(false);
   const [showTangent, setShowTangent] = React.useState<boolean>(true);
@@ -203,7 +231,7 @@ export default function CalculusPlaygroundCard() {
     });
   }, [functions, evaluateFunctionAt, parsedDomain.xMin, parsedDomain.xMax]);
   
-   React.useEffect(() => {
+  React.useEffect(() => {
     const hasPlottablePoints = plotDataArray.some(
       (plot) => plot.points.length > 0 && plot.points.some((p) => p.y !== null && isFinite(p.y as number))
     );
@@ -286,8 +314,10 @@ export default function CalculusPlaygroundCard() {
         return { id: plot.id, points: [], color: plot.color };
       }
       const func = functions[index];
-      const a = parseFloat(func.integralBounds.a);
-      const b = parseFloat(func.integralBounds.b);
+      // Use xValue for dynamic area shading for the *first* function
+      // For other functions, use their fixed integralBounds
+      const a = index === 0 ? 0 : parseFloat(func.integralBounds.a);
+      const b = index === 0 ? xValue : parseFloat(func.integralBounds.b);
 
       if (isNaN(a) || isNaN(b)) {
          return { id: plot.id, points: [], color: plot.color };
@@ -295,18 +325,21 @@ export default function CalculusPlaygroundCard() {
 
       const lowerBound = Math.min(a,b);
       const upperBound = Math.max(a,b);
-
+      
       const areaPoints = plot.points.map((p) => ({
         x: p.x,
         y: (p.y !== null && isFinite(p.y) && p.x >= lowerBound && p.x <= upperBound) ? p.y : 0,
       }));
       return { id: plot.id, points: areaPoints, color: func.color };
     });
-  }, [plotDataArray, functions, showArea]);
+  }, [plotDataArray, functions, showArea, xValue]);
+
 
   const handleXValueChangeByClick = (newX: number) => {
-    const clampedX = Math.max(effectiveDomain.xMin, Math.min(effectiveDomain.xMax, newX));
-    setXValue(clampedX);
+    const clampedNewX = Math.max(effectiveDomain.xMin, Math.min(effectiveDomain.xMax, newX));
+    if (Math.abs(xValue - clampedNewX) > 1e-9) { 
+        setXValue(clampedNewX);
+    }
   };
   
   const handleDomainChangeFromInteraction = React.useCallback((newDomainConfig: Partial<DomainOptions>) => {
@@ -330,7 +363,10 @@ export default function CalculusPlaygroundCard() {
     });
   }, [setDomainOptions, toast]);
   
-  const resetDomainOptions = () => setDomainOptions(INITIAL_DOMAIN_OPTIONS);
+  const resetDomainOptions = () => {
+      setDomainOptions(INITIAL_DOMAIN_OPTIONS);
+      setXValue(1); 
+  };
 
   const handleAddFunction = () => {
     if (functions.length >= 5) {
@@ -340,7 +376,7 @@ export default function CalculusPlaygroundCard() {
     setFunctions(prev => [
       ...prev,
       { 
-        id: crypto.randomUUID(), // crypto.randomUUID is fine for client-side additions
+        id: `calculus-playground-fn-${Date.now()}-${Math.random()}`, 
         expression: '', 
         color: getNextColor(), 
         integralBounds: { a: '0', b: '1' },
@@ -364,6 +400,13 @@ export default function CalculusPlaygroundCard() {
     setFunctions(prev => prev.filter(f => f.id !== id));
   };
 
+  const handleSliderChange = React.useCallback((newValue: number) => {
+      if (Math.abs(xValue - newValue) > 1e-9) { // Tolerance to prevent rapid updates
+          setXValue(newValue);
+      }
+  }, [xValue]); // Removed setXValue from dependency array as it's stable
+
+
   return (
     <Card className="shadow-2xl">
       <CardHeader>
@@ -377,7 +420,7 @@ export default function CalculusPlaygroundCard() {
           onUpdateFunction={handleUpdateFunction}
           onDeleteFunction={handleDeleteFunction}
           domainOptions={domainOptions}
-          onDomainOptionsChange={setDomainOptions}
+          onDomainOptionsChange={setDomainOptions} 
           onResetDomainOptions={resetDomainOptions}
         />
 
@@ -402,12 +445,12 @@ export default function CalculusPlaygroundCard() {
           showFullDerivativeCurve={showFullDerivativeCurve}
           domain={effectiveDomain}
           onXValueChangeByClick={handleXValueChangeByClick}
-          onDomainChange={handleDomainChangeFromInteraction}
+          onDomainChange={handleDomainChangeFromInteraction} 
         />
 
         <SliderControl
           value={xValue}
-          onValueChange={setXValue}
+          onValueChange={handleSliderChange}
           min={effectiveDomain.xMin}
           max={effectiveDomain.xMax}
           step={(effectiveDomain.xMax - effectiveDomain.xMin) / PLOT_POINTS || 0.01}
@@ -432,4 +475,3 @@ export default function CalculusPlaygroundCard() {
     </Card>
   );
 }
-
