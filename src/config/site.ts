@@ -8,7 +8,7 @@ import {
   Sigma,
   Calculator as CalculatorIcon, 
   TestTubeDiagonal, 
-  Scale,
+  // Scale, // Removed Scale icon as Ratio Scales game is being removed
   BookOpen,
   Settings,
   FileCode, 
@@ -21,8 +21,11 @@ import {
   Code as CodeIcon, 
   Binary,
   Zap,
-  Search, // Kept Search icon as it's used by PrimeTester
+  Search, 
   DraftingCompass, 
+  BarChartHorizontal, // Icon for Sorting
+  GitFork, // Icon for Graph Traversal
+  Repeat, // Icon for Recursion
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -60,12 +63,12 @@ export const navItems: NavItem[] = [
         icon: TestTubeDiagonal,
         description: 'Test your fraction arithmetic skills in a duel!',
       },
-      {
-        title: 'Ratio Scales',
-        href: '/quick-math/ratio-scales',
-        icon: Scale,
-        description: 'Balance weights to understand ratios.',
-      },
+      // { // Removed Ratio Scales from Games dropdown
+      //   title: 'Ratio Scales',
+      //   href: '/quick-math/ratio-scales',
+      //   icon: Scale,
+      //   description: 'Balance weights to understand ratios.',
+      // },
     ],
   },
   {
@@ -128,6 +131,7 @@ export const featureCards: FeatureCardItem[] = [
     href: '/binary-game',
     icon: Binary, 
     ctaLabel: 'Play Now',
+    dataAiHint: 'binary code'
   },
   {
     title: 'Python Foundations',
@@ -135,6 +139,7 @@ export const featureCards: FeatureCardItem[] = [
     href: '/lessons/python-foundations',
     icon: FileCode,
     ctaLabel: 'Start Learning',
+    dataAiHint: 'python code'
   },
    {
     title: 'JavaScript Essentials',
@@ -142,6 +147,7 @@ export const featureCards: FeatureCardItem[] = [
     href: '/lessons/javascript-essentials',
     icon: CodeIcon,
     ctaLabel: 'Learn JS',
+    dataAiHint: 'javascript code'
   },
   {
     title: 'Fourier Series Visualizer',
@@ -149,6 +155,7 @@ export const featureCards: FeatureCardItem[] = [
     href: '/tools/fourier-series',
     icon: FunctionSquare,
     ctaLabel: 'Visualize Series',
+    dataAiHint: 'math graph'
   },
   {
     title: 'Interactive Unit Circle',
@@ -156,6 +163,7 @@ export const featureCards: FeatureCardItem[] = [
     href: '/unit-circle',
     icon: Orbit,
     ctaLabel: 'Explore Circle',
+    dataAiHint: 'math circle'
   },
   {
     title: 'Calculus Playground',
@@ -163,6 +171,7 @@ export const featureCards: FeatureCardItem[] = [
     href: '/calculus-playground',
     icon: Sigma,
     ctaLabel: 'Start Plotting',
+    dataAiHint: 'calculus graph'
   },
   {
     title: 'Prime Tester',
@@ -170,6 +179,7 @@ export const featureCards: FeatureCardItem[] = [
     href: '/tools/prime-tester',
     icon: Search, 
     ctaLabel: 'Test Primes',
+    dataAiHint: 'numbers math'
   },
   {
     title: 'Math Battle Game',
@@ -177,6 +187,7 @@ export const featureCards: FeatureCardItem[] = [
     href: '/tools/math-battle',
     icon: Zap,
     ctaLabel: 'Start Battle',
+    dataAiHint: 'math game'
   },
   {
     title: 'Hex Boxes Challenge',
@@ -184,6 +195,7 @@ export const featureCards: FeatureCardItem[] = [
     href: '/hex-boxes',
     icon: Puzzle,
     ctaLabel: 'Play Hex Game',
+    dataAiHint: 'hex code'
   },
   {
     title: 'Fraction Duel',
@@ -191,14 +203,16 @@ export const featureCards: FeatureCardItem[] = [
     href: '/quick-math/fraction-duel',
     icon: TestTubeDiagonal,
     ctaLabel: 'Start Duel',
+    dataAiHint: 'math fractions'
   },
-  {
-    title: 'Ratio Scales',
-    description: 'Balance weights on virtual scales to intuitively understand ratios and proportions. Experiment with different weights and see how equivalent ratios are formed.',
-    href: '/quick-math/ratio-scales',
-    icon: Scale,
-    ctaLabel: 'Explore Ratios',
-  },
+  // { // Removed Ratio Scales from feature cards
+  //   title: 'Ratio Scales',
+  //   description: 'Balance weights on virtual scales to intuitively understand ratios and proportions. Experiment with different weights and see how equivalent ratios are formed.',
+  //   href: '/quick-math/ratio-scales',
+  //   icon: Scale,
+  //   ctaLabel: 'Explore Ratios',
+  //   dataAiHint: 'balance scales'
+  // },
   {
     title: 'Python: Output Match',
     description: 'Match Python code snippets to their correct output. A fun way to test your understanding of Python execution.',
@@ -206,6 +220,7 @@ export const featureCards: FeatureCardItem[] = [
     icon: Target,
     isComingSoon: false, 
     ctaLabel: 'Try Challenge',
+    dataAiHint: 'python quiz'
   },
   {
     title: 'Python: Syntax Spotter',
@@ -214,6 +229,7 @@ export const featureCards: FeatureCardItem[] = [
     icon: SearchCode,
     isComingSoon: false, 
     ctaLabel: 'Spot Errors',
+    dataAiHint: 'python debug'
   },
   {
     title: 'Python: Debug It!', 
@@ -222,6 +238,7 @@ export const featureCards: FeatureCardItem[] = [
     icon: Wrench,
     isComingSoon: false, 
     ctaLabel: 'Debug Code',
+    dataAiHint: 'python error'
   },
   {
     title: 'JS: Output Match',
@@ -230,6 +247,7 @@ export const featureCards: FeatureCardItem[] = [
     icon: Target, 
     isComingSoon: false,
     ctaLabel: 'Try JS Challenge',
+    dataAiHint: 'javascript quiz'
   },
   {
     title: 'JS: Syntax Spotter',
@@ -238,6 +256,7 @@ export const featureCards: FeatureCardItem[] = [
     icon: SearchCode,
     isComingSoon: false,
     ctaLabel: 'Spot JS Errors',
+    dataAiHint: 'javascript debug'
   },
   {
     title: 'JS: Debug It!',
@@ -246,6 +265,7 @@ export const featureCards: FeatureCardItem[] = [
     icon: Wrench,
     isComingSoon: false,
     ctaLabel: 'Debug JS Code',
+    dataAiHint: 'javascript error'
   },
 ];
 
@@ -263,3 +283,5 @@ export const siteConfig = {
 };
 
 export type SiteConfig = typeof siteConfig;
+
+    
