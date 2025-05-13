@@ -5,9 +5,6 @@ export type { OutputMatchQuestion, SyntaxSpotterProblem, DebugItChallenge } from
 export type { JSModule, JSLessonItem, JSLabItem, JSQuizItem, JSQuizQuestion } from './javascript-lessons'; // Re-export JS lesson types
 export type { OutputMatchQuestionJS, SyntaxSpotterProblemJS, DebugItChallengeJS } from './javascript-games'; // Re-export JS game types
 export type { Expression, ExpressionPlotData, GraphDomain, GraphRange } from './graphing'; // Re-export graphing types
-export type { SortAlgorithmType, SortStep } from './sort-algorithms'; 
-export type { SearchAlgorithmType, SearchStep } from './search-algorithms';
-export type { RecursionStep, CallStackFrame, HanoiPegsState, HanoiMove } from './recursion-visualizer';
 
 
 export type NavItem = {
@@ -61,7 +58,7 @@ export interface GameState {
   startTimePerTurn: number | null; 
 }
 
-// Types for Graph Traversal Visualizer
+// Types for Graph Traversal Visualizer - RETAINED IF OTHER GRAPH TOOLS EXIST, REMOVE IF NOT
 export interface GraphNode { 
   id: string; 
   x: number; 
@@ -77,20 +74,5 @@ export interface GraphEdge {
 export interface GraphData { 
   nodes: GraphNode[]; 
   edges: GraphEdge[]; 
-}
-
-export interface GraphSearchStep {
-  explanation: string;
-  visited: Set<string>; // Nodes fully processed or added to queue/stack
-  queue?: string[];      // For BFS: current queue
-  stack?: string[];      // For DFS: current stack
-  distances?: Map<string, number>; // For Dijkstra's: shortest distance from start
-  parents?: Map<string, string | null>; // For Dijkstra's & path reconstruction
-  currentNode?: string;  // Node being currently processed (e.g., just dequeued/popped)
-  processingNeighborsOf?: string; // Alternative to currentNode if we want to highlight the source of exploration
-  highlightedEdge?: { source: string; target: string }; // Edge being currently explored
-  finalPath?: string[]; // For pathfinding algorithms like Dijkstra's or BFS/DFS if finding a path to a target
-  searchComplete?: boolean; // True if the algorithm has finished
-  message?: string; // Final message, e.g., "Target found" or "BFS Complete"
 }
     

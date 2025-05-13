@@ -3,7 +3,6 @@ import type { NavItem, FeatureCardItem } from '@/types';
 import {
   Home,
   Gamepad2,
-  Brain,
   Orbit,
   Puzzle,
   Sigma,
@@ -17,20 +16,13 @@ import {
   SearchCode, 
   Wrench, 
   ClipboardCheck, 
-  BarChart3, 
-  FileJson,
   LineChart,
   FunctionSquare,
   Code as CodeIcon, 
   Binary,
   Zap,
-  BrainCircuit, 
-  BarChartHorizontal, 
-  Search, 
-  GitFork, 
-  Repeat, 
-  Users, 
-  DraftingCompass, // For Geometry
+  Search, // Kept Search icon as it's used by PrimeTester
+  DraftingCompass, 
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -47,7 +39,7 @@ export const navItems: NavItem[] = [
       {
         title: 'Binary Converter',
         href: '/binary-game',
-        icon: Binary, // Changed from Brain for consistency
+        icon: Binary, 
         description: 'Learn binary with an 8/16-bit interactive game.',
       },
       {
@@ -90,7 +82,7 @@ export const navItems: NavItem[] = [
       {
         title: 'Prime Tester',
         href: '/tools/prime-tester',
-        icon: Search, // More fitting than Binary for "testing"
+        icon: Search, 
         description: 'Test numbers for primality and find factors.',
       },
       {
@@ -105,38 +97,6 @@ export const navItems: NavItem[] = [
         icon: FunctionSquare, 
         description: 'Explore Fourier series and waveform synthesis.',
       },
-      {
-        title: 'Algorithm Arena',
-        href: '/tools/algorithm-arena',
-        icon: BrainCircuit,
-        description: 'Explore algorithms interactively.',
-        subItems: [ 
-          {
-            title: 'Sorting Visualizer',
-            href: '/tools/algorithm-arena/sorting',
-            icon: BarChartHorizontal,
-            description: 'Visualize sorting algorithms like Bubble Sort, Merge Sort.',
-          },
-          {
-            title: 'Searching Visualizer',
-            href: '/tools/algorithm-arena/searching',
-            icon: Search,
-            description: 'See how Binary Search and Linear Search work.',
-          },
-          {
-            title: 'Graph Traversal',
-            href: '/tools/algorithm-arena/graph-traversal',
-            icon: GitFork,
-            description: 'Explore BFS, DFS, Dijkstra’s algorithm.',
-          },
-          {
-            title: 'Recursion Visualizer',
-            href: '/tools/algorithm-arena/recursion',
-            icon: Repeat,
-            description: 'Understand Factorial, Fibonacci, Tower of Hanoi.',
-          },
-        ]
-      },
     ],
   },
   {
@@ -148,13 +108,13 @@ export const navItems: NavItem[] = [
       {
         title: 'Python Foundations',
         href: '/lessons/python-foundations',
-        icon: FileCode, // Python logo often uses a file/code icon
+        icon: FileCode, 
         description: 'Learn core Python concepts step by step.',
       },
       {
         title: 'JavaScript Essentials',
         href: '/lessons/javascript-essentials',
-        icon: CodeIcon, // Generic code icon for JS
+        icon: CodeIcon, 
         description: 'Master fundamental JavaScript concepts.',
       }
     ]
@@ -166,7 +126,7 @@ export const featureCards: FeatureCardItem[] = [
     title: 'Binary Converter Game',
     description: 'Master binary numbers with our interactive 8-bit and 16-bit converter game. Toggle bits, see instant decimal and hex conversions, and test your skills in game mode!',
     href: '/binary-game',
-    icon: Binary, // Changed from Brain
+    icon: Binary, 
     ctaLabel: 'Play Now',
   },
   {
@@ -182,13 +142,6 @@ export const featureCards: FeatureCardItem[] = [
     href: '/lessons/javascript-essentials',
     icon: CodeIcon,
     ctaLabel: 'Learn JS',
-  },
-  {
-    title: 'Algorithm Arena',
-    description: 'Explore sorting, searching, graph traversal, and recursion with interactive visualizations and simulations. Understand algorithms step-by-step.',
-    href: '/tools/algorithm-arena',
-    icon: BrainCircuit,
-    ctaLabel: 'Explore Arena',
   },
   {
     title: 'Fourier Series Visualizer',
@@ -215,7 +168,7 @@ export const featureCards: FeatureCardItem[] = [
     title: 'Prime Tester',
     description: 'Test numbers for primality, find their factors, and explore sequences of prime numbers. A great tool for understanding number theory basics.',
     href: '/tools/prime-tester',
-    icon: Search, // Using search icon
+    icon: Search, 
     ctaLabel: 'Test Primes',
   },
   {
