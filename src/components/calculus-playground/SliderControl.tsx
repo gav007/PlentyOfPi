@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 
 interface SliderControlProps {
-  value: number; // This is the value from the parent (CalculusPlaygroundCard's xValue)
+  value: number; // This is parentValue from CalculusPlaygroundCard's xValue
   onValueChange: (newValue: number) => void; // Callback to update parent's xValue
   min: number;
   max: number;
@@ -14,32 +14,51 @@ interface SliderControlProps {
 }
 
 export default function SliderControl({ value: parentValue, onValueChange, min, max, step }: SliderControlProps) {
-  const [internalValue, setInternalValue] = React.useState(parentValue);
-
-  // Effect to synchronize internalValue when parentValue changes (e.g., from graph click)
-  React.useEffect(() => {
-    // Only update if the parent value is significantly different from the internal one,
-    // or if internalValue hasn't been initialized properly yet.
-    if (Math.abs(parentValue - internalValue) > 1e-9) {
-      setInternalValue(parentValue);
-    }
-  }, [parentValue, internalValue]); // Re-run if parentValue changes. internalValue added to avoid stale closures in condition.
-
-  const handleSliderInteraction = (newValues: number[]) => {
+  
+  const handleSliderValueChange = (newValues: number[]) => {
     const newValueFromSlider = newValues[0];
-    setInternalValue(newValueFromSlider); // Update internal state immediately for responsive UI
-
-    // Only call parent's onValueChange if the slider's new value
-    // is meaningfully different from what the parent currently holds (parentValue).
-    // This prevents loops if the parentValue update causes a re-render that
-    // might inadvertently try to set the same value again.
-    if (Math.abs(parentValue - newValueFromSlider) > 1e-9) {
+    // Directly call the parent's onValueChange.
+    // The parent (CalculusPlaygroundCard) will update its state (xValue),
+    // which will then flow back down as the `parentValue` prop to this component.
+    if (Math.abs(parentValue - newValueFromSlider) > 1e-9) { // Still good to prevent tiny float diffs
       onValueChange(newValueFromSlider);
     }
   };
   
   const effectiveStep = (max > min && step > 1e-9 && isFinite(step)) ? step : 0.01; 
   
+  // Ensure parentValue is always within min/max bounds for the Slider component
+  // as Radix slider can throw errors if value is out of bounds.
+  // Also handle NaN for min/max/parentValue defensively.
+  const isBoundsValid = !isNaN(min) && !isNaN(max) && min < max;
+  const safeParentValue = isNaN(parentValue) ? (isBoundsValid ? min : 0) : parentValue;
+  const clampedParentValue = isBoundsValid ? Math.max(min, Math.min(max, safeParentValue)) : (isBoundsValid ? min : 0) ;
+
+  if (!isBoundsValid) {
+     // Render a disabled state or nothing if bounds are invalid
+     return (
+        <div className="space-y-3">
+            <div className="flex justify-between items-center">
+                <Label htmlFor="x-slider" className="text-base font-semibold">
+                Adjust x-value (or click on graph):
+                </Label>
+                <span className="font-mono text-primary text-lg bg-muted/50 px-2 py-0.5 rounded-md">
+                N/A
+                </span>
+            </div>
+            <Slider
+                id="x-slider"
+                value={[0]} // Some default valid value
+                min={0}     // Default min
+                max={1}     // Default max
+                step={0.01} // Default step
+                aria-label={`x-value slider, current value N/A (invalid bounds)`}
+                disabled={true}
+            />
+        </div>
+     );
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
@@ -47,19 +66,20 @@ export default function SliderControl({ value: parentValue, onValueChange, min, 
           Adjust x-value (or click on graph):
         </Label>
         <span className="font-mono text-primary text-lg bg-muted/50 px-2 py-0.5 rounded-md">
-          {internalValue.toFixed(3)} {/* Display internalValue for immediate visual feedback */}
+          {parentValue.toFixed(3)}
         </span>
       </div>
       <Slider
         id="x-slider"
-        value={[internalValue]} // Controlled by internalValue
-        onValueChange={handleSliderInteraction} // Use the new handler
+        value={[clampedParentValue]} // Directly use (clamped) parentValue
+        onValueChange={handleSliderValueChange}
         min={min}
         max={max}
         step={effectiveStep}
-        aria-label={`x-value slider, current value ${internalValue.toFixed(3)}`}
-        disabled={min >= max || isNaN(min) || isNaN(max)}
+        aria-label={`x-value slider, current value ${parentValue.toFixed(3)}`}
+        disabled={!isBoundsValid} // Disable if bounds are invalid
       />
     </div>
   );
 }
+
