@@ -1,7 +1,7 @@
 
 import type { LucideIcon } from 'lucide-react';
 export type { LessonModule, LabItem, QuizItem, QuizQuestion } from './lessons'; // Re-export lesson types
-export type { OutputMatchQuestion, SyntaxSpotterProblem, DebugItChallenge } from './python-games'; // Re-export python game types
+export type { OutputMatchQuestion, SyntaxSpotterProblem, DebugItChallenge, MathBattleProblem } from './python-games'; // Re-export python game types
 export type { JSModule, JSLessonItem, JSLabItem, JSQuizItem, JSQuizQuestion } from './javascript-lessons'; // Re-export JS lesson types
 export type { OutputMatchQuestionJS, SyntaxSpotterProblemJS, DebugItChallengeJS } from './javascript-games'; // Re-export JS game types
 export type { Expression, ExpressionPlotData, GraphDomain, GraphRange } from './graphing'; // Re-export graphing types
@@ -76,3 +76,4 @@ export interface GraphData {
   edges: GraphEdge[]; 
 }
     
+

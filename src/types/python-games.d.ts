@@ -18,3 +18,11 @@ export interface DebugItChallenge {
   expectedOutput: string;
   solution: string;
 }
+
+export interface MathBattleProblem {
+  id: string;
+  question: string;
+  options: number[]; // Array of numbers for multiple choice
+  answer: number;    // The correct numerical answer
+  type: 'arithmetic'; // Simplified to only arithmetic
+}
