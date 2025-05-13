@@ -19,32 +19,28 @@ let auth: Auth;
 let db: Firestore;
 
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  console.warn( // Changed from console.error
+  console.warn( 
     "FIREBASE CONFIGURATION WARNING: Missing Firebase API Key or Project ID.\n" +
     "Essential Firebase environment variables (NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_PROJECT_ID) are not set.\n" +
-    "The application will attempt to initialize with a mock/fallback configuration for basic functionality or build purposes, but full Firebase services will be unavailable or may result in errors (e.g., auth/invalid-api-key when attempting operations).\n" +
-    "Please set these variables in your .env.local file (for local development) or in your hosting environment for full functionality.\n" +
+    "The application will attempt to initialize with a mock/fallback configuration for build purposes or basic non-Firebase functionality, but full Firebase services will be unavailable or may result in errors (e.g., auth/invalid-api-key when attempting operations).\n" +
+    "Please set these variables in your .env.local file (for local development) or in your hosting environment for full Firebase functionality.\n" +
     "Refer to README.md and your Firebase project settings."
   );
 
-  // Initialize with mock values to prevent hard crashes if parts of the app try to import auth/db
-  // This is primarily for a better developer experience during setup or for build environments.
   if (!getApps().length) {
     app = initializeApp({ 
       apiKey: "mock-key-for-init-please-set-real-key", 
       authDomain: "mock.firebaseapp.com",
       projectId: "mock-project-for-init-please-set-real-id",
-      storageBucket: "mock.appspot.com", // Added
-      messagingSenderId: "000000000000", // Added
-      appId: "mock-app-id-for-init", // Added
-      measurementId: "mock-measurement-id" // Added, optional
+      storageBucket: "mock.appspot.com",
+      messagingSenderId: "000000000000",
+      appId: "mock-app-id-for-init",
+      measurementId: "mock-measurement-id"
     });
   } else {
     app = getApp();
   }
   
-  // These will likely still fail for actual Firebase operations or be non-functional,
-  // but importing them might not crash the entire app immediately.
   try {
     auth = getAuth(app); 
     db = getFirestore(app);
@@ -53,8 +49,6 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
         "Fallback Firebase initialization for auth/db failed even with mock app. " +
         "This may lead to runtime errors if Firebase services are used. Error:", e
     );
-    // To prevent crashes, assign placeholder objects that won't work but allow type consistency.
-    // This is an extreme fallback.
     auth = {} as Auth;
     db = {} as Firestore;
   }
