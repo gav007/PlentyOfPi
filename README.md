@@ -48,15 +48,17 @@ Graphify is a responsive, Firebase-backed graphing calculator web application de
 
 ### Environment Variables
 
-Create a `.env.local` file in the root directory by copying `.env.example` and fill in your Firebase project configuration details:
+Create a `.env.local` file in the root directory by copying `.env.example` (if one exists, otherwise create it from scratch) and fill in your Firebase project configuration details:
+
+**IMPORTANT:** Your application will not function correctly and may show "Firebase: Error (auth/invalid-api-key)" or similar errors if these environment variables are not set or are incorrect. Pay special attention to `NEXT_PUBLIC_FIREBASE_API_KEY` and `NEXT_PUBLIC_FIREBASE_PROJECT_ID`. You can find these values in your Firebase project settings (Project settings > General > Your apps > SDK setup and configuration).
 
 ```env
 # Firebase SDK Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id (optional)
 
