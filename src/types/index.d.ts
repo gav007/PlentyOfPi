@@ -4,7 +4,8 @@ export type { LessonModule, LabItem, QuizItem, QuizQuestion } from './lessons'; 
 export type { OutputMatchQuestion, SyntaxSpotterProblem, DebugItChallenge, MathBattleProblem } from './python-games'; // Re-export python game types
 export type { JSModule, JSLessonItem, JSLabItem, JSQuizItem, JSQuizQuestion } from './javascript-lessons'; // Re-export JS lesson types
 export type { OutputMatchQuestionJS, SyntaxSpotterProblemJS, DebugItChallengeJS } from './javascript-games'; // Re-export JS game types
-export type { Expression, ExpressionPlotData, GraphDomain, GraphRange } from './graphing'; // Re-export graphing types
+// Removed: export type { Expression, ExpressionPlotData, GraphDomain, GraphRange } from './graphing'; 
+// Graphify types will be in 'src/types/graphify.d.ts' and imported directly where needed.
 
 
 export type NavItem = {
@@ -76,4 +77,3 @@ export interface GraphData {
   edges: GraphEdge[]; 
 }
     
-

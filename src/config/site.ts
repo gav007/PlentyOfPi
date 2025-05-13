@@ -8,14 +8,12 @@ import {
   Sigma,
   Calculator as CalculatorIcon, 
   TestTubeDiagonal, 
-  // Scale, // Removed Scale icon as Ratio Scales game is being removed
   BookOpen,
   Settings,
   FileCode, 
   Target, 
   SearchCode, 
   Wrench, 
-  ClipboardCheck, 
   LineChart,
   FunctionSquare,
   Code as CodeIcon, 
@@ -23,9 +21,9 @@ import {
   Zap,
   Search, 
   DraftingCompass, 
-  BarChartHorizontal, // Icon for Sorting
-  GitFork, // Icon for Graph Traversal
-  Repeat, // Icon for Recursion
+  Repeat,
+  Users, // Placeholder, if Game Theory comes back
+  Pi, // Icon for Graphify
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -63,12 +61,6 @@ export const navItems: NavItem[] = [
         icon: TestTubeDiagonal,
         description: 'Test your fraction arithmetic skills in a duel!',
       },
-      // { // Removed Ratio Scales from Games dropdown
-      //   title: 'Ratio Scales',
-      //   href: '/quick-math/ratio-scales',
-      //   icon: Scale,
-      //   description: 'Balance weights to understand ratios.',
-      // },
     ],
   },
   {
@@ -76,6 +68,12 @@ export const navItems: NavItem[] = [
     href: '#', 
     icon: Settings, 
     subItems: [
+      {
+        title: 'Graphify Calculator',
+        href: '/graphify', // New Graphify link
+        icon: Pi, // Using Pi icon for Graphify
+        description: 'Advanced interactive graphing calculator.',
+      },
        {
         title: 'Calculus Playground',
         href: '/calculus-playground',
@@ -125,6 +123,14 @@ export const navItems: NavItem[] = [
 ];
 
 export const featureCards: FeatureCardItem[] = [
+  {
+    title: 'Graphify Calculator',
+    description: 'Plot multiple functions, explore graphs with interactive zoom/pan, and visualize equations in real-time with our advanced graphing calculator.',
+    href: '/graphify',
+    icon: Pi, 
+    ctaLabel: 'Launch Calculator',
+    dataAiHint: 'graph plot'
+  },
   {
     title: 'Binary Converter Game',
     description: 'Master binary numbers with our interactive 8-bit and 16-bit converter game. Toggle bits, see instant decimal and hex conversions, and test your skills in game mode!',
@@ -205,14 +211,6 @@ export const featureCards: FeatureCardItem[] = [
     ctaLabel: 'Start Duel',
     dataAiHint: 'math fractions'
   },
-  // { // Removed Ratio Scales from feature cards
-  //   title: 'Ratio Scales',
-  //   description: 'Balance weights on virtual scales to intuitively understand ratios and proportions. Experiment with different weights and see how equivalent ratios are formed.',
-  //   href: '/quick-math/ratio-scales',
-  //   icon: Scale,
-  //   ctaLabel: 'Explore Ratios',
-  //   dataAiHint: 'balance scales'
-  // },
   {
     title: 'Python: Output Match',
     description: 'Match Python code snippets to their correct output. A fun way to test your understanding of Python execution.',
@@ -283,5 +281,3 @@ export const siteConfig = {
 };
 
 export type SiteConfig = typeof siteConfig;
-
-    
