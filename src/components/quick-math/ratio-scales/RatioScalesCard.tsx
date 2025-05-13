@@ -9,7 +9,7 @@ import WeightPalette from './WeightPalette';
 import ResultDisplay from './ResultDisplay';
 import GameInfoPanel from './GameInfoPanel';
 import { sumArray, gcd } from '@/lib/mathUtils';
-import { Scale, RefreshCw, Target as TargetIcon, History } from 'lucide-react'; // Added TargetIcon and History
+import { Scale, RefreshCw } from 'lucide-react';
 
 export interface Weight {
   id: string;
@@ -23,26 +23,49 @@ export interface Ratio {
 
 export type GameStatus = 'playing' | 'balanced' | 'gameOver';
 
-const INITIAL_PALETTE_WEIGHTS: number[] = [1, 2, 3, 5, 10];
-const MAX_ATTEMPTS = 10;
+const INITIAL_PALETTE_WEIGHTS: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // Expanded palette
+const MAX_ATTEMPTS_GAME = 10; // Renamed from MAX_ATTEMPTS to avoid confusion
 
-function generateTargetRatio(): Ratio {
-  let left = Math.floor(Math.random() * 9) + 1;
-  let right = Math.floor(Math.random() * 9) + 1;
-  
-  // Ensure left and right are not the same for more interesting ratios, unless it's specifically 1:1
-  if (left === right) {
-    // Allow 1:1, but reroll for other identical values to get diverse ratios
-    if (left !== 1) { 
-        right = Math.floor(Math.random() * 9) + 1;
-        while (left === right && left !==1 ) { // ensure it's not same again if not 1:1
-             right = Math.floor(Math.random() * 9) + 1;
-        }
+function generateTargetRatio(attempt = 0): Ratio {
+  const MAX_GENERATION_ATTEMPTS = 10;
+  if (attempt > MAX_GENERATION_ATTEMPTS) {
+    // Fallback to a simple ratio if generation gets stuck
+    const rVal = () => Math.floor(Math.random() * 3) + 1; // 1 to 3
+    let fbLeft = rVal();
+    let fbRight = rVal();
+    while (fbLeft === fbRight && fbLeft !==1) fbRight = rVal(); // try to make them different if not 1:1
+    const fbCommon = gcd(fbLeft, fbRight);
+    return { left: fbLeft / fbCommon, right: fbRight / fbCommon };
+  }
+
+  let leftBase = Math.floor(Math.random() * 11) + 2; // Generates 2 to 12
+  let rightBase = Math.floor(Math.random() * 11) + 2; // Generates 2 to 12
+
+  // Ensure they are not initially the same to encourage more diverse simplified ratios
+  while (leftBase === rightBase) {
+    rightBase = Math.floor(Math.random() * 11) + 2;
+  }
+
+  const commonDivisor = gcd(leftBase, rightBase);
+  const simplifiedLeft = leftBase / commonDivisor;
+  const simplifiedRight = rightBase / commonDivisor;
+
+  const sumSimplified = simplifiedLeft + simplifiedRight;
+
+  // Reroll if the ratio is too simple (e.g. 1:2, 2:1, 1:3, 3:1) too often, but allow 1:1.
+  // This aims for target ratios like 3:2, 4:3, 5:2 etc. more frequently.
+  if (sumSimplified < 4 && !(simplifiedLeft === 1 && simplifiedRight === 1)) {
+    // If sum is less than 4 (e.g., 1:2 (sum=3) or 2:1 (sum=3)) and it's not 1:1, reroll.
+    return generateTargetRatio(attempt + 1);
+  }
+  // Further condition: if one side is 1 and the sum is small (like 1:3, 1:4), give a chance to reroll.
+  if ((simplifiedLeft === 1 || simplifiedRight === 1) && sumSimplified < 6 && !(simplifiedLeft === 1 && simplifiedRight === 1)) {
+    if (Math.random() < 0.6) { // 60% chance to reroll "simple-ish" ratios
+      return generateTargetRatio(attempt + 1);
     }
   }
 
-  const common = gcd(left, right);
-  return { left: left / common, right: right / common };
+  return { left: simplifiedLeft, right: simplifiedRight };
 }
 
 export default function RatioScalesCard() {
@@ -50,31 +73,31 @@ export default function RatioScalesCard() {
   const [rightWeights, setRightWeights] = useState<Weight[]>([]);
   
   const [targetRatio, setTargetRatio] = useState<Ratio>({ left: 1, right: 1 });
-  const [attemptsLeft, setAttemptsLeft] = useState<number>(MAX_ATTEMPTS);
+  const [attemptsLeft, setAttemptsLeft] = useState<number>(MAX_ATTEMPTS_GAME);
   const [gameStatus, setGameStatus] = useState<GameStatus>('playing');
 
   const sumLeft = sumArray(leftWeights.map(w => w.value));
   const sumRight = sumArray(rightWeights.map(w => w.value));
   
   let commonDivisor = 1;
-  if (sumLeft !== 0 || sumRight !== 0) {
+  if (sumLeft !== 0 || sumRight !== 0) { // Ensure not dividing by zero if both sums are zero
     commonDivisor = gcd(sumLeft, sumRight);
-    if (commonDivisor === 0 && (sumLeft !== 0 || sumRight !== 0)) commonDivisor = 1;
-    else if (commonDivisor === 0 && sumLeft === 0 && sumRight === 0) commonDivisor = 1;
+    if (commonDivisor === 0) commonDivisor = 1; // Should not happen if sums are non-zero, but safety.
+  } else { // Both sums are 0
+    commonDivisor = 1; // Ratio is 0:0, simplified is 0:0
   }
-
+  
   const simplifiedLeft = sumLeft === 0 && sumRight === 0 ? 0 : sumLeft / commonDivisor;
   const simplifiedRight = sumLeft === 0 && sumRight === 0 ? 0 : sumRight / commonDivisor;
-  const isCurrentlyBalanced = sumLeft === sumRight && sumLeft !== 0;
-
+  const isCurrentlyBalancedVisually = sumLeft === sumRight && sumLeft !== 0; // For visual tilt only
 
   const checkGameStatus = useCallback(() => {
-    if (gameStatus !== 'playing') return; // Don't re-evaluate if already balanced or game over
+    if (gameStatus !== 'playing') return;
 
     const currentRatioMatchesTarget = 
       simplifiedLeft === targetRatio.left && 
       simplifiedRight === targetRatio.right &&
-      (sumLeft > 0 || sumRight > 0 || (targetRatio.left === 0 && targetRatio.right === 0)); // handles 0:0 target if ever needed
+      (sumLeft > 0 || sumRight > 0 || (targetRatio.left === 0 && targetRatio.right === 0));
 
     if (currentRatioMatchesTarget) {
       setGameStatus('balanced');
@@ -92,12 +115,12 @@ export default function RatioScalesCard() {
     setTargetRatio(generateTargetRatio());
     setLeftWeights([]);
     setRightWeights([]);
-    setAttemptsLeft(MAX_ATTEMPTS);
+    setAttemptsLeft(MAX_ATTEMPTS_GAME);
     setGameStatus('playing');
   }, []);
 
   useEffect(() => {
-    startGame(); // Initialize game on first load
+    startGame();
   }, [startGame]);
 
   const handleAddWeight = (side: 'left' | 'right', value: number) => {
@@ -110,19 +133,16 @@ export default function RatioScalesCard() {
       setRightWeights(prev => [...prev, newWeight]);
     }
     setAttemptsLeft(prev => prev - 1);
-    // checkGameStatus will be called by useEffect due to sumLeft/sumRight/attemptsLeft change
   };
 
   const handleRemoveWeight = (side: 'left' | 'right', id: string) => {
-    if (gameStatus !== 'playing') return; // Allow removal even if attempts are 0, but not if game is over/balanced
+    if (gameStatus !== 'playing') return;
 
     if (side === 'left') {
       setLeftWeights(prev => prev.filter(w => w.id !== id));
     } else {
       setRightWeights(prev => prev.filter(w => w.id !== id));
     }
-    // Removing a weight does not cost an attempt or restore one
-    // checkGameStatus will be called by useEffect due to sumLeft/sumRight change
   };
 
   return (
@@ -132,7 +152,7 @@ export default function RatioScalesCard() {
           <Scale className="w-8 h-8" /> Ratio Scales Challenge
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Balance the scales to match the target ratio within {MAX_ATTEMPTS} weight placements.
+          Balance the scales to match the target ratio within {MAX_ATTEMPTS_GAME} weight placements.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -162,7 +182,7 @@ export default function RatioScalesCard() {
           sumRight={sumRight}
           simplifiedLeft={simplifiedLeft}
           simplifiedRight={simplifiedRight}
-          isBalanced={isCurrentlyBalanced}
+          isBalanced={isCurrentlyBalancedVisually}
           gameStatus={gameStatus}
           targetRatio={targetRatio}
         />
