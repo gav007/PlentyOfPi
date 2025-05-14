@@ -11,7 +11,7 @@ import SliderControl from './SliderControl';
 import ResultPanel from './ResultPanel';
 import TogglePanel from './TogglePanel';
 import { AlertTriangle } from 'lucide-react'; 
-import { Alert as UIAlert, AlertDescription, AlertTitle as UIAlertTitle } from '@/components/ui/alert'; 
+import { Alert as UIAlert, AlertDescription as UIAlertDescription, AlertTitle as UIAlertTitle } from '@/components/ui/alert'; 
 import { Button } from '@/components/ui/button';
 // import { PlusCircle } from 'lucide-react'; // PlusCircle moved to FunctionInput.tsx
 import { useToast } from '@/hooks/use-toast';
@@ -89,12 +89,19 @@ export interface CurrentFunctionInputType {
   integralBounds: { a: string; b: string };
 }
 
+interface CompiledFunctionEntry {
+  id: string;
+  compiled: math.MathNode | null;
+  error: string | null;
+}
+
 
 export default function CalculusPlaygroundCard() {
   const { toast } = useToast();
+  const nextIdSuffix = React.useRef(0);
   
   const generateInitialFunction = (): CurrentFunctionInputType => ({
-    id: crypto.randomUUID(), // Use crypto.randomUUID for unique IDs
+    id: `calculus-fn-${nextIdSuffix.current++}`,
     expression: 'x^2',
     color: getNextColor(),
     integralBounds: { a: '0', b: '2' },
@@ -105,9 +112,8 @@ export default function CalculusPlaygroundCard() {
   const [domainOptions, setDomainOptions] = React.useState<DomainOptions>(INITIAL_DOMAIN_OPTIONS);
   const [globalErrorMessage, setGlobalErrorMessage] = React.useState<string | null>(null);
 
-  const compilationModule = React.useMemo(() => {
-    let hasAnySyntaxError = false;
-    const compiledList = functions.map(func => {
+  const compiledFunctionsList = React.useMemo<CompiledFunctionEntry[]>(() => {
+    return functions.map(func => {
       try {
         if (!func.expression.trim()) {
           return { id: func.id, compiled: null, error: null };
@@ -116,48 +122,49 @@ export default function CalculusPlaygroundCard() {
         const node = math.parse(processedFuncStr);
         return { id: func.id, compiled: node.compile(), error: null };
       } catch (e) {
-        hasAnySyntaxError = true;
         const errorMsg = e instanceof Error ? `Syntax Error: ${e.message}` : 'Invalid function input.';
         const shortErrorMsg = errorMsg.substring(0, 100) + (errorMsg.length > 100 ? '...' : '');
         return { id: func.id, compiled: null, error: shortErrorMsg };
       }
     });
-    
-    const firstSyntaxErrorMsg = compiledList.find(c => c.error)?.error || null;
-
-    return { compiledList, firstSyntaxErrorMsg, hasAnySyntaxError };
   }, [functions]);
 
 
-  // Effect for global error messages based on syntax and plottability
   React.useEffect(() => {
-    const { firstSyntaxErrorMsg, hasAnySyntaxError } = compilationModule;
-    let newGlobalError: string | null = null;
-
-    if (hasAnySyntaxError && firstSyntaxErrorMsg) {
-        newGlobalError = firstSyntaxErrorMsg;
+    const firstSyntaxErrorMsg = compiledFunctionsList.find(c => c.error)?.error || null;
+    if (firstSyntaxErrorMsg) {
+        setGlobalErrorMessage(prevError => {
+            if (prevError && prevError.includes("no plottable points")) {
+                return `${firstSyntaxErrorMsg} Additionally, ${prevError.substring(prevError.indexOf("no plottable points"))}`;
+            }
+            return firstSyntaxErrorMsg;
+        });
+    } else {
+        setGlobalErrorMessage(prevError => {
+            if (prevError && prevError.includes("Syntax Error")) { // If there was a syntax error, clear it
+                if (prevError.includes("Additionally, no plottable points")) { // but keep non-plotting message if it exists
+                    return prevError.substring(prevError.indexOf("One or more functions resulted in no plottable points"));
+                }
+                return null; // Clear syntax error entirely
+            }
+            return prevError; // Keep existing non-syntax error (like no plottable points)
+        });
     }
-    
-    // This part assumes plotDataArray is available and up-to-date
-    // We will compute plotDataArray and then use its status for the "no plottable points" message.
-    // For now, we separate the syntax error message logic.
-    
-    setGlobalErrorMessage(newGlobalError);
-
-  }, [compilationModule]);
+  }, [compiledFunctionsList]);
 
 
   const evaluateFunctionAt = React.useCallback((funcId: string, x: number): number => {
-    const compiledEntry = compilationModule.compiledList.find(cf => cf.id === funcId);
+    const compiledEntry = compiledFunctionsList.find(cf => cf.id === funcId);
     if (!compiledEntry || !compiledEntry.compiled) return NaN;
     try {
       const result = compiledEntry.compiled.evaluate({ x, e: Math.E, pi: Math.PI });
       if (typeof result === 'object' && result.isComplex) return NaN;
       return (typeof result === 'number' && isFinite(result)) ? result : NaN;
     } catch (error) {
+      // console.error(`Error evaluating function '${compiledEntry.expression}' at x=${x}:`, error);
       return NaN;
     }
-  }, [compilationModule.compiledList]);
+  }, [compiledFunctionsList]);
 
   const parsedDomain = React.useMemo(() => {
     let xMin = parseFloat(domainOptions.xMin);
@@ -189,9 +196,9 @@ export default function CalculusPlaygroundCard() {
     });
   }, [functions, evaluateFunctionAt, parsedDomain.xMin, parsedDomain.xMax]);
 
-  // Effect for "no plottable points" error message
+
   React.useEffect(() => {
-    const { hasAnySyntaxError } = compilationModule;
+    const hasAnySyntaxError = compiledFunctionsList.some(c => c.error);
     const hasPlottablePoints = plotDataArray.some(
       (plot) => plot.points.length > 0 && plot.points.some((p) => p.y !== null && isFinite(p.y as number))
     );
@@ -199,34 +206,30 @@ export default function CalculusPlaygroundCard() {
 
     setGlobalErrorMessage(prevGlobalError => {
         let currentError = prevGlobalError || "";
-        // Remove any previous "no plottable" message part first to avoid duplication or outdated messages
         currentError = currentError.replace(/Additionally, one or more functions resulted in no plottable points.*?(\.|$)/i, "").trim();
         currentError = currentError.replace(/One or more functions resulted in no plottable points.*?(\. Additionally,|$)/i, "").trim();
 
-
-        if (!hasPlottablePoints && !hasAnySyntaxError) { // Show "no plottable" only if there's NO syntax error
+        if (!hasPlottablePoints && !hasAnySyntaxError) {
              if (currentError && !currentError.endsWith(".")) currentError += ".";
              currentError = currentError ? `${currentError} Additionally, ${noPlottableMessage.toLowerCase()}` : noPlottableMessage;
         }
         
-        // Clean up dangling "Additionally," or dots
         currentError = currentError.replace(/\.\s*Additionally,\s*$/, ".").trim();
         currentError = currentError.replace(/Additionally,\s*$/, "").trim();
-        currentError = currentError.replace(/\s*\.\s*$/, ".").trim(); // Remove space before final dot
+        currentError = currentError.replace(/\s*\.\s*$/, ".").trim(); 
         if (currentError.endsWith("Additionally,")) currentError = currentError.substring(0, currentError.length - "Additionally,".length).trim();
-
 
         return currentError === "" ? null : currentError;
     });
-  }, [plotDataArray, compilationModule.hasAnySyntaxError]);
+  }, [plotDataArray, compiledFunctionsList]);
 
 
-  const integralValuesMap = React.useMemo(() => {
+ const integralValuesMap = React.useMemo(() => {
     const map = new Map<string, number | undefined>();
     functions.forEach((func) => {
       const lowerBound = parseFloat(func.integralBounds.a);
       const upperBound = parseFloat(func.integralBounds.b);
-      const compiledEntry = compilationModule.compiledList.find(cf => cf.id === func.id);
+      const compiledEntry = compiledFunctionsList.find(cf => cf.id === func.id);
 
       if (compiledEntry?.compiled && !isNaN(lowerBound) && !isNaN(upperBound)) {
         const integral = trapezoidalRule((xVal) => evaluateFunctionAt(func.id, xVal), lowerBound, upperBound);
@@ -236,7 +239,7 @@ export default function CalculusPlaygroundCard() {
       }
     });
     return map;
-  }, [functions, compilationModule.compiledList, evaluateFunctionAt]);
+  }, [functions, compiledFunctionsList, evaluateFunctionAt]); // This is correct
 
 
   React.useEffect(() => {
@@ -279,7 +282,7 @@ export default function CalculusPlaygroundCard() {
          });
       });
       if (functions.length > 0 && firstFunctionFx !== null && isFinite(firstFunctionFx)){
-           allYValues.push(firstFunctionFx); // Consider current point's f(x)
+           allYValues.push(firstFunctionFx); 
       }
 
       if (showFullDerivativeCurve && functions.length > 0) {
@@ -303,10 +306,10 @@ export default function CalculusPlaygroundCard() {
         const dataMinY = Math.min(...allYValues);
         const dataMaxY = Math.max(...allYValues);
         let range = dataMaxY - dataMinY;
-        if (range === 0 && dataMinY === 0) range = 2; // if only y=0 is plotted
-        else if (range === 0) range = Math.abs(dataMinY * 0.2) || 1; // if all points are same non-zero y
+        if (range === 0 && dataMinY === 0) range = 2; 
+        else if (range === 0) range = Math.abs(dataMinY * 0.2) || 1; 
 
-        const padding = range * 0.15 || 1; // Default padding if range is 0
+        const padding = range * 0.15 || 1; 
 
         if (yMinResolved === 'auto') yMinResolved = dataMinY - padding;
         if (yMaxResolved === 'auto') yMaxResolved = dataMaxY + padding;
@@ -336,7 +339,7 @@ export default function CalculusPlaygroundCard() {
   }, [parsedDomain, plotDataArray, firstFunctionFx, functions, showFullDerivativeCurve, showTangent, firstFunctionFpx, xValue, evaluateFunctionAt]);
 
   const firstFunctionDerivativePlotData = React.useMemo(() => {
-    if (functions.length === 0 || !compilationModule.compiledList.find(c => c.id === functions[0].id)?.compiled || !showFullDerivativeCurve || effectiveDomain.xMin >= effectiveDomain.xMax) return [];
+    if (functions.length === 0 || !compiledFunctionsList.find(c => c.id === functions[0].id)?.compiled || !showFullDerivativeCurve || effectiveDomain.xMin >= effectiveDomain.xMax) return [];
     const points: { x: number; y: number | null }[] = [];
     const step = (effectiveDomain.xMax - effectiveDomain.xMin) / PLOT_POINTS;
     for (let i = 0; i <= PLOT_POINTS; i++) {
@@ -345,7 +348,7 @@ export default function CalculusPlaygroundCard() {
       points.push({ x, y: isNaN(yPrime) ? null : yPrime });
     }
     return points;
-  }, [evaluateFunctionAt, compilationModule.compiledList, showFullDerivativeCurve, effectiveDomain.xMin, effectiveDomain.xMax, functions]);
+  }, [evaluateFunctionAt, compiledFunctionsList, showFullDerivativeCurve, effectiveDomain.xMin, effectiveDomain.xMax, functions]);
 
   const areaDataArrayPlots = React.useMemo(() => {
     return plotDataArray.map((plot, index) => {
@@ -359,17 +362,20 @@ export default function CalculusPlaygroundCard() {
       if (isNaN(a) || isNaN(b)) {
          return { id: plot.id, points: [], color: plot.color };
       }
-      const lowerBound = Math.min(a,b);
-      const upperBound = Math.max(a,b);
       
       const areaPoints = plot.points.map((p) => ({
         x: p.x,
-        y: (p.y !== null && isFinite(p.y) && p.x >= lowerBound && p.x <= upperBound && p.x >= parsedDomain.xMin && p.x <= parsedDomain.xMax) ? p.y : 0,
+        y: (p.y !== null && isFinite(p.y) && p.x >= Math.min(a,b) && p.x <= Math.max(a,b) && p.x >= parsedDomain.xMin && p.x <= parsedDomain.xMax) ? p.y : 0,
       }));
       return { id: plot.id, points: areaPoints, color: func.color };
     });
   }, [plotDataArray, functions, showArea, xValue, parsedDomain.xMin, parsedDomain.xMax]);
 
+
+  React.useEffect(() => {
+    const firstFewPoints = areaDataArrayPlots[0]?.points.slice(0,10);
+    // console.log('CalculusPlaygroundCard areaDataArrayPlots[0] (first 10 points):', firstFewPoints, 'Total points:', areaDataArrayPlots[0]?.points.length);
+  }, [areaDataArrayPlots]);
 
   const handleXValueChangeByClick = (newX: number) => {
     const clampedNewX = Math.max(effectiveDomain.xMin, Math.min(effectiveDomain.xMax, newX));
@@ -411,7 +417,7 @@ export default function CalculusPlaygroundCard() {
     setFunctions(prev => [
       ...prev,
       { 
-        id: crypto.randomUUID(), 
+        id: `calculus-fn-${nextIdSuffix.current++}`, 
         expression: '', 
         color: getNextColor(), 
         integralBounds: { a: '0', b: '1' },
@@ -422,7 +428,6 @@ export default function CalculusPlaygroundCard() {
   const handleUpdateFunction = (id: string, updates: Partial<Omit<CurrentFunctionInputType, 'id'>>) => {
     setFunctions(prev => {
         const newFunctions = prev.map(f => (f.id === id ? { ...f, ...updates } : f));
-        // Check if expression was updated and re-validate if needed (already handled by compilationModule memo)
         return newFunctions;
     });
   };
@@ -451,7 +456,7 @@ export default function CalculusPlaygroundCard() {
       <CardContent className="space-y-6">
         <FunctionInput
           functions={functions}
-          compilationResultsList={compilationModule.compiledList}
+          compilationResultsList={compiledFunctionsList}
           onAddFunction={handleAddFunction}
           onUpdateFunction={handleUpdateFunction}
           onDeleteFunction={handleDeleteFunction}
