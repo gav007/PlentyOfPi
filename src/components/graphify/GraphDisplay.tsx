@@ -30,12 +30,17 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
     const fp = functionPlotRef.current; // Use the ref
 
     const dataToPlot = functions
-      .filter(f => f.isVisible && f.expression.trim() !== '' && !f.error)
+      .filter(f =>
+        f.isVisible &&
+        typeof f.expression === 'string' && // Ensure expression is a string
+        f.expression.trim() !== '' &&    // Ensure it's not empty
+        !f.error                           // Ensure no prior parsing error
+      )
       .map(f => ({
         fn: f.expression,
         color: f.color,
         graphType: 'polyline' as const,
-        sampler: 'builtIn' as const,
+        sampler: 'builtIn' as const, // Or 'interval' if preferred
       }));
 
     // Destroy previous instance and clean target before any plotting attempt or return
@@ -49,11 +54,11 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
 
     if (dataToPlot.length === 0) {
       if (graphRef.current) {
-        graphRef.current.innerHTML = '<p class="text-center text-muted-foreground p-4">No functions to plot.</p>';
+        graphRef.current.innerHTML = '<p class="text-center text-muted-foreground p-4">No valid functions to plot.</p>';
       }
       return; // Exit if no data to plot
     }
-
+    
     try {
       const options: any = {
         target: graphRef.current,
@@ -69,31 +74,27 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
         },
         grid: viewSettings.grid ?? true,
         data: dataToPlot,
-        disableZoom: true,
-        plugins: [], // Initialize with an empty array, zoom plugin can be added if needed & compatible
-        tip: {
+        disableZoom: true, // We handle zoom/pan manually or via controls
+        plugins: [
+          // No explicit zoom plugin if we manage it externally or if internal is sufficient and controlled by disableZoom
+        ],
+        tip: { // Tooltip configuration
           xLine: true,
           yLine: true,
           renderer: function (x: number, y: number, index: number) {
-            const func = dataToPlot[index];
-            // Safer access to func and func.fn
-            if (func && typeof func.fn === 'string') {
-              return `(${x.toFixed(3)}, ${y.toFixed(3)}) on ${func.fn}`;
+            const funcData = dataToPlot[index];
+            if (funcData && typeof funcData.fn === 'string') {
+              // Truncate long function strings in tooltip
+              const fnStr = funcData.fn.length > 20 ? funcData.fn.substring(0, 17) + '...' : funcData.fn;
+              return `y = ${fnStr}<br>(${x.toFixed(2)}, ${y.toFixed(2)})`;
             }
-            return `(${x.toFixed(3)}, ${y.toFixed(3)})`; // Fallback if func or func.fn is not available
+            return `(${x.toFixed(2)}, ${y.toFixed(2)})`;
           }
         }
       };
-
-      // Example of how plugins could be added if function-plot's internal zoom/pan was desired
-      // and compatible with disableZoom: true or manual handling.
-      // Currently, pan is manual, and zoom is via controls, so this is often not needed.
-      // if (fp.plugins && typeof fp.plugins.zoom === 'function') {
-      //   options.plugins.push(fp.plugins.zoom());
-      // }
-
-      plotInstanceRef.current = fp(options); // This is line 82 from error
-
+      
+      plotInstanceRef.current = fp(options);
+      
     } catch (error) {
       console.error("Error rendering graph with function-plot:", error);
       if (graphRef.current) {
@@ -158,3 +159,4 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
     </div>
   );
 }
+
