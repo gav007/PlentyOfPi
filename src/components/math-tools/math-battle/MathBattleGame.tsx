@@ -11,9 +11,10 @@ import HowToUseToggle from '@/components/ui/HowToUseToggle';
 import problemsData from '@/data/math-battle-problems.json';
 import type { MathBattleProblem } from '@/types';
 import AnswerOptionButtons from './AnswerOptionButtons';
+import { cn } from '@/lib/utils'; // Added import for cn
 
 const GAME_DURATION_SECONDS = 60;
-const MAX_PROBLEMS_PER_GAME = 10; // Updated from 20 for quicker games based on prompt structure
+const MAX_PROBLEMS_PER_GAME = 10; 
 
 export default function MathBattleGame() {
   const [allProblems, setAllProblems] = useState<MathBattleProblem[]>([]);
@@ -26,7 +27,6 @@ export default function MathBattleGame() {
   const [problemIndex, setProblemIndex] = useState(0);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
-  // Load and filter problems once on mount
   useEffect(() => {
      setAllProblems(problemsData.problems.filter(p => p.type === 'arithmetic') as MathBattleProblem[]);
   }, []);
@@ -41,7 +41,7 @@ export default function MathBattleGame() {
     return allProblems.filter(p => {
       const question = p.question;
       const parts = question.split(/([\+\-\*\/])/).map(s => s.trim());
-      if (parts.length < 3) return false; // Basic validation for structure "num op num"
+      if (parts.length < 3) return false; 
       
       const op = parts[1];
       const num1 = parseInt(parts[0], 10);
@@ -59,11 +59,11 @@ export default function MathBattleGame() {
                num2 <= maxTimesTable && num2 >= 0 &&
                p.answer <= (maxTimesTable * maxTimesTable) && p.answer >= 0;
       } else if (op === '/') {
-        return num2 !== 0 && // Divisor not zero
-               num1 <= (maxTimesTable * maxTimesTable) && num1 >=0 && // Dividend can be product
-               num2 <= maxTimesTable && num2 >=0 && // Divisor within table
-               Number.isInteger(p.answer) && // Answer is integer
-               p.answer <= maxTimesTable && p.answer >= 0; // Result within table
+        return num2 !== 0 && 
+               num1 <= (maxTimesTable * maxTimesTable) && num1 >=0 && 
+               num2 <= maxTimesTable && num2 >=0 && 
+               Number.isInteger(p.answer) && 
+               p.answer <= maxTimesTable && p.answer >= 0; 
       }
       return false;
     });
@@ -76,9 +76,9 @@ export default function MathBattleGame() {
     const maxAddSubResult = 100;
     const maxTimesTable = 12;
 
-    if (problemIndex < 5) { // Turns 1-5: Only Addition/Subtraction
+    if (problemIndex < 5) { 
       problemPool = getValidProblems(['+', '-'], maxAddSubOperand, maxAddSubResult, maxTimesTable);
-    } else { // Turns 6-10: All basic operations
+    } else { 
       problemPool = getValidProblems(['+', '-', '*', '/'], maxAddSubOperand, maxAddSubResult, maxTimesTable);
     }
     
@@ -87,14 +87,13 @@ export default function MathBattleGame() {
         return shuffled[0];
     } else {
         console.warn(`No problems found for turn ${problemIndex + 1} with current filters. Using fallback.`);
-        // Fallback to ensure a problem is always available if filters are too strict for the dataset
         const fallbackOps = (problemIndex < 5) ? ['+', '-'] : ['+', '-', '*', '/'];
-        let simplerPool = getValidProblems(fallbackOps, 20, 20, 10); // Simplified fallback criteria
-        if (simplerPool.length === 0) { // Absolute fallback if still empty
+        let simplerPool = getValidProblems(fallbackOps, 20, 20, 10); 
+        if (simplerPool.length === 0) { 
             simplerPool = allProblems.filter(p => fallbackOps.includes(p.question.split(/([\+\-\*\/])/)[1]));
         }
         const fallbackShuffled = [...simplerPool].sort(() => 0.5 - Math.random());
-        return fallbackShuffled.length > 0 ? fallbackShuffled[0] : allProblems[0] || null; // Return first problem if all else fails
+        return fallbackShuffled.length > 0 ? fallbackShuffled[0] : allProblems[0] || null; 
     }
   }, [problemIndex, allProblems, getValidProblems]);
 
@@ -127,18 +126,16 @@ export default function MathBattleGame() {
     if (gamePhase === 'playing' && timeLeft > 0 && !isAnswerSubmitted) {
       timerId = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
     } else if (gamePhase === 'playing' && timeLeft === 0 && !isAnswerSubmitted) {
-      // If time runs out before an answer is submitted for the current question
       setFeedback({ message: `Time's up! The answer was ${currentProblem?.answer}.`, type: 'incorrect' });
-      setIsAnswerSubmitted(true); // Mark as submitted to show feedback
-      setTimeout(() => { // Then proceed like a wrong answer
+      setIsAnswerSubmitted(true); 
+      setTimeout(() => { 
         if (problemIndex < MAX_PROBLEMS_PER_GAME - 1) {
           setProblemIndex(prev => prev + 1);
         } else {
           setGamePhase('over');
         }
-      }, 1200); // Delay to show feedback
+      }, 1200); 
     } else if (gamePhase === 'playing' && timeLeft === 0 && isAnswerSubmitted) {
-        // If time ran out while feedback for a submitted answer was showing, just end game.
         setGamePhase('over');
     }
     return () => clearTimeout(timerId);
@@ -149,11 +146,13 @@ export default function MathBattleGame() {
     setTimeLeft(GAME_DURATION_SECONDS);
     setProblemIndex(0);
     setIsAnswerSubmitted(false);
+    setSelectedOption(null); // Reset selected option
+    setFeedback(null); // Clear feedback
     setGamePhase('playing');
   };
 
   const handleOptionSelect = (option: number) => {
-    if (isAnswerSubmitted) return;
+    if (isAnswerSubmitted || gamePhase !== 'playing') return; // Ensure game is active
     setSelectedOption(option);
     handleSubmit(option);
   };
@@ -174,14 +173,15 @@ export default function MathBattleGame() {
     }
     
     setTimeout(() => {
-      if (timeLeft > 0) { // Only advance if time hasn't run out during feedback
+      if (timeLeft > 0) { 
         if (problemIndex < MAX_PROBLEMS_PER_GAME - 1) {
           setProblemIndex(prev => prev + 1);
+          // loadProblem will be called by useEffect due to problemIndex change
         } else {
           setGamePhase('over');
         }
       } else {
-        setGamePhase('over'); // If time ran out while showing feedback
+        setGamePhase('over'); 
       }
     }, 1200);
   };
@@ -270,4 +270,3 @@ export default function MathBattleGame() {
     </Card>
   );
 }
-
