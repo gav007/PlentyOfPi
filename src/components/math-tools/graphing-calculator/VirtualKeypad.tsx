@@ -2,7 +2,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Divide, Minus, Plus, XIcon as MultiplyIcon, Percent, Superscript, Sigma, Pi, SquareRootIcon } from 'lucide-react'; // Used SquareRootIcon
+import dynamic from 'next/dynamic';
+
+const Divide = dynamic(() => import('lucide-react').then(m => m.Divide), { ssr: false });
+const Minus = dynamic(() => import('lucide-react').then(m => m.Minus), { ssr: false });
+const Plus = dynamic(() => import('lucide-react').then(m => m.Plus), { ssr: false });
+const MultiplyIcon = dynamic(() => import('lucide-react').then(m => m.XIcon), { ssr: false });
+const Percent = dynamic(() => import('lucide-react').then(m => m.Percent), { ssr: false });
+const Superscript = dynamic(() => import('lucide-react').then(m => m.Superscript), { ssr: false });
+const Pi = dynamic(() => import('lucide-react').then(m => m.Pi), { ssr: false });
+const SquareRootIcon = dynamic(() => import('lucide-react').then(m => m.SquareRootIcon), { ssr: false });
 
 interface VirtualKeypadProps {
   onKeypadInput: (key: string) => void;

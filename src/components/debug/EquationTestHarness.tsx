@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import * as math from 'mathjs';
 import type { Expression } from '@/types/graphify'; // Assuming type exists
-import GraphCanvas from '@/components/graphify/GraphCanvas'; // Reuse your graph canvas
+import GraphCanvas from '@/components/math-tools/graphing-calculator/GraphCanvas'; // Reuse your graph canvas
 
 const defaultTestEquations = [
   "1/0", // Division by zero
