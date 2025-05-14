@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Zap, CheckCircle, XCircle, RotateCw, TimerIcon, Trophy } from 'lucide-react';
-import HowToUseToggle from '@/components/ui/HowToUseToggle'; // Corrected import path
+import HowToUseToggle from '@/components/ui/HowToUseToggle';
 import problemsData from '@/data/math-battle-problems.json';
 import type { MathBattleProblem } from '@/types';
 import AnswerOptionButtons from './AnswerOptionButtons';
 
 const GAME_DURATION_SECONDS = 60;
-const MAX_PROBLEMS_PER_GAME = 20; 
+const MAX_PROBLEMS_PER_GAME = 10; // Updated from 20 for quicker games based on prompt structure
 
 export default function MathBattleGame() {
   const [allProblems, setAllProblems] = useState<MathBattleProblem[]>([]);
@@ -26,56 +26,81 @@ export default function MathBattleGame() {
   const [problemIndex, setProblemIndex] = useState(0);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
-  const generateProblemSet = useCallback(() => {
-    const arithmeticProblems = problemsData.problems.filter(p => p.type === 'arithmetic');
-    const getValidProblems = (ops: string[], maxVal: number, timesTableMax?: number): MathBattleProblem[] => {
-      return arithmeticProblems.filter(p => {
-        const question = p.question;
-        if (ops.includes('+') && question.includes('+')) {
-          const parts = question.split('+').map(s => parseInt(s.trim(), 10));
-          return parts.every(num => num <= maxVal && num >=0) && p.answer <=maxVal && p.answer >=0;
-        }
-        if (ops.includes('-') && question.includes('-')) {
-          const parts = question.split('-').map(s => parseInt(s.trim(), 10));
-          return parts.every(num => num <= maxVal && num >=0) && p.answer >= 0 && p.answer <=maxVal;
-        }
-        if (ops.includes('*') && question.includes('*') && timesTableMax) {
-          const parts = question.split('*').map(s => parseInt(s.trim(), 10));
-          return parts.every(num => num <= timesTableMax && num >=0) && p.answer <= (timesTableMax*timesTableMax) && p.answer >=0;
-        }
-        if (ops.includes('/') && question.includes('/') && timesTableMax) {
-          const parts = question.split('/').map(s => parseInt(s.trim(), 10));
-          // Ensure divisor is not zero and parts are within times table logic
-          return parts[1] !== 0 && parts.every(num => num <= (timesTableMax*timesTableMax) && num >=0) && p.answer >=0 && Number.isInteger(p.answer) && p.answer <= timesTableMax ;
-        }
-        return false;
-      });
-    };
+  // Load and filter problems once on mount
+  useEffect(() => {
+     setAllProblems(problemsData.problems.filter(p => p.type === 'arithmetic') as MathBattleProblem[]);
+  }, []);
 
+  const getValidProblems = useCallback((
+    allowedOps: string[],
+    maxAddSubOperand: number,
+    maxAddSubResult: number,
+    maxTimesTable: number
+  ): MathBattleProblem[] => {
+    if (!allProblems || allProblems.length === 0) return [];
+    return allProblems.filter(p => {
+      const question = p.question;
+      const parts = question.split(/([\+\-\*\/])/).map(s => s.trim());
+      if (parts.length < 3) return false; // Basic validation for structure "num op num"
+      
+      const op = parts[1];
+      const num1 = parseInt(parts[0], 10);
+      const num2 = parseInt(parts[2], 10);
+
+      if (isNaN(num1) || isNaN(num2) || !op) return false;
+      if (!allowedOps.includes(op)) return false;
+
+      if (op === '+' || op === '-') {
+        return num1 <= maxAddSubOperand && num1 >= 0 &&
+               num2 <= maxAddSubOperand && num2 >= 0 &&
+               p.answer <= maxAddSubResult && p.answer >= 0;
+      } else if (op === '*') {
+        return num1 <= maxTimesTable && num1 >= 0 &&
+               num2 <= maxTimesTable && num2 >= 0 &&
+               p.answer <= (maxTimesTable * maxTimesTable) && p.answer >= 0;
+      } else if (op === '/') {
+        return num2 !== 0 && // Divisor not zero
+               num1 <= (maxTimesTable * maxTimesTable) && num1 >=0 && // Dividend can be product
+               num2 <= maxTimesTable && num2 >=0 && // Divisor within table
+               Number.isInteger(p.answer) && // Answer is integer
+               p.answer <= maxTimesTable && p.answer >= 0; // Result within table
+      }
+      return false;
+    });
+  }, [allProblems]);
+
+
+  const generateProblemSet = useCallback(() => {
     let problemPool: MathBattleProblem[];
-    if (problemIndex < 5) { // Easy: Addition/Subtraction up to 20, result up to 20
-        problemPool = getValidProblems(['+', '-'], 20);
-    } else if (problemIndex < 10) { // Medium: Addition/Subtraction up to 50, result up to 50
-        problemPool = getValidProblems(['+', '-'], 50);
-    } else if (problemIndex < 15) { // Hard: Addition/Subtraction up to 100, Basic Multiplication (up to 10x10)
-        problemPool = [
-            ...getValidProblems(['+', '-'], 100),
-            ...getValidProblems(['*'], 0, 10) 
-        ];
-    } else { // Very Hard: All ops, Multiplication/Division up to 12x12
-        problemPool = [
-            ...getValidProblems(['+', '-'], 100),
-            ...getValidProblems(['*', '/'], 0, 12)
-        ];
+    const maxAddSubOperand = 100;
+    const maxAddSubResult = 100;
+    const maxTimesTable = 12;
+
+    if (problemIndex < 5) { // Turns 1-5: Only Addition/Subtraction
+      problemPool = getValidProblems(['+', '-'], maxAddSubOperand, maxAddSubResult, maxTimesTable);
+    } else { // Turns 6-10: All basic operations
+      problemPool = getValidProblems(['+', '-', '*', '/'], maxAddSubOperand, maxAddSubResult, maxTimesTable);
     }
     
     const shuffled = [...problemPool].sort(() => 0.5 - Math.random());
-    return shuffled.length > 0 ? shuffled[0] : null; // Return one problem
-  }, [problemIndex]);
+    if (shuffled.length > 0) {
+        return shuffled[0];
+    } else {
+        console.warn(`No problems found for turn ${problemIndex + 1} with current filters. Using fallback.`);
+        // Fallback to ensure a problem is always available if filters are too strict for the dataset
+        const fallbackOps = (problemIndex < 5) ? ['+', '-'] : ['+', '-', '*', '/'];
+        let simplerPool = getValidProblems(fallbackOps, 20, 20, 10); // Simplified fallback criteria
+        if (simplerPool.length === 0) { // Absolute fallback if still empty
+            simplerPool = allProblems.filter(p => fallbackOps.includes(p.question.split(/([\+\-\*\/])/)[1]));
+        }
+        const fallbackShuffled = [...simplerPool].sort(() => 0.5 - Math.random());
+        return fallbackShuffled.length > 0 ? fallbackShuffled[0] : allProblems[0] || null; // Return first problem if all else fails
+    }
+  }, [problemIndex, allProblems, getValidProblems]);
 
 
   const loadProblem = useCallback(() => {
-    if (problemIndex >= MAX_PROBLEMS_PER_GAME) {
+    if (problemIndex >= MAX_PROBLEMS_PER_GAME || allProblems.length === 0) {
       setGamePhase('over');
       return;
     }
@@ -83,18 +108,14 @@ export default function MathBattleGame() {
     if (newProblem) {
         setCurrentProblem(newProblem);
     } else {
-        // Fallback or end game if no suitable problem is found for the difficulty
+        console.error("Failed to generate a new problem. Ending game.");
         setGamePhase('over'); 
     }
     setSelectedOption(null);
     setFeedback(null);
     setIsAnswerSubmitted(false);
-  }, [problemIndex, generateProblemSet]);
+  }, [problemIndex, generateProblemSet, allProblems.length]);
   
-  useEffect(() => {
-     setAllProblems(problemsData.problems.filter(p => p.type === 'arithmetic') as MathBattleProblem[]);
-  }, []);
-
   useEffect(() => {
     if (gamePhase === 'playing' && allProblems.length > 0) {
       loadProblem();
@@ -105,11 +126,23 @@ export default function MathBattleGame() {
     let timerId: NodeJS.Timeout;
     if (gamePhase === 'playing' && timeLeft > 0 && !isAnswerSubmitted) {
       timerId = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-    } else if (gamePhase === 'playing' && timeLeft === 0) {
-      setGamePhase('over');
+    } else if (gamePhase === 'playing' && timeLeft === 0 && !isAnswerSubmitted) {
+      // If time runs out before an answer is submitted for the current question
+      setFeedback({ message: `Time's up! The answer was ${currentProblem?.answer}.`, type: 'incorrect' });
+      setIsAnswerSubmitted(true); // Mark as submitted to show feedback
+      setTimeout(() => { // Then proceed like a wrong answer
+        if (problemIndex < MAX_PROBLEMS_PER_GAME - 1) {
+          setProblemIndex(prev => prev + 1);
+        } else {
+          setGamePhase('over');
+        }
+      }, 1200); // Delay to show feedback
+    } else if (gamePhase === 'playing' && timeLeft === 0 && isAnswerSubmitted) {
+        // If time ran out while feedback for a submitted answer was showing, just end game.
+        setGamePhase('over');
     }
     return () => clearTimeout(timerId);
-  }, [gamePhase, timeLeft, isAnswerSubmitted]);
+  }, [gamePhase, timeLeft, isAnswerSubmitted, currentProblem, problemIndex]);
 
   const startGame = () => {
     setScore(0);
@@ -141,10 +174,14 @@ export default function MathBattleGame() {
     }
     
     setTimeout(() => {
-      if (problemIndex < MAX_PROBLEMS_PER_GAME - 1 && timeLeft > 0) {
-        setProblemIndex(prev => prev + 1);
+      if (timeLeft > 0) { // Only advance if time hasn't run out during feedback
+        if (problemIndex < MAX_PROBLEMS_PER_GAME - 1) {
+          setProblemIndex(prev => prev + 1);
+        } else {
+          setGamePhase('over');
+        }
       } else {
-        setGamePhase('over');
+        setGamePhase('over'); // If time ran out while showing feedback
       }
     }, 1200);
   };
@@ -155,7 +192,9 @@ export default function MathBattleGame() {
     - You have ${GAME_DURATION_SECONDS} seconds to answer as many questions as possible (up to ${MAX_PROBLEMS_PER_GAME}).
     - Solve the math problem shown and click one of the answer choices.
     - Correct answers increase your score.
-    - Problems get harder as you progress.
+    - Problems may involve addition, subtraction, multiplication, or division.
+    - For addition/subtraction, operands and results are up to 100. Answers are non-negative.
+    - For multiplication/division, problems use up to the 12 times tables. Division results in whole numbers.
     - Good luck!
   `;
 
@@ -192,7 +231,7 @@ export default function MathBattleGame() {
             <Card className="p-6 bg-muted/30 text-center">
               <Label htmlFor="problem-text" className="sr-only">Current Problem</Label>
               <p id="problem-text" className="text-2xl sm:text-3xl font-mono text-foreground">
-                {currentProblem.question} = ?
+                {currentProblem.question.replace(/\*/g, '×').replace(/\//g, '÷')} = ?
               </p>
             </Card>
             
@@ -205,9 +244,12 @@ export default function MathBattleGame() {
             />
 
             {feedback && isAnswerSubmitted && (
-              <Alert variant={feedback.type === 'correct' ? 'default' : 'destructive'} className={feedback.type === 'correct' ? 'bg-green-500/10 border-green-500 text-green-700' : ''}>
+              <Alert variant={feedback.type === 'correct' ? 'default' : 'destructive'} className={cn(
+                feedback.type === 'correct' ? 'bg-green-500/10 border-green-500 text-green-700 dark:text-green-400' : 
+                'bg-destructive/10 border-destructive/50 text-destructive'
+              )}>
                 {feedback.type === 'correct' ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-                <AlertTitle>{feedback.type === 'correct' ? 'Correct!' : 'Incorrect!'}</AlertTitle>
+                <AlertTitle className={cn(feedback.type === 'correct' ? "text-green-700 dark:text-green-400" : "text-destructive")}>{feedback.type === 'correct' ? 'Correct!' : 'Incorrect!'}</AlertTitle>
                 <AlertDescription>{feedback.message}</AlertDescription>
               </Alert>
             )}
@@ -218,7 +260,7 @@ export default function MathBattleGame() {
           <div className="text-center space-y-4 p-6 bg-primary/10 rounded-lg">
             <h3 className="text-2xl font-bold text-primary">Game Over!</h3>
             <p className="text-xl text-foreground">Your final score: <span className="font-bold">{score}</span></p>
-            <p className="text-muted-foreground">You attempted {problemIndex >= MAX_PROBLEMS_PER_GAME || currentProblem === null ? Math.min(problemIndex, MAX_PROBLEMS_PER_GAME) : problemIndex +1 } questions.</p>
+            <p className="text-muted-foreground">You attempted {problemIndex >= MAX_PROBLEMS_PER_GAME || timeLeft === 0 ? Math.min(problemIndex + (isAnswerSubmitted || timeLeft === 0 ? 1:0) , MAX_PROBLEMS_PER_GAME) : problemIndex +1 } questions.</p>
             <Button onClick={startGame} size="lg" variant="outline">
               <RotateCw className="mr-2 h-5 w-5" /> Play Again
             </Button>
@@ -228,3 +270,4 @@ export default function MathBattleGame() {
     </Card>
   );
 }
+
