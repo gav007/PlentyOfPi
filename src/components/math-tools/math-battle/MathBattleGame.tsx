@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -11,7 +10,7 @@ import HowToUseToggle from '@/components/ui/HowToUseToggle';
 import problemsData from '@/data/math-battle-problems.json';
 import type { MathBattleProblem } from '@/types';
 import AnswerOptionButtons from './AnswerOptionButtons';
-import { cn } from '@/lib/utils'; // Added import for cn
+import { cn } from '@/lib/utils';
 
 const GAME_DURATION_SECONDS = 60;
 const MAX_PROBLEMS_PER_GAME = 10; 
@@ -28,7 +27,9 @@ export default function MathBattleGame() {
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
   useEffect(() => {
-     setAllProblems(problemsData.problems.filter(p => p.type === 'arithmetic') as MathBattleProblem[]);
+     // Ensure problemsData.problems exists and is an array before filtering
+     const problems = Array.isArray(problemsData?.problems) ? problemsData.problems : [];
+     setAllProblems(problems.filter(p => p.type === 'arithmetic') as MathBattleProblem[]);
   }, []);
 
   const getValidProblems = useCallback((
@@ -59,7 +60,9 @@ export default function MathBattleGame() {
                num2 <= maxTimesTable && num2 >= 0 &&
                p.answer <= (maxTimesTable * maxTimesTable) && p.answer >= 0;
       } else if (op === '/') {
+        // Ensure num1 is a multiple of num2 for whole number division results
         return num2 !== 0 && 
+               num1 % num2 === 0 && // Ensure whole number result
                num1 <= (maxTimesTable * maxTimesTable) && num1 >=0 && 
                num2 <= maxTimesTable && num2 >=0 && 
                Number.isInteger(p.answer) && 
@@ -76,24 +79,44 @@ export default function MathBattleGame() {
     const maxAddSubResult = 100;
     const maxTimesTable = 12;
 
-    if (problemIndex < 5) { 
-      problemPool = getValidProblems(['+', '-'], maxAddSubOperand, maxAddSubResult, maxTimesTable);
-    } else { 
-      problemPool = getValidProblems(['+', '-', '*', '/'], maxAddSubOperand, maxAddSubResult, maxTimesTable);
+    // Difficulty scaling:
+    // Turns 1-3 (index 0-2): Addition/Subtraction, operands up to 20, result up to 20
+    // Turns 4-7 (index 3-6): Addition/Subtraction up to 100. Basic Multiplication up to 10x10.
+    // Turns 8-10 (index 7-9): All ops, full range up to 12x12 for mult/div.
+    let currentDifficultyOps: string[];
+    let currentMaxAddSubOperand = maxAddSubOperand;
+    let currentMaxAddSubResult = maxAddSubResult;
+    let currentMaxTimesTable = maxTimesTable;
+
+    if (problemIndex < 3) { // Easy
+        currentDifficultyOps = ['+', '-'];
+        currentMaxAddSubOperand = 20;
+        currentMaxAddSubResult = 20;
+        currentMaxTimesTable = 0; // No multiplication/division
+    } else if (problemIndex < 7) { // Medium
+        currentDifficultyOps = ['+', '-', '*'];
+        currentMaxAddSubOperand = 50; // Increase difficulty slightly
+        currentMaxAddSubResult = 50;
+        currentMaxTimesTable = 10;
+    } else { // Hard
+        currentDifficultyOps = ['+', '-', '*', '/'];
+        // Use full defaults for hard
     }
+    
+    problemPool = getValidProblems(currentDifficultyOps, currentMaxAddSubOperand, currentMaxAddSubResult, currentMaxTimesTable);
     
     const shuffled = [...problemPool].sort(() => 0.5 - Math.random());
     if (shuffled.length > 0) {
         return shuffled[0];
     } else {
-        console.warn(`No problems found for turn ${problemIndex + 1} with current filters. Using fallback.`);
-        const fallbackOps = (problemIndex < 5) ? ['+', '-'] : ['+', '-', '*', '/'];
-        let simplerPool = getValidProblems(fallbackOps, 20, 20, 10); 
-        if (simplerPool.length === 0) { 
-            simplerPool = allProblems.filter(p => fallbackOps.includes(p.question.split(/([\+\-\*\/])/)[1]));
+        // Fallback if no specific problems match, widen criteria
+        console.warn(`No problems found for turn ${problemIndex + 1} with difficulty filters. Using broader fallback.`);
+        let fallbackPool = getValidProblems(currentDifficultyOps, 100, 100, 12); // Use broadest for the ops
+        if (fallbackPool.length === 0) { // If still no problems, use any arithmetic problem
+            fallbackPool = allProblems.filter(p => p.type === 'arithmetic' && ['+', '-', '*', '/'].includes(p.question.split(/([\+\-\*\/])/)[1]));
         }
-        const fallbackShuffled = [...simplerPool].sort(() => 0.5 - Math.random());
-        return fallbackShuffled.length > 0 ? fallbackShuffled[0] : allProblems[0] || null; 
+        const fallbackShuffled = [...fallbackPool].sort(() => 0.5 - Math.random());
+        return fallbackShuffled.length > 0 ? fallbackShuffled[0] : (allProblems[0] || null); 
     }
   }, [problemIndex, allProblems, getValidProblems]);
 
@@ -146,13 +169,13 @@ export default function MathBattleGame() {
     setTimeLeft(GAME_DURATION_SECONDS);
     setProblemIndex(0);
     setIsAnswerSubmitted(false);
-    setSelectedOption(null); // Reset selected option
-    setFeedback(null); // Clear feedback
+    setSelectedOption(null); 
+    setFeedback(null); 
     setGamePhase('playing');
   };
 
   const handleOptionSelect = (option: number) => {
-    if (isAnswerSubmitted || gamePhase !== 'playing') return; // Ensure game is active
+    if (isAnswerSubmitted || gamePhase !== 'playing') return; 
     setSelectedOption(option);
     handleSubmit(option);
   };
@@ -176,7 +199,6 @@ export default function MathBattleGame() {
       if (timeLeft > 0) { 
         if (problemIndex < MAX_PROBLEMS_PER_GAME - 1) {
           setProblemIndex(prev => prev + 1);
-          // loadProblem will be called by useEffect due to problemIndex change
         } else {
           setGamePhase('over');
         }
@@ -192,9 +214,8 @@ export default function MathBattleGame() {
     - You have ${GAME_DURATION_SECONDS} seconds to answer as many questions as possible (up to ${MAX_PROBLEMS_PER_GAME}).
     - Solve the math problem shown and click one of the answer choices.
     - Correct answers increase your score.
-    - Problems may involve addition, subtraction, multiplication, or division.
-    - For addition/subtraction, operands and results are up to 100. Answers are non-negative.
-    - For multiplication/division, problems use up to the 12 times tables. Division results in whole numbers.
+    - Problems involve addition & subtraction (operands/results up to 100, positive answers), and multiplication & division (up to 12 times tables, whole number division results).
+    - Difficulty increases over turns.
     - Good luck!
   `;
 
@@ -245,12 +266,15 @@ export default function MathBattleGame() {
 
             {feedback && isAnswerSubmitted && (
               <Alert variant={feedback.type === 'correct' ? 'default' : 'destructive'} className={cn(
+                "text-sm", // Ensure text size is consistent
                 feedback.type === 'correct' ? 'bg-green-500/10 border-green-500 text-green-700 dark:text-green-400' : 
                 'bg-destructive/10 border-destructive/50 text-destructive'
               )}>
-                {feedback.type === 'correct' ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-                <AlertTitle className={cn(feedback.type === 'correct' ? "text-green-700 dark:text-green-400" : "text-destructive")}>{feedback.type === 'correct' ? 'Correct!' : 'Incorrect!'}</AlertTitle>
-                <AlertDescription>{feedback.message}</AlertDescription>
+                <div className="flex items-center gap-1.5">
+                  {feedback.type === 'correct' ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                  <AlertTitle className={cn("font-semibold", feedback.type === 'correct' ? "text-green-700 dark:text-green-400" : "text-destructive")}>{feedback.type === 'correct' ? 'Correct!' : 'Incorrect!'}</AlertTitle>
+                </div>
+                <AlertDescription className="mt-1 pl-6">{feedback.message}</AlertDescription>
               </Alert>
             )}
           </div>

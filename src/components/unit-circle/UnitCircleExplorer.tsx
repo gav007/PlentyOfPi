@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -13,7 +12,7 @@ import SineWavePlot from './SineWavePlot';
 import UnitCircleGamePanel from './UnitCircleGamePanel';
 import { checkAngleMatch, formatAngleToPiString, getRandomAngleByDifficulty } from '@/lib/AngleEvaluation'; 
 
-const SVG_SIZE = 320;
+// const SVG_SIZE = 320; // No longer needed for fixed size
 const SINE_WAVE_HEIGHT = 150;
 const MAX_TURNS_UNIT_CIRCLE = 10;
 const FEEDBACK_DELAY_MS = 2500;
@@ -50,7 +49,7 @@ export default function UnitCircleExplorer() {
 
   const startNewActiveTurn = useCallback((currentTurn: number) => {
     const newTarget = getRandomAngleByDifficulty(currentTurn, previousTargetAngleRef.current);
-    setTargetAngleRad(newTarget); // Set current target immediately for the new turn
+    setTargetAngleRad(newTarget); 
     previousTargetAngleRef.current = newTarget;
     
     setGameFeedback(null); 
@@ -68,24 +67,17 @@ export default function UnitCircleExplorer() {
     setIsGuessCorrect(null);
     previousTargetAngleRef.current = null;
     setPendingTargetAngleRad(null); 
-    // targetAngleRad will be set by the 'turn' effect or explicitly by startNewActiveTurn(1)
   }, []);
 
   const handleRestartGame = () => {
     resetGame();
-    // The useEffect watching 'turn' and 'isShowingFeedback' should handle starting the new game
-    // by calling startNewActiveTurn when turn is 1 and not showing feedback.
-    // To be sure, we can explicitly set turn to 1 and isShowingFeedback to false,
-    // which will be picked up by the main game loop useEffect.
-    // Or, more directly:
     startNewActiveTurn(1); 
   };
-
 
   useEffect(() => {
     if (!gameMode) return;
 
-    if (isGameOver) { // Game is over, do nothing further until restart
+    if (isGameOver) { 
         return;
     }
 
@@ -97,7 +89,6 @@ export default function UnitCircleExplorer() {
         setIsGuessCorrect(null);
     } else {
         if (!isShowingFeedback) {
-            // This is the start of a new turn (or game start)
             startNewActiveTurn(turn);
         }
     }
@@ -106,7 +97,7 @@ export default function UnitCircleExplorer() {
   useEffect(() => {
     if (gameMode) {
        resetGame();
-       startNewActiveTurn(1); // Start the first turn explicitly
+       startNewActiveTurn(1); 
     } else {
       setTargetAngleRad(null);
       setPendingTargetAngleRad(null);
@@ -115,13 +106,13 @@ export default function UnitCircleExplorer() {
       setIsGameInteractionLocked(false);
       setIsGameOver(false);
       setIsShowingFeedback(false);
-      resetGame(); // Ensure all game states are cleared
+      resetGame(); 
     }
   }, [gameMode, resetGame, startNewActiveTurn]);
 
 
   const handleAngleChange = (newAngle: number) => {
-    if (!isGameInteractionLocked && !isShowingFeedback) { // Also prevent angle change during feedback
+    if (!isGameInteractionLocked && !isShowingFeedback) { 
       setAngleRad(newAngle);
     }
   };
@@ -129,8 +120,8 @@ export default function UnitCircleExplorer() {
   const handleLockIn = () => {
     if (targetAngleRad === null || isGameInteractionLocked || isGameOver || isShowingFeedback) return;
 
-    setIsGameInteractionLocked(true); // Lock interactions immediately
-    setIsShowingFeedback(true); // Indicate feedback phase has started
+    setIsGameInteractionLocked(true); 
+    setIsShowingFeedback(true); 
 
     const { match, errorDegrees } = checkAngleMatch(angleRad, targetAngleRad, true);
 
@@ -145,7 +136,6 @@ export default function UnitCircleExplorer() {
     }
     setGameFeedback(turnFeedbackMsg);
 
-    // Prepare for next turn, but don't activate it yet
     if (turn < MAX_TURNS_UNIT_CIRCLE) {
         const nextTarget = getRandomAngleByDifficulty(turn + 1, targetAngleRad);
         setPendingTargetAngleRad(nextTarget);
@@ -153,14 +143,12 @@ export default function UnitCircleExplorer() {
 
 
     setTimeout(() => {
-      setIsShowingFeedback(false); // Feedback phase over
-      setIsGameInteractionLocked(false); // Unlock for next turn IF game is not over
+      setIsShowingFeedback(false); 
+      setIsGameInteractionLocked(false); 
 
       if (turn >= MAX_TURNS_UNIT_CIRCLE) {
-        // This will be caught by the main useEffect to set game over
          setTurn(prevTurn => prevTurn + 1); 
       } else {
-        // Advance to the next turn, set the pending target as active
         setTargetAngleRad(pendingTargetAngleRad);
         previousTargetAngleRef.current = pendingTargetAngleRad;
         setPendingTargetAngleRad(null);
@@ -219,16 +207,19 @@ export default function UnitCircleExplorer() {
               {gameMode ? "Set the angle to match the target!" : "Drag the handle on the circle."}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center">
-            <UnitCircleCanvas
-              angle={angleRad}
-              onAngleChange={handleAngleChange}
-              showCheatOverlay={showCheatOverlay}
-              size={SVG_SIZE}
-              gameMode={gameMode}
-              targetAngleRad={targetAngleRad}
-              isGameInteractionLocked={isGameInteractionLocked || isShowingFeedback}
-            />
+          {/* Container for the SVG to control its max width and centering */}
+          <CardContent className="flex justify-center p-2 sm:p-4">
+            <div className="w-full max-w-[320px] sm:max-w-[400px]"> {/* Max width for the SVG container */}
+              <UnitCircleCanvas
+                angle={angleRad}
+                onAngleChange={handleAngleChange}
+                showCheatOverlay={showCheatOverlay}
+                // size prop removed
+                gameMode={gameMode}
+                targetAngleRad={targetAngleRad}
+                isGameInteractionLocked={isGameInteractionLocked || isShowingFeedback}
+              />
+            </div>
           </CardContent>
         </Card>
 

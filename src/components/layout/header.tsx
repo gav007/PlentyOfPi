@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -141,7 +140,7 @@ export default function Header() {
         <div className="md:hidden">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open navigation menu">
+              <Button variant="ghost" size="icon" aria-label="Toggle navigation menu">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>

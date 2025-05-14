@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { FunctionDefinition } from '@/types/graphify';
@@ -22,9 +21,8 @@ export default function FunctionList({
 }: FunctionListProps) {
   return (
     <div className="flex flex-col h-full">
-      <ScrollArea className="flex-grow max-h-[200px] sm:max-h-[250px] pr-2 border rounded-md bg-card">
-        {/* Removed outer divide-y, FunctionInputItem handles its own border-b */}
-        <div> 
+      <ScrollArea className="flex-grow max-h-[200px] sm:max-h-[280px] pr-1 border rounded-md bg-card"> {/* Increased max-h slightly */}
+        <div className="divide-y divide-border"> {/* Moved divide-y here for item separation */}
           {functions.map((func) => (
             <FunctionInputItem
               key={func.id}
