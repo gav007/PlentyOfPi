@@ -34,12 +34,28 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
       .map(f => ({
         fn: f.expression,
         color: f.color,
-        graphType: 'polyline' as const, 
-        sampler: 'builtIn' as const,    
+        graphType: 'polyline' as const,
+        sampler: 'builtIn' as const,
       }));
 
+    // Destroy previous instance and clean target before any plotting attempt or return
+    if (plotInstanceRef.current && typeof plotInstanceRef.current.destroy === 'function') {
+      plotInstanceRef.current.destroy();
+      plotInstanceRef.current = null;
+    }
+    if (graphRef.current) {
+      graphRef.current.innerHTML = ''; // Clean the target element
+    }
+
+    if (dataToPlot.length === 0) {
+      if (graphRef.current) {
+        graphRef.current.innerHTML = '<p class="text-center text-muted-foreground p-4">No functions to plot.</p>';
+      }
+      return; // Exit if no data to plot
+    }
+
     try {
-      const options: any = { 
+      const options: any = {
         target: graphRef.current,
         width: graphRef.current.clientWidth,
         height: graphRef.current.clientHeight,
@@ -53,34 +69,31 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
         },
         grid: viewSettings.grid ?? true,
         data: dataToPlot,
-        disableZoom: true, 
-        plugins: [], // Initialize with an empty array
-        tip: { 
+        disableZoom: true,
+        plugins: [], // Initialize with an empty array, zoom plugin can be added if needed & compatible
+        tip: {
           xLine: true,
           yLine: true,
           renderer: function (x: number, y: number, index: number) {
             const func = dataToPlot[index];
-            return `(${x.toFixed(3)}, ${y.toFixed(3)}) on ${func.fn}`;
+            // Safer access to func and func.fn
+            if (func && typeof func.fn === 'string') {
+              return `(${x.toFixed(3)}, ${y.toFixed(3)}) on ${func.fn}`;
+            }
+            return `(${x.toFixed(3)}, ${y.toFixed(3)})`; // Fallback if func or func.fn is not available
           }
         }
       };
-      
-      // Safely add zoom plugin if available
-      if (fp.plugins && typeof fp.plugins.zoom === 'function') {
-        options.plugins.push(fp.plugins.zoom());
-      } else {
-        console.warn("function-plot zoom plugin not available or not a function.");
-      }
-      
-      // Safely add pan plugin if available (example, if you decide to use it)
-      // if (fp.plugins && typeof fp.plugins.pan === 'function') {
-      //   options.plugins.push(fp.plugins.pan());
-      // } else {
-      //   console.warn("function-plot pan plugin not available or not a function.");
+
+      // Example of how plugins could be added if function-plot's internal zoom/pan was desired
+      // and compatible with disableZoom: true or manual handling.
+      // Currently, pan is manual, and zoom is via controls, so this is often not needed.
+      // if (fp.plugins && typeof fp.plugins.zoom === 'function') {
+      //   options.plugins.push(fp.plugins.zoom());
       // }
-      
-      plotInstanceRef.current = fp(options);
-      
+
+      plotInstanceRef.current = fp(options); // This is line 82 from error
+
     } catch (error) {
       console.error("Error rendering graph with function-plot:", error);
       if (graphRef.current) {
@@ -94,16 +107,16 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
     if(isPlotLibLoaded) { // Ensure lib is loaded before first draw
         drawGraph();
     }
-  }, [drawGraph, isPlotLibLoaded]); 
+  }, [drawGraph, isPlotLibLoaded]);
 
   useEffect(() => {
-    if (!graphRef.current || !isPlotLibLoaded) return; // Add isPlotLibLoaded check
+    if (!graphRef.current || !isPlotLibLoaded) return;
     const resizeObserver = new ResizeObserver(() => {
       drawGraph();
     });
     resizeObserver.observe(graphRef.current);
     return () => resizeObserver.disconnect();
-  }, [drawGraph, isPlotLibLoaded]); // Add isPlotLibLoaded check
+  }, [drawGraph, isPlotLibLoaded]);
 
 
   const dragStartRef = useRef<{ x: number, y: number } | null>(null);
@@ -121,18 +134,18 @@ export default function GraphDisplay({ functions, viewSettings, onPan }: GraphDi
       const plotHeight = graphRef.current.clientHeight;
 
       if (plotWidth > 0 && plotHeight > 0) {
-        onPan(-dx / plotWidth, dy / plotHeight); 
+        onPan(-dx / plotWidth, dy / plotHeight);
       }
       dragStartRef.current = { x: e.clientX, y: e.clientY };
     }
   };
-  
+
   const handleMouseUpOrLeave = () => {
     dragStartRef.current = null;
   };
 
   return (
-    <div 
+    <div
       className="w-full h-full bg-background rounded-md shadow-lg border cursor-grab active:cursor-grabbing"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
