@@ -22,8 +22,8 @@ import {
   Search, 
   DraftingCompass, 
   Repeat,
-  Users, // Placeholder, if Game Theory comes back
-  Pi, // Icon for Graphify
+  Users,
+  Pi,
 } from 'lucide-react';
 
 export const navItems: NavItem[] = [
@@ -70,17 +70,11 @@ export const navItems: NavItem[] = [
     subItems: [
       {
         title: 'Graphify Calculator',
-        href: '/graphify', // New Graphify link
-        icon: Pi, // Using Pi icon for Graphify
+        href: '/graphify', 
+        icon: Pi, 
         description: 'Advanced interactive graphing calculator.',
       },
        {
-        title: 'Calculus Playground',
-        href: '/calculus-playground',
-        icon: Sigma,
-        description: 'Visualize functions, derivatives, and integrals.',
-      },
-      {
         title: 'Prime Tester',
         href: '/tools/prime-tester',
         icon: Search, 
@@ -170,14 +164,6 @@ export const featureCards: FeatureCardItem[] = [
     icon: Orbit,
     ctaLabel: 'Explore Circle',
     dataAiHint: 'math circle'
-  },
-  {
-    title: 'Calculus Playground',
-    description: 'Visualize calculus concepts. Input functions, explore graphs, derivatives (as tangent lines), and integrals (area under curve) with an interactive slider and customizable graph bounds.',
-    href: '/calculus-playground',
-    icon: Sigma,
-    ctaLabel: 'Start Plotting',
-    dataAiHint: 'calculus graph'
   },
   {
     title: 'Prime Tester',
