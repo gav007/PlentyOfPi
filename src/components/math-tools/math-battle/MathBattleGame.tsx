@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Zap, CheckCircle, XCircle, RotateCw, TimerIcon, Trophy } from 'lucide-react';
-import HowToUseToggle from '@/components/ui/HowToUseToggle';
+import HowToUseToggle from '@/components/ui/HowToUseToggle'; // Corrected import path
 import problemsData from '@/data/math-battle-problems.json';
 import type { MathBattleProblem } from '@/types';
-import AnswerOptionButtons from './AnswerOptionButtons'; // New component for MCQs
+import AnswerOptionButtons from './AnswerOptionButtons';
 
 const GAME_DURATION_SECONDS = 60;
 const MAX_PROBLEMS_PER_GAME = 20; 
@@ -26,33 +26,84 @@ export default function MathBattleGame() {
   const [problemIndex, setProblemIndex] = useState(0);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
+  const generateProblemSet = useCallback(() => {
+    const arithmeticProblems = problemsData.problems.filter(p => p.type === 'arithmetic');
+    const getValidProblems = (ops: string[], maxVal: number, timesTableMax?: number): MathBattleProblem[] => {
+      return arithmeticProblems.filter(p => {
+        const question = p.question;
+        if (ops.includes('+') && question.includes('+')) {
+          const parts = question.split('+').map(s => parseInt(s.trim(), 10));
+          return parts.every(num => num <= maxVal && num >=0) && p.answer <=maxVal && p.answer >=0;
+        }
+        if (ops.includes('-') && question.includes('-')) {
+          const parts = question.split('-').map(s => parseInt(s.trim(), 10));
+          return parts.every(num => num <= maxVal && num >=0) && p.answer >= 0 && p.answer <=maxVal;
+        }
+        if (ops.includes('*') && question.includes('*') && timesTableMax) {
+          const parts = question.split('*').map(s => parseInt(s.trim(), 10));
+          return parts.every(num => num <= timesTableMax && num >=0) && p.answer <= (timesTableMax*timesTableMax) && p.answer >=0;
+        }
+        if (ops.includes('/') && question.includes('/') && timesTableMax) {
+          const parts = question.split('/').map(s => parseInt(s.trim(), 10));
+          // Ensure divisor is not zero and parts are within times table logic
+          return parts[1] !== 0 && parts.every(num => num <= (timesTableMax*timesTableMax) && num >=0) && p.answer >=0 && Number.isInteger(p.answer) && p.answer <= timesTableMax ;
+        }
+        return false;
+      });
+    };
+
+    let problemPool: MathBattleProblem[];
+    if (problemIndex < 5) { // Easy: Addition/Subtraction up to 20, result up to 20
+        problemPool = getValidProblems(['+', '-'], 20);
+    } else if (problemIndex < 10) { // Medium: Addition/Subtraction up to 50, result up to 50
+        problemPool = getValidProblems(['+', '-'], 50);
+    } else if (problemIndex < 15) { // Hard: Addition/Subtraction up to 100, Basic Multiplication (up to 10x10)
+        problemPool = [
+            ...getValidProblems(['+', '-'], 100),
+            ...getValidProblems(['*'], 0, 10) 
+        ];
+    } else { // Very Hard: All ops, Multiplication/Division up to 12x12
+        problemPool = [
+            ...getValidProblems(['+', '-'], 100),
+            ...getValidProblems(['*', '/'], 0, 12)
+        ];
+    }
+    
+    const shuffled = [...problemPool].sort(() => 0.5 - Math.random());
+    return shuffled.length > 0 ? shuffled[0] : null; // Return one problem
+  }, [problemIndex]);
+
+
   const loadProblem = useCallback(() => {
-    if (problemIndex >= allProblems.length || problemIndex >= MAX_PROBLEMS_PER_GAME) {
+    if (problemIndex >= MAX_PROBLEMS_PER_GAME) {
       setGamePhase('over');
       return;
     }
-    setCurrentProblem(allProblems[problemIndex]);
+    const newProblem = generateProblemSet();
+    if (newProblem) {
+        setCurrentProblem(newProblem);
+    } else {
+        // Fallback or end game if no suitable problem is found for the difficulty
+        setGamePhase('over'); 
+    }
     setSelectedOption(null);
     setFeedback(null);
     setIsAnswerSubmitted(false);
-  }, [problemIndex, allProblems]);
+  }, [problemIndex, generateProblemSet]);
   
   useEffect(() => {
-    const problemsOfTypeArithmetic = problemsData.problems.filter(p => p.type === 'arithmetic') as MathBattleProblem[];
-    const shuffledProblems = [...problemsOfTypeArithmetic].sort(() => 0.5 - Math.random());
-    setAllProblems(shuffledProblems);
+     setAllProblems(problemsData.problems.filter(p => p.type === 'arithmetic') as MathBattleProblem[]);
   }, []);
 
   useEffect(() => {
     if (gamePhase === 'playing' && allProblems.length > 0) {
       loadProblem();
     }
-     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gamePhase, problemIndex, allProblems.length]); // loadProblem is memoized, so only allProblems.length is needed
+  }, [gamePhase, problemIndex, allProblems.length, loadProblem]);
 
   useEffect(() => {
     let timerId: NodeJS.Timeout;
-    if (gamePhase === 'playing' && timeLeft > 0 && !isAnswerSubmitted) { // Pause timer after submission
+    if (gamePhase === 'playing' && timeLeft > 0 && !isAnswerSubmitted) {
       timerId = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
     } else if (gamePhase === 'playing' && timeLeft === 0) {
       setGamePhase('over');
@@ -71,7 +122,7 @@ export default function MathBattleGame() {
   const handleOptionSelect = (option: number) => {
     if (isAnswerSubmitted) return;
     setSelectedOption(option);
-    handleSubmit(option); // Auto-submit on option select for faster gameplay
+    handleSubmit(option);
   };
 
   const handleSubmit = (chosenOption: number | null) => {
@@ -89,14 +140,13 @@ export default function MathBattleGame() {
       setFeedback({ message: `Incorrect. The answer was ${currentProblem.answer}.`, type: 'incorrect' });
     }
     
-    // Automatically move to next problem or end game after a short delay
     setTimeout(() => {
-      if (problemIndex < allProblems.length - 1 && problemIndex < MAX_PROBLEMS_PER_GAME - 1 && timeLeft > 0) {
+      if (problemIndex < MAX_PROBLEMS_PER_GAME - 1 && timeLeft > 0) {
         setProblemIndex(prev => prev + 1);
       } else {
         setGamePhase('over');
       }
-    }, 1200); // Delay for feedback visibility
+    }, 1200);
   };
   
   const instructions = `
@@ -105,6 +155,7 @@ export default function MathBattleGame() {
     - You have ${GAME_DURATION_SECONDS} seconds to answer as many questions as possible (up to ${MAX_PROBLEMS_PER_GAME}).
     - Solve the math problem shown and click one of the answer choices.
     - Correct answers increase your score.
+    - Problems get harder as you progress.
     - Good luck!
   `;
 
@@ -153,7 +204,7 @@ export default function MathBattleGame() {
               selectedAnswer={selectedOption}
             />
 
-            {feedback && isAnswerSubmitted && ( // Only show feedback after submission
+            {feedback && isAnswerSubmitted && (
               <Alert variant={feedback.type === 'correct' ? 'default' : 'destructive'} className={feedback.type === 'correct' ? 'bg-green-500/10 border-green-500 text-green-700' : ''}>
                 {feedback.type === 'correct' ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
                 <AlertTitle>{feedback.type === 'correct' ? 'Correct!' : 'Incorrect!'}</AlertTitle>
@@ -167,7 +218,7 @@ export default function MathBattleGame() {
           <div className="text-center space-y-4 p-6 bg-primary/10 rounded-lg">
             <h3 className="text-2xl font-bold text-primary">Game Over!</h3>
             <p className="text-xl text-foreground">Your final score: <span className="font-bold">{score}</span></p>
-            <p className="text-muted-foreground">You attempted {problemIndex >= MAX_PROBLEMS_PER_GAME || problemIndex >= allProblems.length ? Math.min(problemIndex, MAX_PROBLEMS_PER_GAME) : problemIndex +1 } questions.</p>
+            <p className="text-muted-foreground">You attempted {problemIndex >= MAX_PROBLEMS_PER_GAME || currentProblem === null ? Math.min(problemIndex, MAX_PROBLEMS_PER_GAME) : problemIndex +1 } questions.</p>
             <Button onClick={startGame} size="lg" variant="outline">
               <RotateCw className="mr-2 h-5 w-5" /> Play Again
             </Button>

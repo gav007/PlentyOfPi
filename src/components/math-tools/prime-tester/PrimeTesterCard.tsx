@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Binary, CheckCircle, XCircle, AlertTriangle, List, Forward } from 'lucide-react'; // Changed ListNumbers to List
-import HowToUseToggle from '@/components/ui/HowToUseToggle';
+import { Binary, CheckCircle, XCircle, AlertTriangle, List, Forward } from 'lucide-react';
+import HowToUseToggle from '@/components/ui/HowToUseToggle'; // Corrected import path
 import { isPrime, getFactors, getNextPrimes } from '@/lib/primeUtils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
