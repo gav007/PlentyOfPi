@@ -10,13 +10,8 @@ import GraphControls from './GraphControls';
 import { evaluate, compile, parse } from 'mathjs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription }
 from '@/components/ui/card';
-// Icons like Save, FolderOpen, LogIn, LogOut, UserCircle, Loader2 are removed as they are related to auth
 import { LineChart as LineChartIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-// Firebase imports are removed as auth is removed
-// import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
-// import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-// import { app } from '@/lib/firebase'; 
 
 const INITIAL_X_MIN = -10;
 const INITIAL_X_MAX = 10;
@@ -29,33 +24,33 @@ const PREDEFINED_COLORS = [
   '#22D3EE', '#A3E635'
 ];
 
-let colorIndex = 0;
-const getNextColor = (): string => {
-  const color = PREDEFINED_COLORS[colorIndex % PREDEFINED_COLORS.length];
-  colorIndex = (colorIndex + 1); 
-  if (colorIndex >= PREDEFINED_COLORS.length) colorIndex = 0;
-  return color;
-};
-
 const initialViewSettings: GraphViewSettings = {
   xMin: INITIAL_X_MIN,
   xMax: INITIAL_X_MAX,
   yMin: INITIAL_Y_MIN,
   yMax: INITIAL_Y_MAX,
   grid: true,
-  autoScaleY: true, 
+  autoScaleY: true,
 };
 
 export default function GraphifyLayout() {
+  const { toast } = useToast();
+
+  // Initial color is fixed to avoid hydration mismatch
+  const initialFunctionColor = PREDEFINED_COLORS[0];
   const [functions, setFunctions] = useState<FunctionDefinition[]>([
-    { id: crypto.randomUUID(), expression: 'x^2', color: getNextColor(), isVisible: true, error: null },
+    { id: crypto.randomUUID(), expression: 'x^2', color: initialFunctionColor, isVisible: true, error: null },
   ]);
   const [viewSettings, setViewSettings] = useState<GraphViewSettings>(initialViewSettings);
 
-  const { toast } = useToast();
-  // Firebase and auth related states and hooks are removed
-  // const auth = getAuth(app);
-  // const db = getFirestore(app);
+  // Use a ref for colorIndex for client-side additions to ensure consistency
+  const nextColorIndexRef = useRef(1 % PREDEFINED_COLORS.length); // Start from the second color
+
+  const getNextColorForNewFunction = (): string => {
+    const color = PREDEFINED_COLORS[nextColorIndexRef.current];
+    nextColorIndexRef.current = (nextColorIndexRef.current + 1) % PREDEFINED_COLORS.length;
+    return color;
+  };
 
   const validateAndCompileExpression = (expression: string): { error: string | null } => {
     if (!expression.trim()) return { error: null };
@@ -70,14 +65,14 @@ export default function GraphifyLayout() {
 
   const handleAddFunction = (expression?: string) => {
     setFunctions(prev => {
-      if (prev.length >= 10) { 
+      if (prev.length >= 10) {
         toast({ title: "Function Limit Reached", description: "You can plot up to 10 functions.", variant: "destructive" });
         return prev;
       }
       const validation = validateAndCompileExpression(expression || '');
       return [
         ...prev,
-        { id: crypto.randomUUID(), expression: expression || '', color: getNextColor(), isVisible: true, error: validation.error },
+        { id: crypto.randomUUID(), expression: expression || '', color: getNextColorForNewFunction(), isVisible: true, error: validation.error },
       ]
     });
   };
@@ -102,7 +97,8 @@ export default function GraphifyLayout() {
     setFunctions(prev => {
       const newFunctions = prev.filter(f => f.id !== id);
       if (newFunctions.length === 0) {
-        return [{ id: crypto.randomUUID(), expression: '', color: getNextColor(), isVisible: true, error: null }];
+        // When deleting the last function, add a new blank one with the next color
+        return [{ id: crypto.randomUUID(), expression: '', color: getNextColorForNewFunction(), isVisible: true, error: null }];
       }
       return newFunctions;
     });
@@ -160,8 +156,6 @@ export default function GraphifyLayout() {
     });
   };
 
-  // All Firebase related functions (handleGoogleSignIn, handleSignOut, fetchUserGraphSets, handleSaveGraphSet, handleLoadGraphSet, handleDeleteGraphSet) are removed.
-
   return (
     <div className="p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6 min-h-screen flex flex-col">
       <Card className="shadow-xl flex-shrink-0">
@@ -174,7 +168,6 @@ export default function GraphifyLayout() {
             Plot functions, explore graphs, and analyze equations.
           </CardDescription>
         </CardHeader>
-        {/* Removed CardContent section that contained Auth and Save/Load Set UI */}
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 flex-grow min-h-0">
