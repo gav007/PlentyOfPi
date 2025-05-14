@@ -2,16 +2,16 @@
 'use client';
 
 import * as React from 'react';
-import { useId } from 'react';
+// Removed useId as it was part of a later problematic fix attempt
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Settings2, RefreshCw, Trash2, PlusCircle } from 'lucide-react';
+import { Settings2, RefreshCw, Trash2, PlusCircle } from 'lucide-react'; // PlusCircle added back
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertTriangle } from 'lucide-react';
-import type { CurrentFunctionInputType } from './CalculusPlaygroundCard'; // Use the type from parent
+import type { CurrentFunctionInputType } from './CalculusPlaygroundCard'; 
 
 export interface DomainOptions {
   xMin: string;
@@ -20,15 +20,6 @@ export interface DomainOptions {
   yMax: string;
 }
 
-// This type now reflects that parsing error is handled externally
-// export interface FunctionInputType {
-//   id: string; 
-//   expression: string;
-//   color: string;
-//   integralBounds: { a: string; b: string };
-// }
-// Using CurrentFunctionInputType from CalculusPlaygroundCard directly
-
 interface CompilationResultItem {
   id: string;
   error: string | null;
@@ -36,7 +27,7 @@ interface CompilationResultItem {
 
 interface FunctionInputProps {
   functions: CurrentFunctionInputType[];
-  compilationResultsList: CompilationResultItem[]; // To get parsing errors
+  compilationResultsList: CompilationResultItem[]; 
   onAddFunction: () => void;
   onUpdateFunction: (id: string, updates: Partial<Omit<CurrentFunctionInputType, 'id'>>) => void;
   onDeleteFunction: (id: string) => void;
@@ -65,7 +56,12 @@ export default function FunctionInput({
   const [tempDomainOptions, setTempDomainOptions] = React.useState<DomainOptions>(domainOptions);
   const [isSettingsPopoverOpen, setIsSettingsPopoverOpen] = React.useState(false);
 
-  const componentBaseId = useId(); 
+  // Using a simple counter for unique IDs within this component instance,
+  // as useId was causing hydration issues in this specific setup.
+  // This is less robust for SSR but avoids the immediate hydration error for client-side generation.
+  const idCounter = React.useRef(0);
+  const getUniqueId = (prefix: string, index: number) => `${prefix}-${idCounter.current}-${index}`;
+
 
   React.useEffect(() => {
     setTempDomainOptions(domainOptions);
@@ -93,6 +89,11 @@ export default function FunctionInput({
     setIsSettingsPopoverOpen(false);
   };
 
+  // Increment idCounter on mount if needed, or use another strategy for dynamic lists
+  React.useEffect(() => {
+    idCounter.current++;
+  }, []);
+
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center mb-2">
@@ -111,10 +112,10 @@ export default function FunctionInput({
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><Label htmlFor={`${componentBaseId}-xMin`} className="text-xs">X Min</Label><Input id={`${componentBaseId}-xMin`} name="xMin" value={tempDomainOptions.xMin} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="-10"/></div>
-                <div><Label htmlFor={`${componentBaseId}-xMax`} className="text-xs">X Max</Label><Input id={`${componentBaseId}-xMax`} name="xMax" value={tempDomainOptions.xMax} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="10"/></div>
-                <div><Label htmlFor={`${componentBaseId}-yMin`} className="text-xs">Y Min</Label><Input id={`${componentBaseId}-yMin`} name="yMin" value={tempDomainOptions.yMin} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="auto"/></div>
-                <div><Label htmlFor={`${componentBaseId}-yMax`} className="text-xs">Y Max</Label><Input id={`${componentBaseId}-yMax`} name="yMax" value={tempDomainOptions.yMax} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="auto"/></div>
+                <div><Label htmlFor={getUniqueId('xMin-input',0)} className="text-xs">X Min</Label><Input id={getUniqueId('xMin-input',0)} name="xMin" value={tempDomainOptions.xMin} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="-10"/></div>
+                <div><Label htmlFor={getUniqueId('xMax-input',0)} className="text-xs">X Max</Label><Input id={getUniqueId('xMax-input',0)} name="xMax" value={tempDomainOptions.xMax} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="10"/></div>
+                <div><Label htmlFor={getUniqueId('yMin-input',0)} className="text-xs">Y Min</Label><Input id={getUniqueId('yMin-input',0)} name="yMin" value={tempDomainOptions.yMin} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="auto"/></div>
+                <div><Label htmlFor={getUniqueId('yMax-input',0)} className="text-xs">Y Max</Label><Input id={getUniqueId('yMax-input',0)} name="yMax" value={tempDomainOptions.yMax} onChange={handleDomainInputChange} className="h-8 text-sm" placeholder="auto"/></div>
               </div>
               <div className='flex gap-2'>
                 <Button onClick={handleApplyDomainChanges} className="w-full h-9">Apply Scale</Button>
@@ -129,12 +130,12 @@ export default function FunctionInput({
       <TooltipProvider delayDuration={100}>
         <div className="space-y-2 max-h-60 overflow-y-auto pr-2 border rounded-md p-2 bg-muted/10">
           {functions.map((func, index) => {
-            const funcInputId = `${componentBaseId}-func-expr-${index}`;
-            const integralAId = `${componentBaseId}-integral-a-${index}`;
-            const integralBId = `${componentBaseId}-integral-b-${index}`;
+            const funcInputId = getUniqueId('func-expr',index);
+            const integralAId = getUniqueId('integral-a',index);
+            const integralBId = getUniqueId('integral-b',index);
             
             const compilationError = compilationResultsList.find(cr => cr.id === func.id)?.error || null;
-            const errorDescId = `${componentBaseId}-func-error-desc-${index}`;
+            const errorDescId = getUniqueId('func-error-desc',index);
 
 
             return (
@@ -230,3 +231,4 @@ export default function FunctionInput({
     </div>
   );
 }
+

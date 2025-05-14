@@ -3,13 +3,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sigma, BarChart2, AreaChart } from 'lucide-react'; 
-// Assuming CurrentFunctionInputType does not have integralValue anymore
 import type { CurrentFunctionInputType } from './CalculusPlaygroundCard';
 
 
 interface ResultPanelProps {
   functions: CurrentFunctionInputType[];
-  integralValuesMap: Map<string, number | undefined>; // New prop for integral values
+  integralValuesMap: Map<string, number | undefined>; 
   xValue: number;
   firstFunctionFxValue: number;
   firstFunctionFpxValue: number;

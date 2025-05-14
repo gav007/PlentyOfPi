@@ -5,7 +5,7 @@ import * as React from 'react';
 import * as math from 'mathjs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import FunctionInput, { type DomainOptions } from './FunctionInput';
-import type { CurrentFunctionInputType as StateFunctionInputType } from './FunctionInput'; // Keep original type for state
+import type { CurrentFunctionInputType as StateFunctionInputType } from './FunctionInput'; 
 import PlotDisplay from './PlotDisplay';
 import SliderControl from './SliderControl';
 import ResultPanel from './ResultPanel';
@@ -13,7 +13,6 @@ import TogglePanel from './TogglePanel';
 import { AlertTriangle } from 'lucide-react'; 
 import { Alert as UIAlert, AlertDescription as UIAlertDescription, AlertTitle as UIAlertTitle } from '@/components/ui/alert'; 
 import { Button } from '@/components/ui/button';
-// import { PlusCircle } from 'lucide-react'; // PlusCircle moved to FunctionInput.tsx
 import { useToast } from '@/hooks/use-toast';
 
 const PLOT_POINTS = 200;
@@ -141,13 +140,13 @@ export default function CalculusPlaygroundCard() {
         });
     } else {
         setGlobalErrorMessage(prevError => {
-            if (prevError && prevError.includes("Syntax Error")) { // If there was a syntax error, clear it
-                if (prevError.includes("Additionally, no plottable points")) { // but keep non-plotting message if it exists
+            if (prevError && prevError.includes("Syntax Error")) { 
+                if (prevError.includes("Additionally, no plottable points")) { 
                     return prevError.substring(prevError.indexOf("One or more functions resulted in no plottable points"));
                 }
-                return null; // Clear syntax error entirely
+                return null; 
             }
-            return prevError; // Keep existing non-syntax error (like no plottable points)
+            return prevError; 
         });
     }
   }, [compiledFunctionsList]);
@@ -161,7 +160,6 @@ export default function CalculusPlaygroundCard() {
       if (typeof result === 'object' && result.isComplex) return NaN;
       return (typeof result === 'number' && isFinite(result)) ? result : NaN;
     } catch (error) {
-      // console.error(`Error evaluating function '${compiledEntry.expression}' at x=${x}:`, error);
       return NaN;
     }
   }, [compiledFunctionsList]);
@@ -239,7 +237,7 @@ export default function CalculusPlaygroundCard() {
       }
     });
     return map;
-  }, [functions, compiledFunctionsList, evaluateFunctionAt]); // This is correct
+  }, [functions, compiledFunctionsList, evaluateFunctionAt]); 
 
 
   React.useEffect(() => {
@@ -369,13 +367,8 @@ export default function CalculusPlaygroundCard() {
       }));
       return { id: plot.id, points: areaPoints, color: func.color };
     });
-  }, [plotDataArray, functions, showArea, xValue, parsedDomain.xMin, parsedDomain.xMax]);
+  }, [plotDataArray, functions, showArea, parsedDomain.xMin, parsedDomain.xMax]);
 
-
-  React.useEffect(() => {
-    const firstFewPoints = areaDataArrayPlots[0]?.points.slice(0,10);
-    // console.log('CalculusPlaygroundCard areaDataArrayPlots[0] (first 10 points):', firstFewPoints, 'Total points:', areaDataArrayPlots[0]?.points.length);
-  }, [areaDataArrayPlots]);
 
   const handleXValueChangeByClick = (newX: number) => {
     const clampedNewX = Math.max(effectiveDomain.xMin, Math.min(effectiveDomain.xMax, newX));

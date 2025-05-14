@@ -14,50 +14,22 @@ interface SliderControlProps {
 }
 
 export default function SliderControl({ value, onValueChange, min, max, step }: SliderControlProps) {
-  const [internalSliderValue, setInternalSliderValue] = React.useState(value);
+  // Direct passthrough of value to ShadSlider, parent (CalculusPlaygroundCard) handles clamping if needed
+  // The bug was often related to feedback loops between internal state here and parent state.
+  // Simplification: this component is now more "controlled" by its parent.
 
-  // Synchronize internal state when the parent's `value` prop changes,
-  // but only if it's meaningfully different from the internal state.
-  React.useEffect(() => {
-    const isBoundsValidForEffect = !isNaN(min) && !isNaN(max) && min < max;
-    let clampedParentValue = value;
-
-    if (isNaN(value)) {
-      clampedParentValue = isBoundsValidForEffect ? min : 0;
-    } else if (isBoundsValidForEffect) {
-      clampedParentValue = Math.max(min, Math.min(max, value));
-    }
-    // Only update internal state if the (potentially clamped) parent value
-    // is different from the current internal state. This check is crucial.
-    if (Math.abs(clampedParentValue - internalSliderValue) > 1e-9) { // Use a small epsilon for float comparison
-      setInternalSliderValue(clampedParentValue);
-    }
-  }, [value, min, max, internalSliderValue]); // internalSliderValue added to deps as per best practice, but the condition above is key
-
-  // Callback for when the user interacts with the ShadCN slider.
-  // This updates the internal state and then conditionally calls the parent's onValueChange.
   const handleSliderValueChange = React.useCallback((newValues: number[]) => {
-    const newValueFromSlider = newValues[0];
-    
-    // Update internal state immediately for a responsive UI feel
-    setInternalSliderValue(newValueFromSlider);
-
-    // Only propagate the change to the parent if the new value from the slider
-    // is actually different from the parent's current `value` prop.
-    // This prevents calling onValueChange if the change was purely internal or due to prop sync.
-    if (Math.abs(value - newValueFromSlider) > 1e-9) {
-      onValueChange(newValueFromSlider);
-    }
-  }, [value, onValueChange]); // onValueChange and value are dependencies.
+    onValueChange(newValues[0]);
+  }, [onValueChange]);
 
   const effectiveStep = (max > min && step > 1e-9 && isFinite(step)) ? step : 0.01;
   const isBoundsValid = !isNaN(min) && !isNaN(max) && min < max;
   const displayValueInLabel = isNaN(value) ? "N/A" : value.toFixed(3);
   
-  // The value passed to ShadSlider should be the internal state, clamped to current bounds.
-  const sliderComponentDriveValue = isBoundsValid 
-    ? Math.max(min, Math.min(max, internalSliderValue)) 
-    : (isBoundsValid ? min : 0); // Fallback if bounds are not fully valid
+  // Use the parent's 'value' directly, clamped if necessary for display but ShadCN slider handles its own internal clamping.
+  // Ensure value is always an array for ShadSlider
+  const sliderDrivenValue = isBoundsValid ? [Math.max(min, Math.min(max, value))] : [0];
+
 
   if (!isBoundsValid) {
      return (
@@ -72,7 +44,7 @@ export default function SliderControl({ value, onValueChange, min, max, step }: 
             </div>
             <ShadSlider
                 id="x-slider-calculus-disabled"
-                value={[0]} // Static value for disabled state
+                value={[0]} 
                 min={0}
                 max={1}
                 step={0.01}
@@ -95,8 +67,8 @@ export default function SliderControl({ value, onValueChange, min, max, step }: 
       </div>
       <ShadSlider
         id="x-slider-calculus"
-        value={[sliderComponentDriveValue]} // Pass internal, clamped value as an array
-        onValueChange={handleSliderValueChange} // Use the memoized handler
+        value={sliderDrivenValue}
+        onValueChange={handleSliderValueChange}
         min={min}
         max={max}
         step={effectiveStep}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -15,14 +16,14 @@ import {
   TooltipProps,
 } from 'recharts';
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import type { DomainOptions } from './FunctionInput'; // Assuming DomainOptions is exported
+import type { DomainOptions } from './FunctionInput'; 
 
 interface PlotPoint { x: number; y: number | null; }
 interface PlotDataset {
   id: string;
   points: PlotPoint[];
   color: string;
-  expression?: string; // Optional for tooltips
+  expression?: string; 
 }
 interface AreaDataset extends PlotDataset {}
 
@@ -30,7 +31,7 @@ interface AreaDataset extends PlotDataset {}
 interface PlotDisplayProps {
   plotDataArray: PlotDataset[];
   areaDataArray: AreaDataset[];
-  firstFunctionPlotData: PlotPoint[]; // For tangent and reference dot if needed
+  firstFunctionPlotData: PlotPoint[]; 
   firstFunctionDerivativePlotData: PlotPoint[];
   xValue: number;
   fxValue: number; 
@@ -38,9 +39,9 @@ interface PlotDisplayProps {
   showTangent: boolean;
   showArea: boolean;
   showFullDerivativeCurve: boolean;
-  domain: { xMin: number; xMax: number; yMin: number | string; yMax: number | string }; // yMin/yMax can be 'auto' or number
+  domain: { xMin: number; xMax: number; yMin: number | string; yMax: number | string }; 
   onXValueChangeByClick: (newX: number) => void;
-  onDomainChange: (newDomain: Partial<DomainOptions>) => void;
+  onDomainChange: (newDomain: Partial<DomainOptions>) => void; // Kept for potential future use, but zoom logic removed for now
 }
 
 const formatTick = (tick: number, range: number): string => {
@@ -56,20 +57,20 @@ const formatTick = (tick: number, range: number): string => {
 export default function PlotDisplay({
   plotDataArray,
   areaDataArray,
-  firstFunctionPlotData, // Using this for tangent and dot
-  firstFunctionDerivativePlotData, // Using this for derivative curve
+  firstFunctionPlotData, 
+  firstFunctionDerivativePlotData, 
   xValue,
-  fxValue, // This should be for the first function
-  fpxValue, // This should be for the first function
+  fxValue, 
+  fpxValue, 
   showTangent,
   showArea,
   showFullDerivativeCurve,
   domain,
   onXValueChangeByClick,
-  onDomainChange,
+  onDomainChange, // Kept prop, but functionality relying on it (zoom) is reverted
 }: PlotDisplayProps) {
   const chartContainerRef = React.useRef<HTMLDivElement>(null);
-  const [chartLayout, setChartLayout] = React.useState<any>(null);
+  // chartLayout state related to zoom is removed
 
   const tangentLineData = React.useMemo(() => {
     if (!showTangent || isNaN(fxValue) || isNaN(fpxValue) || domain.xMin >= domain.xMax || !firstFunctionPlotData || firstFunctionPlotData.length === 0) return [];
@@ -125,43 +126,13 @@ export default function PlotDisplay({
   const xRange = domain.xMax - domain.xMin;
   const yRangeEffective = (typeof domain.yMax === 'number' && typeof domain.yMin === 'number') ? (domain.yMax - domain.yMin) : 20;
 
-  const handleWheelZoom = React.useCallback((event: WheelEvent) => {
-    event.preventDefault();
-    if (!chartLayout || !chartLayout.xAxisMap || !chartLayout.xAxisMap[0] || !chartLayout.xAxisMap[0].scale || !chartLayout.offset) {
-        return;
-    }
-    const { offsetX } = event;
-    const chartRect = chartContainerRef.current?.getBoundingClientRect();
-    if (!chartRect) return;
-
-    const mouseXInChartPixels = offsetX - chartLayout.offset.left; 
-    const xCoord = chartLayout.xAxisMap[0].scale.invert(mouseXInChartPixels);
-    const zoomIntensity = 0.1;
-    const direction = event.deltaY < 0 ? 1 : -1; 
-
-    let { xMin, xMax } = domain;
-    xMin = Number(xMin); xMax = Number(xMax);
-    const newXMin = xMin + (xCoord - xMin) * direction * zoomIntensity;
-    const newXMax = xMax - (xMax - xCoord) * direction * zoomIntensity;
-
-    if (newXMin < newXMax) {
-      onDomainChange({ xMin: newXMin.toString(), xMax: newXMax.toString(), yMin: 'auto', yMax: 'auto'});
-    }
-  }, [chartLayout, domain, onDomainChange]);
-
-  React.useEffect(() => {
-    const container = chartContainerRef.current;
-    if (container) {
-      container.addEventListener('wheel', handleWheelZoom, { passive: false });
-      return () => container.removeEventListener('wheel', handleWheelZoom);
-    }
-  }, [handleWheelZoom]);
+  // Wheel zoom logic and related useEffect are removed
 
   return (
     <div
       ref={chartContainerRef}
       className="w-full rounded-md border border-input bg-background/30 p-4 shadow-inner aspect-[2.2/1] min-h-[400px] cursor-pointer"
-      title="Click on graph to set x-value, scroll to zoom X-axis"
+      title="Click on graph to set x-value" // Removed scroll to zoom from title
       role="application"
       aria-label="Interactive calculus graph."
     >
@@ -169,13 +140,7 @@ export default function PlotDisplay({
         <LineChart
             margin={{ top: 5, right: 30, left: 5, bottom: 5 }}
             onClick={handleChartClick}
-            onMouseMove={(e: any) => { 
-                if (e && e.xAxisMap && e.yAxisMap && e.offset) {
-                    if (!chartLayout || chartLayout.offset?.left !== e.offset.left || !chartLayout.xAxisMap ) { 
-                       setChartLayout({ xAxisMap: e.xAxisMap, yAxisMap: e.yAxisMap, offset: e.offset });
-                    }
-                }
-            }}
+            // Removed onMouseMove related to chartLayout for zoom
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.5)" />
           <XAxis type="number" dataKey="x" domain={[domain.xMin, domain.xMax]} allowDataOverflow stroke="hsl(var(--muted-foreground))" tickFormatter={(tick) => formatTick(Number(tick), xRange)} name="x" />
@@ -191,7 +156,7 @@ export default function PlotDisplay({
                 type="monotone"
                 dataKey="y"
                 data={area.points}
-                fill={area.color} // Use function's color for its area, or a default like 'hsl(var(--primary))'
+                fill={area.color} 
                 stroke="none"
                 fillOpacity={0.3} 
                 baseValue={0}
@@ -215,8 +180,8 @@ export default function PlotDisplay({
                 connectNulls={false} 
                 name={plot.expression || `f(x)`} 
                 isAnimationActive={false} 
-                id={plot.id} // Ensure ID is passed for tooltip mapping
-                payload={[{id: plot.id}]} // For tooltip
+                id={plot.id} 
+                payload={[{id: plot.id}]} 
               />
             )
           ))}
